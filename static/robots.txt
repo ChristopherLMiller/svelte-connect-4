@@ -1,3 +1,8 @@
-# allow crawling everything by default
 User-agent: *
-Disallow:
+Allow: /
+
+User-agent: Twitterbot
+Allow: /og.png
+
+User-agent: facebookexternalhit
+Allow: /og.png

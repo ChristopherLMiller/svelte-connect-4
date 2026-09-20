@@ -3,7 +3,7 @@
 	import Explosion from '$lib/components/Explosion.svelte';
 	import { playHover, playLock, playThreat } from '$lib/game/audio';
 	import { isValidMove } from '$lib/game/engine';
-	import { computeLayout, discX, discY, holeCenter } from '$lib/game/layout';
+	import { computeLayout, columnLeft, discX, discY, holeCenter } from '$lib/game/layout';
 	import type { GameSession } from '$lib/game/session.svelte';
 	import { lookSettings } from '$lib/game/settings.svelte';
 	import { COLS, ROWS } from '$lib/game/types';
@@ -435,7 +435,7 @@
 			{/if}
 
 			<div class="hits">
-				{#each Array(COLS) as _, col}
+				{#each Array(COLS) as _, col (col)}
 					<button
 						class="hit"
 						class:hot={session.hoverCol === col || session.selectedCol === col}
@@ -443,7 +443,11 @@
 						class:full={!isValidMove(session.board, col)}
 						class:kill={killCols.has(col)}
 						class:danger={dangerCols.has(col) && !killCols.has(col)}
-						style="width: {layout.cell + layout.gap}px;"
+						style="
+							left: {columnLeft(layout, col)}px;
+							width: {layout.cell}px;
+							--well: {layout.cell}px;
+						"
 						aria-label={columnLabel(col)}
 						disabled={session.busy}
 						onpointerenter={() => onEnter(col)}
@@ -759,30 +763,46 @@
 		position: relative;
 		z-index: 2;
 		overflow: visible;
+		pointer-events: none;
 	}
 
 	.hits {
 		position: absolute;
 		inset: 0;
 		z-index: 3;
-		display: flex;
-		justify-content: space-between;
-		padding: 0 6px;
 	}
 
 	.hit {
+		position: absolute;
+		top: 0;
 		height: 100%;
+		margin: 0;
+		padding: 0;
 		border: 0;
+		appearance: none;
 		background: transparent;
 		border-radius: 22px;
 		cursor: pointer;
+		min-width: 0;
 	}
 
-	.hit.hot {
+	.hit::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 50%;
+		width: var(--well);
+		translate: -50% 0;
+		border-radius: 22px;
+		pointer-events: none;
+	}
+
+	.hit.hot::before {
 		background: linear-gradient(180deg, rgba(92, 225, 230, 0.14), transparent 55%);
 	}
 
-	.protocol .hit.hot {
+	.protocol .hit.hot::before {
 		background:
 			linear-gradient(180deg, rgba(92, 225, 230, 0.16), transparent 48%),
 			repeating-linear-gradient(
@@ -796,17 +816,17 @@
 		cursor: not-allowed;
 	}
 
-	.hit.bad {
+	.hit.bad::before {
 		background: linear-gradient(180deg, rgba(255, 51, 92, 0.22), transparent 60%);
 	}
 
-	.hit.kill {
+	.hit.kill::before {
 		background:
 			linear-gradient(180deg, rgba(92, 225, 230, 0.22), transparent 58%),
 			repeating-linear-gradient(180deg, transparent 0 11px, rgba(92, 225, 230, 0.14) 11px 12px);
 	}
 
-	.hit.danger {
+	.hit.danger::before {
 		background:
 			linear-gradient(180deg, rgba(255, 51, 92, 0.24), transparent 58%),
 			repeating-linear-gradient(180deg, transparent 0 11px, rgba(255, 51, 92, 0.16) 11px 12px);

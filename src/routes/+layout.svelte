@@ -1,11 +1,27 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
+	import { page } from '$app/state';
 	import Atmosphere from '$lib/components/Atmosphere.svelte';
 	import SettingsPanel from '$lib/components/SettingsPanel.svelte';
 	import { hydrateSettings, primeAudio } from '$lib/game/settings.svelte';
+	import {
+		absoluteUrl,
+		OG_IMAGE,
+		OG_IMAGE_ALT,
+		OG_IMAGE_FALLBACK,
+		SITE_DESCRIPTION,
+		SITE_NAME,
+		SITE_TITLE
+	} from '$lib/seo';
 	import '../app.css';
 
 	let { children } = $props();
+	const origin = $derived(page.url.origin);
+	const canonical = $derived(`${origin}${page.url.pathname}`);
+	const shareImage = $derived(
+		origin.startsWith('http://sveltekit-prerender') || origin.startsWith('http://localhost')
+			? OG_IMAGE_FALLBACK
+			: absoluteUrl(origin, OG_IMAGE)
+	);
 
 	$effect(() => {
 		let stop: (() => void) | undefined;
@@ -19,12 +35,17 @@
 <svelte:window onpointerdown={primeAudio} />
 
 <svelte:head>
-	<title>Connect 4 — Arcade Protocol</title>
-	<meta
-		name="description"
-		content="A luminous Connect 4 arena with gravity drops, bounce physics, local duels, and a minimax AI."
-	/>
-	<link rel="icon" href={favicon} />
+	<title>{SITE_TITLE}</title>
+	<meta name="description" content={SITE_DESCRIPTION} />
+	<link rel="canonical" href={canonical} />
+	<meta property="og:url" content={canonical} />
+	<meta property="og:title" content={SITE_TITLE} />
+	<meta property="og:site_name" content={SITE_NAME} />
+	<meta property="og:image" content={shareImage} />
+	<meta property="og:image:alt" content={OG_IMAGE_ALT} />
+	<meta name="twitter:image" content={shareImage} />
+	<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link

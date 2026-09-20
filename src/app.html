@@ -2,8 +2,85 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<meta name="text-scale" content="scale" />
+		<meta name="color-scheme" content="dark" />
+		<meta name="theme-color" content="#07060d" />
+		<meta name="application-name" content="Arcade Protocol" />
+		<meta name="apple-mobile-web-app-title" content="Arcade Protocol" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="format-detection" content="telephone=no" />
+
+		<title>Connect 4 — Arcade Protocol</title>
+		<meta
+			name="description"
+			content="A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax neural core."
+		/>
+		<meta
+			name="keywords"
+			content="Connect 4, Connect Four, arcade, sci-fi, local multiplayer, minimax AI, gravity, web game"
+		/>
+		<meta name="author" content="Christopher Miller" />
+		<meta name="robots" content="index, follow" />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Arcade Protocol" />
+		<meta property="og:locale" content="en_US" />
+		<meta property="og:title" content="Connect 4 — Arcade Protocol" />
+		<meta
+			property="og:description"
+			content="Drop with gravity. Bounce with restitution. Claim four in a line before the grid saturates."
+		/>
+		<meta
+			property="og:image"
+			content="https://raw.githubusercontent.com/ChristopherLMiller/svelte-connect-4/main/static/og.png"
+		/>
+		<meta property="og:image:type" content="image/png" />
+		<meta property="og:image:width" content="1280" />
+		<meta property="og:image:height" content="720" />
+		<meta
+			property="og:image:alt"
+			content="Arcade Protocol title screen: CONNECT 4 in neon type over a starfield, with crimson, gold, and cyan orbs."
+		/>
+
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Connect 4 — Arcade Protocol" />
+		<meta
+			name="twitter:description"
+			content="A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax AI."
+		/>
+		<meta
+			name="twitter:image"
+			content="https://raw.githubusercontent.com/ChristopherLMiller/svelte-connect-4/main/static/og.png"
+		/>
+		<meta
+			name="twitter:image:alt"
+			content="Arcade Protocol title screen: CONNECT 4 in neon type over a starfield, with crimson, gold, and cyan orbs."
+		/>
+
+		<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
+		<link rel="apple-touch-icon" href="%sveltekit.assets%/apple-touch-icon.png" />
+		<link rel="manifest" href="%sveltekit.assets%/site.webmanifest" />
+		<link rel="image_src" href="%sveltekit.assets%/og.png" />
+
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "VideoGame",
+				"name": "Connect 4 — Arcade Protocol",
+				"alternateName": "Arcade Protocol",
+				"description": "A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax neural core.",
+				"genre": ["Strategy", "Arcade"],
+				"gamePlatform": "Web Browser",
+				"applicationCategory": "GameApplication",
+				"operatingSystem": "Any",
+				"playMode": ["SinglePlayer", "MultiPlayer"],
+				"image": "https://raw.githubusercontent.com/ChristopherLMiller/svelte-connect-4/main/static/og.png",
+				"author": { "@type": "Person", "name": "Christopher Miller" }
+			}
+		</script>
+
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

@@ -44,7 +44,7 @@ export function computeLayout(availableWidth: number, availableHeight = Number.P
 }
 
 export function discX(layout: Layout, col: number): number {
-	return layout.pad + col * (layout.cell + layout.gap) + (layout.cell - layout.disc) / 2;
+	return columnLeft(layout, col) + (layout.cell - layout.disc) / 2;
 }
 
 export function discY(layout: Layout, row: number): number {
@@ -53,7 +53,11 @@ export function discY(layout: Layout, row: number): number {
 
 export function holeCenter(layout: Layout, col: number, row: number): { x: number; y: number } {
 	return {
-		x: layout.pad + col * (layout.cell + layout.gap) + layout.cell / 2,
+		x: columnLeft(layout, col) + layout.cell / 2,
 		y: layout.pad + row * (layout.cell + layout.gap) + layout.cell / 2
 	};
+}
+
+export function columnLeft(layout: Layout, col: number): number {
+	return layout.pad + col * (layout.cell + layout.gap);
 }

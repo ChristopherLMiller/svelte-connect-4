@@ -2,6 +2,7 @@
 	"name": "connect-4",
 	"private": true,
 	"version": "1.0.1",
+	"description": "A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax neural core.",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",

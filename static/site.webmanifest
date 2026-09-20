@@ -1,0 +1,25 @@
+{
+	"name": "Connect 4 — Arcade Protocol",
+	"short_name": "Connect 4",
+	"description": "A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax neural core.",
+	"id": "/",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#07060d",
+	"theme_color": "#07060d",
+	"lang": "en",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"type": "image/svg+xml",
+			"sizes": "any",
+			"purpose": "any"
+		},
+		{
+			"src": "/apple-touch-icon.png",
+			"type": "image/png",
+			"sizes": "1024x1024",
+			"purpose": "any"
+		}
+	]
+}
