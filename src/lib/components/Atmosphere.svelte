@@ -1,10 +1,11 @@
 <script lang="ts">
+	import Starfield from '$lib/components/Starfield.svelte';
 	import {
 		createSighting,
-		createStarfield,
 		createVoyage,
 		generateSector,
 		SECTOR_SPAN,
+		type Planet,
 		type Sector,
 		type Sighting
 	} from '$lib/game/space';
@@ -12,7 +13,50 @@
 	let root = $state<HTMLDivElement | null>(null);
 	let sectors = $state<Sector[]>([]);
 	let sightings = $state<Sighting[]>([]);
-	let starfield = $state(createStarfield(2026));
+
+	function glide(node: HTMLElement, planet: Planet) {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return {};
+
+		let current = planet;
+		let anim: Animation | null = null;
+
+		const play = (next: Planet) => {
+			anim?.cancel();
+			anim = node.animate(
+				[
+					{ transform: 'translate3d(0px, 0px, 0px)' },
+					{ transform: `translate3d(${next.dx}, ${next.dy}, 0px)` }
+				],
+				{
+					duration: Math.max(8, next.cruise) * 1000,
+					delay: Math.max(0, next.phase) * 1000,
+					easing: 'linear',
+					fill: 'forwards',
+					iterations: 1
+				}
+			);
+		};
+
+		play(current);
+		return {
+			update(next: Planet) {
+				if (
+					next.dx === current.dx &&
+					next.dy === current.dy &&
+					next.cruise === current.cruise &&
+					next.phase === current.phase
+				) {
+					current = next;
+					return;
+				}
+				current = next;
+				play(next);
+			},
+			destroy() {
+				anim?.cancel();
+			}
+		};
+	}
 
 	$effect(() => {
 		const node = root;
@@ -24,23 +68,16 @@
 			h: Math.max(node.clientHeight || 0, window.innerHeight)
 		});
 		const boot = measure();
-		starfield = createStarfield(2026, boot);
 		const voyage = createVoyage(Date.now(), boot);
 		const voyageSeed = voyage.seed;
 		let nextIndex = voyage.nextIndex;
-		let live = voyage.sectors;
 		let field = boot;
-		sectors = live.slice();
+		sectors = voyage.sectors;
 
 		const onResize = () => {
 			const next = measure();
-			if (Math.abs(next.w - field.w) < 48 && Math.abs(next.h - field.h) < 48) return;
+			if (Math.abs(next.w - field.w) < 160 && Math.abs(next.h - field.h) < 160) return;
 			field = next;
-			starfield = createStarfield(2026, next);
-			live = live.map((band) =>
-				generateSector(voyageSeed, band.id, Date.now() + band.id * 7919, band.origin, next)
-			);
-			sectors = live.slice();
 			node.style.setProperty('--star-period', `${next.h * 1.5}px`);
 		};
 
@@ -48,15 +85,10 @@
 		node.style.setProperty('--drift', '0px');
 		node.style.setProperty('--star-y', '0px');
 		node.style.setProperty('--star-period', `${boot.h * 1.5}px`);
-		const observer = new ResizeObserver(onResize);
-		observer.observe(node);
 		window.addEventListener('resize', onResize);
 
 		if (prefersReduce) {
-			return () => {
-				observer.disconnect();
-				window.removeEventListener('resize', onResize);
-			};
+			return () => window.removeEventListener('resize', onResize);
 		}
 
 		let travel = 0;
@@ -73,27 +105,25 @@
 
 			const height = field.h;
 			const span = height * SECTOR_SPAN;
-			const period = span * live.length;
-			let changed = false;
+			const bands = sectors;
+			const period = span * bands.length;
+			const recycleAt = height * 2.35;
 
-			for (let i = 0; i < live.length; i += 1) {
-				while (live[i] && live[i].origin + travel > height * 1.12) {
-					const origin = live[i].origin - period;
-					live[i] = generateSector(voyageSeed, nextIndex, Date.now() + nextIndex * 7919, origin, field);
+			for (let i = 0; i < bands.length; i += 1) {
+				while (bands[i] && bands[i].origin + travel > recycleAt) {
+					const origin = bands[i].origin - period;
+					bands[i] = generateSector(
+						voyageSeed,
+						nextIndex,
+						Date.now() + nextIndex * 7919,
+						origin,
+						field
+					);
 					nextIndex += 1;
-					changed = true;
 					if (Math.random() < 0.09 && sightings.length < 2) {
 						sightings = [...sightings, createSighting(Date.now())];
 					}
 				}
-			}
-
-			if (travel > period) {
-				travel -= period;
-				for (const band of live) {
-					if (band) band.origin += period;
-				}
-				changed = true;
 			}
 
 			node.style.setProperty('--voyage', `${travel}px`);
@@ -103,7 +133,6 @@
 			node.style.setProperty('--star-y', `${starY}px`);
 			node.style.setProperty('--star-period', `${starPeriod}px`);
 
-			if (changed) sectors = live.slice();
 			if (sightings.length && now - lastCull > 900) {
 				lastCull = now;
 				const keep = sightings.filter((egg) => now - egg.born < egg.life);
@@ -115,7 +144,6 @@
 		frame = requestAnimationFrame(tick);
 		return () => {
 			cancelAnimationFrame(frame);
-			observer.disconnect();
 			window.removeEventListener('resize', onResize);
 		};
 	});
@@ -123,10 +151,7 @@
 
 <div class="atmosphere" bind:this={root} aria-hidden="true">
 	<div class="wash"></div>
-	<div class="stars far" style:box-shadow={starfield.far}></div>
-	<div class="stars deep" style:box-shadow={starfield.deep}></div>
-	<div class="stars mid" style:box-shadow={starfield.mid}></div>
-	<div class="stars mid alt" style:box-shadow={starfield.mid}></div>
+	<Starfield />
 	{#each sectors as sector (sector.id)}
 		<div
 			class="sector"
@@ -191,20 +216,29 @@
 			<div class="motes worlds" style:box-shadow={sector.distant}></div>
 			{#each sector.planets as planet (planet.id)}
 				<div
-					class={['world', planet.kind, planet.retro && 'retro', planet.ringed && 'ringed']}
+					class={planet.className}
 					style:left="{planet.x}%"
 					style:top="{planet.y}%"
 					style:width="{planet.size}px"
 					style:height="{planet.size}px"
 					style:--spin="{planet.spin}s"
-					style:--bob="{planet.bob}s"
 					style:--phase="{planet.phase}s"
 					style:--axial="{planet.axial}deg"
-					style:--wobble="{planet.wobble}px"
 					style:--orbit="{planet.orbit}s"
+					style:--hi={planet.hi}
+					style:--mid={planet.mid}
+					style:--lo={planet.lo}
+					style:--halo={planet.halo}
+					style:--ring={planet.ring}
+					style:--haze={planet.haze}
+					style:--moon={planet.moonTint}
+					use:glide={planet}
 				>
 					<i class="halo"></i>
-					{#if planet.kind === 'gas' || planet.ringed}
+					{#if planet.atmo !== 'none'}
+						<i class="atmo"></i>
+					{/if}
+					{#if planet.ringed}
 						<i class="rings back"></i>
 					{/if}
 					<span class="spin">
@@ -213,10 +247,10 @@
 						{#if planet.cities}<i class="cities"></i>{/if}
 					</span>
 					<i class="glint"></i>
-					{#if planet.kind === 'ice'}
+					{#if planet.atmo === 'aurora'}
 						<i class="aurora"></i>
 					{/if}
-					{#if planet.kind === 'gas' || planet.ringed}
+					{#if planet.ringed}
 						<i class="rings front"></i>
 					{/if}
 					{#if planet.moon}
@@ -296,38 +330,11 @@
 	}
 
 	.wash,
-	.stars,
 	.sector,
 	.ring,
 	.grid,
 	.vignette {
 		position: absolute;
-	}
-
-	.stars {
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: var(--star-period, 150vh);
-		background: transparent;
-		pointer-events: none;
-	}
-
-	.stars.far {
-		opacity: 0.9;
-	}
-
-	.stars.deep {
-		opacity: 0.72;
-	}
-
-	.stars.mid {
-		transform: translate3d(calc(var(--drift) * -0.22), var(--star-y), 0);
-		opacity: 0.85;
-	}
-
-	.stars.mid.alt {
-		transform: translate3d(calc(var(--drift) * -0.22), calc(var(--star-y) - var(--star-period)), 0);
 	}
 
 	.wash {
@@ -342,7 +349,6 @@
 		inset: -20% 0 0 0;
 		height: 140%;
 		transform: translate3d(calc(var(--drift) * -1), calc(var(--voyage) + var(--origin)), 0);
-		will-change: transform;
 		contain: layout style;
 	}
 
@@ -414,7 +420,6 @@
 			);
 		opacity: 0.55;
 		animation: twirl var(--spin, 90s) linear infinite;
-		will-change: transform;
 	}
 
 	.galaxy.dim {
@@ -422,10 +427,10 @@
 	}
 
 	.motes {
+		width: 2px;
+		height: 2px;
 		left: 0;
 		top: 0;
-		width: 100%;
-		height: 100%;
 		background: transparent;
 	}
 
@@ -435,9 +440,6 @@
 
 	.world {
 		overflow: visible;
-		transform-style: flat;
-		will-change: transform;
-		animation: bob var(--bob, 11s) ease-in-out var(--phase, 0s) infinite;
 	}
 
 	.world .halo,
@@ -448,7 +450,8 @@
 	.world .glint,
 	.world .aurora,
 	.world .storm,
-	.world .cities {
+	.world .cities,
+	.world .atmo {
 		position: absolute;
 		border-radius: 50%;
 	}
@@ -464,14 +467,34 @@
 		animation-direction: reverse;
 	}
 
+	.world .halo {
+		inset: -22%;
+		background: radial-gradient(circle, var(--halo, rgba(139, 124, 255, 0.28)), transparent 68%);
+		animation: halo-breathe 7s ease-in-out var(--phase, 0s) infinite;
+	}
+
+	.world .atmo {
+		inset: -34%;
+		background: radial-gradient(circle, var(--haze, rgba(160, 200, 255, 0.16)), transparent 72%);
+		z-index: 0;
+		pointer-events: none;
+	}
+
+	.world.atmo-ion .atmo {
+		mix-blend-mode: screen;
+		opacity: 0.85;
+	}
+
+	.world.atmo-burn .halo {
+		animation-duration: 3.4s;
+	}
+
 	.world .body {
 		inset: 0;
 		box-shadow: inset -14px -10px 22px rgba(0, 0, 0, 0.48);
-	}
-
-	.world .halo {
-		inset: -22%;
-		animation: halo-breathe 7s ease-in-out var(--phase, 0s) infinite;
+		background:
+			radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.34), transparent 26%),
+			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 46%, var(--hi));
 	}
 
 	.world .glint {
@@ -490,9 +513,9 @@
 		background: conic-gradient(
 			from 200deg,
 			transparent 0 18%,
-			rgba(80, 255, 210, 0.28) 24%,
+			var(--haze, rgba(80, 255, 210, 0.28)) 24%,
 			transparent 38%,
-			rgba(140, 180, 255, 0.22) 48%,
+			var(--halo, rgba(140, 180, 255, 0.22)) 48%,
 			transparent 62%
 		);
 		mix-blend-mode: screen;
@@ -506,7 +529,7 @@
 		height: 14%;
 		left: 58%;
 		top: 46%;
-		background: radial-gradient(ellipse, #a33a22, rgba(80, 20, 10, 0.2) 70%);
+		background: radial-gradient(ellipse, var(--lo), color-mix(in srgb, var(--mid) 20%, transparent) 70%);
 		filter: blur(1px);
 		opacity: 0.85;
 	}
@@ -524,116 +547,77 @@
 		opacity: 0.8;
 	}
 
-	.gas .halo {
-		background: radial-gradient(circle, rgba(245, 194, 75, 0.28), transparent 68%);
-	}
-
 	.gas .body {
 		background:
 			radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.32), transparent 26%),
 			repeating-linear-gradient(
 				104deg,
-				#c47a3a 0 10px,
-				#e8b36a 10px 16px,
-				#8a4a28 16px 22px,
-				#d49a52 22px 30px
+				var(--mid) 0 10px,
+				var(--hi) 10px 16px,
+				var(--lo) 16px 22px,
+				var(--mid) 22px 30px
 			);
 	}
 
-	.gas .rings,
+	.ocean .body {
+		background:
+			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.4), transparent 26%),
+			radial-gradient(circle at 28% 62%, color-mix(in srgb, var(--hi) 70%, #0a2030) 0 18%, transparent 42%),
+			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 42%, var(--hi));
+	}
+
+	.toxic .body {
+		background:
+			radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.28), transparent 24%),
+			radial-gradient(circle at 62% 58%, var(--hi), transparent 36%),
+			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 48%, var(--hi));
+	}
+
+	.dust .body {
+		background:
+			radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.22), transparent 24%),
+			radial-gradient(circle at 58% 40%, color-mix(in srgb, var(--lo) 55%, transparent) 0 12%, transparent 28%),
+			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 46%, var(--hi));
+	}
+
 	.ringed .rings {
-		left: -58%;
-		top: 32%;
-		width: 216%;
-		height: 38%;
-		border: 9px solid rgba(255, 214, 140, 0.38);
+		left: -72%;
+		top: -72%;
+		width: 244%;
+		height: 244%;
+		border: 8px solid var(--ring, rgba(255, 214, 140, 0.38));
 		border-left-color: transparent;
-		border-right-color: rgba(255, 214, 140, 0.12);
+		border-right-color: color-mix(in srgb, var(--ring, rgba(255, 214, 140, 0.38)) 28%, transparent);
 		border-radius: 50%;
-		transform: rotateX(68deg) rotateZ(-22deg);
+		transform: rotateX(76deg);
 		transform-origin: 50% 50%;
-		transform-style: flat;
 		animation: ring-spin 48s linear infinite;
 	}
 
-	.gas .rings.back,
 	.ringed .rings.back {
 		z-index: 0;
 	}
 
-	.gas .rings.front,
 	.ringed .rings.front {
 		z-index: 2;
 		clip-path: inset(50% 0 0 0);
-		border-color: rgba(255, 228, 170, 0.55);
+		border-color: var(--ring, rgba(255, 228, 170, 0.55));
 	}
 
-	.ringed .rings {
+	.ringed:not(.gas) .rings {
 		border-width: 5px;
-		border-color: rgba(180, 230, 255, 0.42);
-		height: 30%;
-		top: 36%;
 		animation-duration: 36s;
 	}
 
-	.ringed .rings.front {
-		border-color: rgba(210, 245, 255, 0.6);
-	}
-
-	.gas .moon,
-	.ice .moon {
+	.world .moon {
 		width: 18%;
 		height: 18%;
 		left: 50%;
 		top: 50%;
-		background: radial-gradient(circle at 30% 30%, #f3efe4, #9b9488 58%, #6c655c);
+		background: radial-gradient(circle at 30% 30%, #f6f2ea, var(--moon, #9b9488) 58%, #6c655c);
 		box-shadow: inset -4px -3px 6px rgba(0, 0, 0, 0.4);
 		animation: moon var(--orbit, 14s) linear infinite;
 		z-index: 4;
-	}
-
-	.ice .moon {
-		background: radial-gradient(circle at 30% 30%, #f4fffe, #8fd4dc 58%, #3a6d78);
-	}
-
-	.ice .halo {
-		background: radial-gradient(circle, rgba(92, 225, 230, 0.32), transparent 70%);
-	}
-
-	.ice .body {
-		background:
-			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55), transparent 28%),
-			radial-gradient(circle at 70% 68%, #2a6d88, #7fe7ef 42%, #d7fbff);
-	}
-
-	.rock .halo {
-		background: radial-gradient(circle, rgba(255, 90, 70, 0.22), transparent 70%);
-	}
-
-	.rock .body {
-		background:
-			radial-gradient(circle at 30% 28%, rgba(255, 210, 170, 0.4), transparent 24%),
-			radial-gradient(circle at 62% 70%, #7a2418, #e15a32 46%, #ffb089);
-	}
-
-	.dwarf .halo {
-		background: radial-gradient(circle, rgba(139, 124, 255, 0.3), transparent 68%);
-	}
-
-	.dwarf .body {
-		background:
-			radial-gradient(circle at 28% 26%, rgba(255, 255, 255, 0.4), transparent 26%),
-			radial-gradient(circle at 60% 70%, #3a2a7a, #8b7cff 48%, #d5ccff);
-	}
-
-	.ember .halo {
-		background: radial-gradient(circle, rgba(255, 160, 40, 0.28), transparent 70%);
-	}
-
-	.ember .body {
-		background:
-			radial-gradient(circle at 36% 32%, #fff3c4, transparent 24%),
-			radial-gradient(circle at 50% 50%, #ff7a18, #ff335c 62%, #5a1020);
 	}
 
 	.ember .halo {
@@ -879,7 +863,6 @@
 		top: 42%;
 		border: 1px solid rgba(92, 225, 230, 0.12);
 		border-radius: 50%;
-		will-change: transform;
 	}
 
 	.r1 {
@@ -913,7 +896,6 @@
 		box-shadow: 6px 0 10px 1px color-mix(in srgb, var(--color) 55%, transparent);
 		opacity: 0;
 		animation: streak var(--dur) linear var(--delay) infinite;
-		will-change: transform, opacity;
 	}
 
 	.comet::after {
@@ -980,19 +962,12 @@
 		}
 	}
 
-	@keyframes bob {
-		0%,
-		100% {
-			transform: rotate(var(--axial, 0deg)) translate3d(0, 0, 0);
-		}
-		50% {
-			transform: rotate(var(--axial, 0deg)) translate3d(6px, calc(var(--wobble, 8px) * -1), 0);
-		}
-	}
-
 	@keyframes planet-spin {
+		from {
+			transform: rotate(var(--axial, 0deg));
+		}
 		to {
-			transform: rotate(360deg);
+			transform: rotate(calc(var(--axial, 0deg) + 360deg));
 		}
 	}
 
@@ -1018,10 +993,10 @@
 
 	@keyframes ring-spin {
 		from {
-			transform: rotateX(68deg) rotateZ(-22deg) rotate(0deg);
+			transform: rotateX(76deg) rotate(0deg);
 		}
 		to {
-			transform: rotateX(68deg) rotateZ(-22deg) rotate(360deg);
+			transform: rotateX(76deg) rotate(360deg);
 		}
 	}
 
@@ -1163,6 +1138,7 @@
 		.world .halo,
 		.world .glint,
 		.world .aurora,
+		.world .atmo,
 		.world .rings,
 		.ring,
 		.comet,
