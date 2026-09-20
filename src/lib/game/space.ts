@@ -87,10 +87,12 @@ export type Sector = {
 	origin: number;
 	dust: string;
 	glow: string;
+	distant: string;
 	nebulae: Cloud[];
 	wisps: Cloud[];
 	planets: Planet[];
 	galaxy: { x: number; y: number; size: number; spin: number } | null;
+	galaxyB: { x: number; y: number; size: number; spin: number } | null;
 	craft: { x: number; y: number } | null;
 	rocks: Rock[];
 	comets: Comet[];
@@ -111,8 +113,27 @@ const NEBULA = [
 	['rgba(160, 120, 255, 0.26)', 'rgba(255, 227, 138, 0.12)'],
 	['rgba(255, 90, 150, 0.2)', 'rgba(120, 180, 255, 0.16)']
 ];
+const DISTANT: Array<[number, number, number]> = [
+	[255, 210, 160],
+	[140, 210, 230],
+	[200, 170, 255],
+	[255, 120, 110],
+	[180, 230, 190],
+	[255, 227, 138],
+	[210, 230, 255]
+];
 
 export const SECTOR_SPAN = 1.2;
+
+export type FieldSize = { w: number; h: number };
+
+function viewportSize(): FieldSize {
+	if (typeof window === 'undefined') return { w: 1920, h: 1080 };
+	return {
+		w: Math.max(320, Math.ceil(window.innerWidth)),
+		h: Math.max(320, Math.ceil(window.innerHeight))
+	};
+}
 
 function mulberry32(seed: number) {
 	let s = seed | 0;
@@ -132,14 +153,22 @@ function pick<T>(rand: () => number, list: T[]) {
 	return list[Math.floor(rand() * list.length) % list.length];
 }
 
-function specks(rand: () => number, count: number, palette: Array<[number, number, number]>, blur: [number, number]) {
+function specks(
+	rand: () => number,
+	count: number,
+	palette: Array<[number, number, number]>,
+	blur: [number, number],
+	w: number,
+	h: number,
+	spreadMax = 0
+) {
 	return Array.from({ length: count }, () => {
-		const x = Math.round(rand() * 1600);
-		const y = Math.round(rand() * 1400);
+		const x = Math.round(rand() * w);
+		const y = Math.round(rand() * h);
 		const c = pick(rand, palette);
 		const a = (0.12 + rand() * 0.6).toFixed(2);
 		const glow = blur[0] + rand() * (blur[1] - blur[0]);
-		const spread = rand() > 0.86 ? 1 : 0;
+		const spread = spreadMax > 0 ? Math.round(rand() * spreadMax) : rand() > 0.86 ? 1 : 0;
 		return `${x}px ${y}px ${glow.toFixed(1)}px ${spread}px rgba(${c[0]},${c[1]},${c[2]},${a})`;
 	}).join(',');
 }
@@ -169,7 +198,13 @@ export function createSighting(now = Date.now()): Sighting {
 	return { ...egg, born: now, life: (egg.dur + egg.delay) * 1000 + 800 };
 }
 
-export function generateSector(voyageSeed: number, index: number, timeSeed: number, origin: number): Sector {
+export function generateSector(
+	voyageSeed: number,
+	index: number,
+	timeSeed: number,
+	origin: number,
+	size: FieldSize = viewportSize()
+): Sector {
 	const rand = mulberry32(mix(voyageSeed, index + 1, timeSeed));
 	const ice: Array<[number, number, number]> = [
 		[255, 255, 255],
@@ -183,24 +218,32 @@ export function generateSector(voyageSeed: number, index: number, timeSeed: numb
 		[255, 227, 138],
 		[255, 255, 255]
 	];
+	const fieldW = Math.max(960, Math.ceil(size.w * 1.08));
+	const fieldH = Math.max(720, Math.round(size.h * 1.4));
+	const area = fieldW * fieldH;
 
-	const planetCount = 1 + Math.floor(rand() * 3);
-	const usedKinds = new Set<PlanetKind>();
+	const planetCount = 10 + Math.floor(rand() * 13);
 	const planets: Planet[] = [];
 	for (let i = 0; i < planetCount; i += 1) {
-		let kind = pick(rand, KINDS);
-		if (usedKinds.has(kind) && rand() > 0.35) kind = pick(rand, KINDS);
-		usedKinds.add(kind);
-		const size =
-			kind === 'gas' ? 140 + rand() * 90 : kind === 'ice' ? 70 + rand() * 50 : kind === 'rock' ? 44 + rand() * 28 : 28 + rand() * 22;
+		const kind = pick(rand, KINDS);
+		const roll = rand();
+		const sizePx =
+			kind === 'gas'
+				? 72 + roll * 110
+				: kind === 'ice'
+					? 36 + roll * 54
+					: kind === 'rock'
+						? 22 + roll * 36
+						: 14 + roll * 28;
 		const spinBase = kind === 'gas' ? 54 : kind === 'ember' ? 18 : kind === 'ice' ? 36 : 28;
+		const ringed = kind === 'gas' ? rand() > 0.22 : kind !== 'ember' && rand() > 0.62;
 		planets.push({
 			id: `${index}-p-${i}`,
 			kind,
-			x: 4 + rand() * 78,
-			y: 8 + rand() * 74,
-			size,
-			moon: (kind === 'gas' && rand() > 0.35) || (kind === 'ice' && rand() > 0.88),
+			x: rand() * 92,
+			y: 4 + rand() * 88,
+			size: sizePx,
+			moon: (kind === 'gas' && rand() > 0.4) || (kind === 'ice' && rand() > 0.7) || rand() > 0.92,
 			spin: spinBase + rand() * spinBase * 0.9,
 			bob: 8 + rand() * 10,
 			phase: rand() * 9,
@@ -209,44 +252,44 @@ export function generateSector(voyageSeed: number, index: number, timeSeed: numb
 			retro: rand() > 0.78,
 			storm: kind === 'gas' && rand() > 0.48,
 			cities: (kind === 'rock' || kind === 'ice' || kind === 'dwarf') && rand() > 0.84,
-			ringed: kind !== 'gas' && kind !== 'ember' && rand() > 0.9,
+			ringed,
 			orbit: 11 + rand() * 10
 		});
 	}
 
-	const nebulaCount = 2 + Math.floor(rand() * 3);
+	const nebulaCount = 3 + Math.floor(rand() * 4);
 	const nebulae = Array.from({ length: nebulaCount }, (_, i) => {
 		const pair = pick(rand, NEBULA);
 		return {
 			id: `${index}-n-${i}`,
-			x: -12 + rand() * 70,
-			y: -8 + rand() * 70,
-			w: 28 + rand() * 36,
-			h: 18 + rand() * 26,
+			x: -8 + rand() * 88,
+			y: -8 + rand() * 78,
+			w: 18 + rand() * 42,
+			h: 12 + rand() * 28,
 			a: pair[0],
 			b: pair[1],
 			tilt: -24 + rand() * 48,
-			opacity: 0.55 + rand() * 0.35
+			opacity: 0.45 + rand() * 0.4
 		};
 	});
 
-	const wisps = Array.from({ length: 1 + Math.floor(rand() * 3) }, (_, i) => {
+	const wisps = Array.from({ length: 2 + Math.floor(rand() * 4) }, (_, i) => {
 		const pair = pick(rand, NEBULA);
 		return {
 			id: `${index}-w-${i}`,
-			x: rand() * 80,
-			y: 10 + rand() * 70,
-			w: 16 + rand() * 18,
-			h: 5 + rand() * 5,
+			x: rand() * 88,
+			y: 6 + rand() * 78,
+			w: 12 + rand() * 22,
+			h: 4 + rand() * 7,
 			a: pair[0],
 			b: 'transparent',
 			tilt: -22 + rand() * 44,
-			opacity: 0.35 + rand() * 0.3
+			opacity: 0.3 + rand() * 0.35
 		};
 	});
 
 	const headings = [18, 32, 148, 162, -20, 200, 44, 172];
-	const cometCount = 2 + Math.floor(rand() * 3);
+	const cometCount = 3 + Math.floor(rand() * 4);
 	const comets = Array.from({ length: cometCount }, (_, i) => ({
 		id: `${index}-c-${i}`,
 		x: -20 + rand() * 120,
@@ -261,34 +304,47 @@ export function generateSector(voyageSeed: number, index: number, timeSeed: numb
 	}));
 
 	const eggs: EasterEgg[] = [];
-	const eggRoll = rand();
-	const eggChance = index < 3 ? 0.07 : 0.2;
-	if (eggRoll < eggChance) {
+	const eggChance = index < 3 ? 0.12 : 0.28;
+	if (rand() < eggChance) {
 		const tier = rand();
 		const kind =
 			tier > 0.93 ? pick(rand, EGG_ULTRA) : tier > 0.62 ? pick(rand, EGG_RARE) : pick(rand, EGG_COMMON);
 		eggs.push(makeEgg(`${index}-egg`, kind, rand));
 	}
+	if (rand() < 0.08) {
+		eggs.push(makeEgg(`${index}-egg-b`, pick(rand, EGG_COMMON), rand));
+	}
+
+	const dustN = Math.min(720, Math.max(220, Math.round(area / 7000)));
+	const glowN = Math.min(260, Math.max(80, Math.round(area / 18000)));
+	const distantN = Math.min(1200, Math.max(320, Math.round(area / 4500)));
+	const rockN = 18 + Math.floor(rand() * 22);
+
+	const makeGalaxy = () => ({
+		x: rand() * 88,
+		y: 6 + rand() * 78,
+		size: 140 + rand() * 220,
+		spin: 70 + rand() * 50
+	});
 
 	return {
 		id: index,
 		origin,
-		dust: specks(rand, 90, ice, [0, 0.4]),
-		glow: specks(rand, 40, glow, [1, 4.5]),
+		dust: specks(rand, dustN, ice, [0, 0.4], fieldW, fieldH),
+		glow: specks(rand, glowN, glow, [1, 4.2], fieldW, fieldH),
+		distant: specks(rand, distantN, DISTANT, [0.4, 2.2], fieldW, fieldH, 3),
 		nebulae,
 		wisps,
 		planets,
-		galaxy:
-			rand() > 0.42
-				? { x: 6 + rand() * 78, y: 10 + rand() * 70, size: 180 + rand() * 180, spin: 70 + rand() * 50 }
-				: null,
-		craft: rand() > 0.62 ? { x: rand() * 80, y: 8 + rand() * 50 } : null,
-		rocks: Array.from({ length: Math.floor(rand() * 6) }, (_, i) => ({
+		galaxy: rand() > 0.28 ? makeGalaxy() : null,
+		galaxyB: rand() > 0.72 ? makeGalaxy() : null,
+		craft: rand() > 0.55 ? { x: rand() * 86, y: 8 + rand() * 55 } : null,
+		rocks: Array.from({ length: rockN }, (_, i) => ({
 			id: `${index}-r-${i}`,
-			x: rand() * 90,
-			y: 40 + rand() * 50,
-			w: 6 + rand() * 14,
-			h: 4 + rand() * 10,
+			x: rand() * 96,
+			y: rand() * 92,
+			w: 4 + rand() * 16,
+			h: 3 + rand() * 12,
 			rot: rand() * 360
 		})),
 		comets,
@@ -303,8 +359,8 @@ export function generateSector(voyageSeed: number, index: number, timeSeed: numb
 	};
 }
 
-export function createStarfield(seed = 9041) {
-	const rand = mulberry32(mix(seed, 11, 22));
+export function createStarfield(seed = 9041, size: FieldSize = viewportSize()) {
+	const rand = mulberry32(mix(seed, 11, size.w));
 	const ice: Array<[number, number, number]> = [
 		[255, 255, 255],
 		[210, 230, 255],
@@ -317,18 +373,27 @@ export function createStarfield(seed = 9041) {
 		[255, 227, 138],
 		[255, 255, 255]
 	];
+	const w = Math.max(960, Math.ceil(size.w * 1.08));
+	const h = Math.max(720, Math.round(size.h * 1.5));
+	const area = w * h;
 	return {
-		far: specks(rand, 88, ice, [0, 0.35]),
-		mid: specks(rand, 40, glow, [0.5, 3.2])
+		far: specks(rand, Math.min(900, Math.max(240, Math.round(area / 5200))), ice, [0, 0.35], w, h),
+		mid: specks(rand, Math.min(320, Math.max(90, Math.round(area / 14000))), glow, [0.5, 3.2], w, h),
+		deep: specks(rand, Math.min(700, Math.max(180, Math.round(area / 8000))), DISTANT, [0.2, 1.6], w, h, 2)
 	};
 }
 
-export function createVoyage(now = Date.now(), height = typeof window === 'undefined' ? 900 : window.innerHeight) {
-	const span = Math.max(320, height) * SECTOR_SPAN;
+export function createVoyage(
+	now = Date.now(),
+	size: FieldSize = viewportSize()
+) {
+	const span = Math.max(320, size.h) * SECTOR_SPAN;
 	return {
 		seed: now,
 		nextIndex: 3,
 		span,
-		sectors: [0, 1, 2].map((index) => generateSector(now, index, now + index * 917, -index * span))
+		sectors: [0, 1, 2].map((index) =>
+			generateSector(now, index, now + index * 917, -index * span, size)
+		)
 	};
 }

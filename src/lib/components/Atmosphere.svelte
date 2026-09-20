@@ -12,20 +12,52 @@
 	let root = $state<HTMLDivElement | null>(null);
 	let sectors = $state<Sector[]>([]);
 	let sightings = $state<Sighting[]>([]);
-	const starfield = createStarfield(2026);
+	let starfield = $state(createStarfield(2026));
 
 	$effect(() => {
 		const node = root;
 		if (!node) return;
 
 		const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		const heightOf = () => node.clientHeight || window.innerHeight;
-		const voyage = createVoyage(Date.now(), heightOf());
+		const measure = () => ({
+			w: Math.max(node.clientWidth || 0, window.innerWidth),
+			h: Math.max(node.clientHeight || 0, window.innerHeight)
+		});
+		const boot = measure();
+		starfield = createStarfield(2026, boot);
+		const voyage = createVoyage(Date.now(), boot);
 		const voyageSeed = voyage.seed;
 		let nextIndex = voyage.nextIndex;
 		let live = voyage.sectors;
+		let field = boot;
 		sectors = live.slice();
-		if (prefersReduce) return;
+
+		const onResize = () => {
+			const next = measure();
+			if (Math.abs(next.w - field.w) < 48 && Math.abs(next.h - field.h) < 48) return;
+			field = next;
+			starfield = createStarfield(2026, next);
+			live = live.map((band) =>
+				generateSector(voyageSeed, band.id, Date.now() + band.id * 7919, band.origin, next)
+			);
+			sectors = live.slice();
+			node.style.setProperty('--star-period', `${next.h * 1.5}px`);
+		};
+
+		node.style.setProperty('--voyage', '0px');
+		node.style.setProperty('--drift', '0px');
+		node.style.setProperty('--star-y', '0px');
+		node.style.setProperty('--star-period', `${boot.h * 1.5}px`);
+		const observer = new ResizeObserver(onResize);
+		observer.observe(node);
+		window.addEventListener('resize', onResize);
+
+		if (prefersReduce) {
+			return () => {
+				observer.disconnect();
+				window.removeEventListener('resize', onResize);
+			};
+		}
 
 		let travel = 0;
 		let drift = 0;
@@ -39,7 +71,7 @@
 			travel += 16 * dt;
 			drift += 4.5 * dt;
 
-			const height = heightOf();
+			const height = field.h;
 			const span = height * SECTOR_SPAN;
 			const period = span * live.length;
 			let changed = false;
@@ -47,7 +79,7 @@
 			for (let i = 0; i < live.length; i += 1) {
 				while (live[i] && live[i].origin + travel > height * 1.12) {
 					const origin = live[i].origin - period;
-					live[i] = generateSector(voyageSeed, nextIndex, Date.now() + nextIndex * 7919, origin);
+					live[i] = generateSector(voyageSeed, nextIndex, Date.now() + nextIndex * 7919, origin, field);
 					nextIndex += 1;
 					changed = true;
 					if (Math.random() < 0.09 && sightings.length < 2) {
@@ -66,7 +98,7 @@
 
 			node.style.setProperty('--voyage', `${travel}px`);
 			node.style.setProperty('--drift', `${drift}px`);
-			const starPeriod = height * 1.4;
+			const starPeriod = height * 1.5;
 			const starY = ((travel * 0.32) % starPeriod + starPeriod) % starPeriod;
 			node.style.setProperty('--star-y', `${starY}px`);
 			node.style.setProperty('--star-period', `${starPeriod}px`);
@@ -80,18 +112,19 @@
 			frame = requestAnimationFrame(tick);
 		};
 
-		node.style.setProperty('--voyage', '0px');
-		node.style.setProperty('--drift', '0px');
-		node.style.setProperty('--star-y', '0px');
-		node.style.setProperty('--star-period', `${heightOf() * 1.4}px`);
 		frame = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(frame);
+		return () => {
+			cancelAnimationFrame(frame);
+			observer.disconnect();
+			window.removeEventListener('resize', onResize);
+		};
 	});
 </script>
 
 <div class="atmosphere" bind:this={root} aria-hidden="true">
 	<div class="wash"></div>
 	<div class="stars far" style:box-shadow={starfield.far}></div>
+	<div class="stars deep" style:box-shadow={starfield.deep}></div>
 	<div class="stars mid" style:box-shadow={starfield.mid}></div>
 	<div class="stars mid alt" style:box-shadow={starfield.mid}></div>
 	{#each sectors as sector (sector.id)}
@@ -143,8 +176,19 @@
 					style:--spin="{sector.galaxy.spin}s"
 				></i>
 			{/if}
+			{#if sector.galaxyB}
+				<i
+					class="galaxy dim"
+					style:left="{sector.galaxyB.x}%"
+					style:top="{sector.galaxyB.y}%"
+					style:width="{sector.galaxyB.size}px"
+					style:height="{sector.galaxyB.size}px"
+					style:--spin="{sector.galaxyB.spin}s"
+				></i>
+			{/if}
 			<div class="motes far" style:box-shadow={sector.dust}></div>
 			<div class="motes glow" style:box-shadow={sector.glow}></div>
+			<div class="motes worlds" style:box-shadow={sector.distant}></div>
 			{#each sector.planets as planet (planet.id)}
 				<div
 					class={['world', planet.kind, planet.retro && 'retro', planet.ringed && 'ringed']}
@@ -261,16 +305,20 @@
 	}
 
 	.stars {
-		width: 2px;
-		height: 2px;
 		left: 0;
 		top: 0;
+		width: 100%;
+		height: var(--star-period, 150vh);
 		background: transparent;
 		pointer-events: none;
 	}
 
 	.stars.far {
 		opacity: 0.9;
+	}
+
+	.stars.deep {
+		opacity: 0.72;
 	}
 
 	.stars.mid {
@@ -369,15 +417,25 @@
 		will-change: transform;
 	}
 
+	.galaxy.dim {
+		opacity: 0.32;
+	}
+
 	.motes {
-		width: 2px;
-		height: 2px;
 		left: 0;
 		top: 0;
+		width: 100%;
+		height: 100%;
 		background: transparent;
 	}
 
+	.motes.worlds {
+		opacity: 0.9;
+	}
+
 	.world {
+		overflow: visible;
+		transform-style: flat;
 		will-change: transform;
 		animation: bob var(--bob, 11s) ease-in-out var(--phase, 0s) infinite;
 	}
@@ -491,7 +549,11 @@
 		border: 9px solid rgba(255, 214, 140, 0.38);
 		border-left-color: transparent;
 		border-right-color: rgba(255, 214, 140, 0.12);
-		animation: ring-precess 48s linear infinite;
+		border-radius: 50%;
+		transform: rotateX(68deg) rotateZ(-22deg);
+		transform-origin: 50% 50%;
+		transform-style: flat;
+		animation: ring-spin 48s linear infinite;
 	}
 
 	.gas .rings.back,
@@ -937,7 +999,6 @@
 	@keyframes halo-breathe {
 		50% {
 			opacity: 0.65;
-			transform: scale(1.06);
 		}
 	}
 
@@ -955,12 +1016,12 @@
 		}
 	}
 
-	@keyframes ring-precess {
+	@keyframes ring-spin {
 		from {
-			transform: rotateZ(-22deg) rotateX(68deg) rotate(0deg);
+			transform: rotateX(68deg) rotateZ(-22deg) rotate(0deg);
 		}
 		to {
-			transform: rotateZ(-22deg) rotateX(68deg) rotate(360deg);
+			transform: rotateX(68deg) rotateZ(-22deg) rotate(360deg);
 		}
 	}
 

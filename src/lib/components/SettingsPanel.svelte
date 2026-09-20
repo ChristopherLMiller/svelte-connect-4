@@ -11,6 +11,7 @@
 		setThreatAlerts,
 		syncAudio
 	} from '$lib/game/settings.svelte';
+	import { APP_VERSION } from '$lib/version';
 
 	const sfxPct = $derived(Math.round(audioSettings.sfxVolume * 100));
 	const musicPct = $derived(Math.round(audioSettings.musicVolume * 100));
@@ -142,6 +143,7 @@
 			</button>
 
 			<button class="done" onclick={closeSettings}>Close</button>
+			<p class="build">Arcade Protocol · v{APP_VERSION}</p>
 		</div>
 	</div>
 {/if}
@@ -303,5 +305,15 @@
 		text-transform: uppercase;
 		background: linear-gradient(180deg, #ffe38a, #f5c24b 50%, #e08a1a);
 		color: #2a1600;
+	}
+
+	.build {
+		margin: 14px 0 0;
+		text-align: center;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		font-size: 0.68rem;
+		color: var(--muted);
+		font-family: var(--font-display);
 	}
 </style>
