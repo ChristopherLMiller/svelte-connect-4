@@ -5,6 +5,7 @@
 	import { hydrateSettings, primeAudio } from '$lib/game/settings.svelte';
 	import {
 		absoluteUrl,
+		CONNECT4_DESCRIPTION,
 		OG_IMAGE,
 		OG_IMAGE_ALT,
 		OG_IMAGE_FALLBACK,
@@ -19,6 +20,9 @@
 	const path = $derived(page.url.pathname);
 	const onArcade = $derived(path === '/');
 	const title = $derived(siteTitleFor(path));
+	const description = $derived(
+		path === '/connect4' || path.startsWith('/connect4/') ? CONNECT4_DESCRIPTION : SITE_DESCRIPTION
+	);
 	const canonical = $derived(`${origin}${path === '/' ? '/' : path}`);
 	const shareImage = $derived(
 		origin.startsWith('http://sveltekit-prerender') || origin.startsWith('http://localhost')
@@ -39,10 +43,11 @@
 
 <svelte:head>
 	<title>{title}</title>
-	<meta name="description" content={SITE_DESCRIPTION} />
+	<meta name="description" content={description} />
 	<link rel="canonical" href={canonical} />
 	<meta property="og:url" content={canonical} />
 	<meta property="og:title" content={title} />
+	<meta property="og:description" content={description} />
 	<meta property="og:site_name" content={SITE_NAME} />
 	<meta property="og:image" content={shareImage} />
 	<meta property="og:image:alt" content={OG_IMAGE_ALT} />
