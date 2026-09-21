@@ -10,13 +10,16 @@
 		OG_IMAGE_FALLBACK,
 		SITE_DESCRIPTION,
 		SITE_NAME,
-		SITE_TITLE
+		siteTitleFor
 	} from '$lib/seo';
 	import '../app.css';
 
 	let { children } = $props();
 	const origin = $derived(page.url.origin);
-	const canonical = $derived(`${origin}${page.url.pathname}`);
+	const path = $derived(page.url.pathname);
+	const onArcade = $derived(path === '/');
+	const title = $derived(siteTitleFor(path));
+	const canonical = $derived(`${origin}${path === '/' ? '/' : path}`);
 	const shareImage = $derived(
 		origin.startsWith('http://sveltekit-prerender') || origin.startsWith('http://localhost')
 			? OG_IMAGE_FALLBACK
@@ -35,11 +38,11 @@
 <svelte:window onpointerdown={primeAudio} />
 
 <svelte:head>
-	<title>{SITE_TITLE}</title>
+	<title>{title}</title>
 	<meta name="description" content={SITE_DESCRIPTION} />
 	<link rel="canonical" href={canonical} />
 	<meta property="og:url" content={canonical} />
-	<meta property="og:title" content={SITE_TITLE} />
+	<meta property="og:title" content={title} />
 	<meta property="og:site_name" content={SITE_NAME} />
 	<meta property="og:image" content={shareImage} />
 	<meta property="og:image:alt" content={OG_IMAGE_ALT} />
@@ -54,12 +57,12 @@
 	/>
 </svelte:head>
 
-<main>
+<main class:arcade={onArcade}>
 	<Atmosphere />
-	<div class="shell">
+	<div class="shell" class:hall={onArcade}>
 		{@render children()}
 	</div>
-	<SettingsPanel />
+	<SettingsPanel scope={onArcade ? 'arcade' : 'connect4'} />
 </main>
 
 <style>
@@ -72,6 +75,11 @@
 		padding: 16px 20px 28px;
 	}
 
+	main.arcade {
+		padding: 18px 18px 24px;
+		align-items: stretch;
+	}
+
 	.shell {
 		width: min(1320px, 100%);
 		height: 100%;
@@ -80,5 +88,11 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.shell.hall {
+		width: min(1180px, 100%);
+		justify-content: stretch;
+		overflow: auto;
 	}
 </style>

@@ -50,6 +50,7 @@
 </script>
 
 <section class="menu" in:fade={{ duration: 400 }}>
+	<a class="back" href="/" onclick={() => playSelect()}>← Arcade floor</a>
 	<p class="kicker" in:fly={{ y: 16, duration: 500 }}>ARCADE PROTOCOL</p>
 	<h1 in:fly={{ y: 24, duration: 650 }}>
 		<span class="word" data-text="CONNECT">CONNECT</span>
@@ -119,6 +120,33 @@
 		width: min(760px, 100%);
 		text-align: center;
 		padding: 24px 8px 48px;
+	}
+
+	.back {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0 0 18px;
+		padding: 10px 16px;
+		border-radius: 999px;
+		border: 1px solid var(--line);
+		background: rgba(16, 18, 36, 0.55);
+		color: var(--cyan);
+		text-decoration: none;
+		font-family: var(--font-display);
+		font-size: 0.78rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		transition:
+			transform 160ms ease,
+			border-color 160ms ease,
+			box-shadow 160ms ease;
+	}
+
+	.back:hover {
+		transform: translateY(-2px);
+		border-color: rgba(92, 225, 230, 0.55);
+		box-shadow: 0 0 18px rgba(92, 225, 230, 0.18);
 	}
 
 	.kicker {

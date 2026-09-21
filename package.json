@@ -1,8 +1,8 @@
 {
-	"name": "connect-4",
+	"name": "arcade-protocol",
 	"private": true,
-	"version": "1.0.1",
-	"description": "A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax neural core.",
+	"version": "1.1.0",
+	"description": "Arcade Protocol — a flashy sci-fi game launcher with Connect 4, shared volumes, and a living background score.",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
