@@ -1,14 +1,14 @@
 <script lang="ts">
-	import ArcadeLauncher from '$lib/components/ArcadeLauncher.svelte';
-	import { closeSettings, audioSettings } from '$lib/game/settings.svelte';
-
-	function onKey(event: KeyboardEvent) {
-		if (event.key === 'Escape' && audioSettings.open) {
-			closeSettings();
-		}
-	}
+	import GameLibrary from '$lib/components/GameLibrary.svelte';
 </script>
 
-<svelte:window onkeydown={onKey} />
+<svelte:head>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Bungee&family=Exo+2:wght@400;600;700;800&display=swap"
+		rel="stylesheet"
+	/>
+</svelte:head>
 
-<ArcadeLauncher />
+<GameLibrary />

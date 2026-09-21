@@ -1,0 +1,17 @@
+{
+	"id": "connect4",
+	"title": "Connect 4",
+	"genre": "Gravity duel",
+	"players": "1–2",
+	"tagline": "Drop. Bounce. Four in a line.",
+	"blurb": "A luminous sci-fi grid with bounce physics, hotseat duels, and a minimax core that sees the fork.",
+	"description": "A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax neural core.",
+	"keywords": ["Connect 4", "Connect Four", "gravity drop", "minimax", "hotseat", "sci-fi arcade"],
+	"theme": "#07060d",
+	"favicon": "/connect4-favicon.svg",
+	"href": "/connect4",
+	"accent": "#5ce1e6",
+	"glow": "#ff335c",
+	"cabinet": "#14102a",
+	"order": 1
+}

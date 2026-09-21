@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Tide and Cross">
+	<defs>
+		<linearGradient id="sand" x1="10" y1="0" x2="54" y2="64" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#f0d7b0" />
+			<stop offset="1" stop-color="#c39262" />
+		</linearGradient>
+		<linearGradient id="tide" x1="0" y1="40" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#3aa0b8" />
+			<stop offset="1" stop-color="#0c3a4c" />
+		</linearGradient>
+	</defs>
+	<rect width="64" height="64" rx="16" fill="url(#sand)" />
+	<path d="M16 16 L30 36" fill="none" stroke="#5c3a28" stroke-width="5.2" stroke-linecap="round" />
+	<path d="M30 16 L15 37" fill="none" stroke="#5c3a28" stroke-width="5.2" stroke-linecap="round" />
+	<circle cx="46" cy="24" r="9.5" fill="none" stroke="#5c3a28" stroke-width="4.2" />
+	<path d="M0 44 C14 36 22 52 34 44 C46 36 54 52 64 42 V64 H0 Z" fill="url(#tide)" />
+	<path d="M0 47 C16 41 24 55 36 47 C48 39 56 54 64 46" fill="none" stroke="#e8f8fb" stroke-width="2.2" stroke-linecap="round" opacity=".75" />
+</svg>

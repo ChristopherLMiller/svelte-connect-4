@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 
+Sitemap: /sitemap.xml
+
 User-agent: Twitterbot
 Allow: /og.png
 

@@ -1,24 +1,3 @@
-:root {
-	color-scheme: dark;
-	--void: #07060d;
-	--void-2: #110d1c;
-	--glass: rgba(16, 18, 36, 0.62);
-	--line: rgba(255, 255, 255, 0.12);
-	--text: #f4f1ff;
-	--muted: #b7b0d0;
-	--crimson: #ff335c;
-	--crimson-deep: #c4123d;
-	--gold: #f5c24b;
-	--gold-deep: #c88814;
-	--cyan: #5ce1e6;
-	--violet: #8b7cff;
-	--board: #1d4ed8;
-	--board-deep: #1236a8;
-	--font-display: 'Orbitron', sans-serif;
-	--font-body: 'Sora', sans-serif;
-	--shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
-}
-
 * {
 	box-sizing: border-box;
 }
@@ -27,9 +6,13 @@ html,
 body {
 	margin: 0;
 	min-height: 100%;
-	background: var(--void);
-	color: var(--text);
-	font-family: var(--font-body);
+	background: #070014;
+	color: #f7f1ff;
+	font-family:
+		'Exo 2',
+		ui-sans-serif,
+		system-ui,
+		sans-serif;
 	-webkit-font-smoothing: antialiased;
 }
 
@@ -47,10 +30,10 @@ button {
 }
 
 :focus-visible {
-	outline: 2px solid var(--cyan);
+	outline: 2px solid #00f0ff;
 	outline-offset: 3px;
 }
 
 ::selection {
-	background: color-mix(in srgb, var(--cyan) 40%, transparent);
+	background: color-mix(in srgb, #ff2bd6 40%, transparent);
 }

@@ -2,7 +2,7 @@
 	"name": "arcade-protocol",
 	"private": true,
 	"version": "1.1.0",
-	"description": "Arcade Protocol — a flashy sci-fi game launcher with Connect 4, shared volumes, and a living background score.",
+	"description": "AI Arcade. Live cabinets that launch standalone titles. Each game lives in its own world.",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",

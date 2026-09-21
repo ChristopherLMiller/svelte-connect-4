@@ -1,31 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Arcade Protocol">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AI Arcade">
 	<defs>
-		<linearGradient id="void" x1="8" y1="0" x2="60" y2="64" gradientUnits="userSpaceOnUse">
-			<stop offset="0" stop-color="#161028" />
-			<stop offset="1" stop-color="#07060d" />
+		<linearGradient id="cab" x1="12" y1="4" x2="52" y2="60" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#2a0a3d" />
+			<stop offset="1" stop-color="#070014" />
 		</linearGradient>
-		<radialGradient id="glow" cx="38%" cy="28%" r="70%">
-			<stop offset="0" stop-color="#8b7cff" stop-opacity=".38" />
-			<stop offset="1" stop-color="#07060d" stop-opacity="0" />
-		</radialGradient>
-		<linearGradient id="four" x1="32" y1="10" x2="32" y2="58" gradientUnits="userSpaceOnUse">
-			<stop offset="0" stop-color="#fff1b0" />
-			<stop offset="0.42" stop-color="#f5c24b" />
-			<stop offset="1" stop-color="#ff335c" />
+		<linearGradient id="screen" x1="20" y1="12" x2="44" y2="30" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#00f0ff" />
+			<stop offset="1" stop-color="#ff2bd6" />
 		</linearGradient>
 	</defs>
-	<rect width="64" height="64" rx="16" fill="url(#void)" />
-	<rect width="64" height="64" rx="16" fill="url(#glow)" />
-	<rect x="2.5" y="2.5" width="59" height="59" rx="14" fill="none" stroke="#5ce1e6" stroke-opacity=".7" stroke-width="2" />
-	<circle cx="12" cy="14" r="0.9" fill="#fff" opacity=".7" />
-	<circle cx="52" cy="18" r="0.7" fill="#5ce1e6" opacity=".8" />
-	<circle cx="48" cy="50" r="0.8" fill="#fff" opacity=".45" />
-	<g fill="url(#four)">
-		<rect x="44" y="11" width="11" height="42" rx="1.2" />
-		<rect x="13" y="33" width="42" height="9" rx="1" />
-		<polygon points="17,11 29,11 23,33 11,33" />
-	</g>
-	<circle cx="14" cy="18" r="3.1" fill="#ff335c" />
-	<circle cx="52" cy="16" r="2.6" fill="#f5c24b" />
-	<circle cx="16" cy="50" r="2.5" fill="#5ce1e6" />
+	<rect width="64" height="64" rx="16" fill="url(#cab)" />
+	<rect x="16" y="8" width="32" height="48" rx="5" fill="#120018" stroke="#ffe14a" stroke-width="2" />
+	<rect x="20" y="12" width="24" height="16" rx="2" fill="url(#screen)" />
+	<circle cx="26" cy="40" r="3.2" fill="#ff2bd6" />
+	<circle cx="34" cy="40" r="3.2" fill="#00f0ff" />
+	<circle cx="42" cy="40" r="3.2" fill="#ffe14a" />
+	<rect x="28" y="47" width="8" height="3" rx="1" fill="#ffe14a" />
 </svg>

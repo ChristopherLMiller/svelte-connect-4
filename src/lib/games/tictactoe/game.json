@@ -1,0 +1,17 @@
+{
+	"id": "tictactoe",
+	"title": "Tide & Cross",
+	"genre": "Shore scratch",
+	"players": "1–2",
+	"tagline": "Three before the water takes it.",
+	"blurb": "A top-down square of wet sand. Stick-drawn marks. When the round ends, a wave washes the board clean.",
+	"description": "Tic-tac-toe drawn in wet sand. Hotseat or a quiet AI. When a round ends, the tide washes the board clean.",
+	"keywords": ["Tide & Cross", "tic-tac-toe", "noughts and crosses", "beach", "tide", "hotseat"],
+	"theme": "#c19a72",
+	"favicon": "/tictactoe-favicon.svg",
+	"href": "/tictactoe",
+	"accent": "#7ee7ff",
+	"glow": "#e8b48a",
+	"cabinet": "#1a1430",
+	"order": 2
+}

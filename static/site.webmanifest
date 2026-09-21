@@ -1,12 +1,12 @@
 {
-	"name": "Arcade Protocol",
-	"short_name": "Arcade",
-	"description": "A flashy sci-fi arcade floor. Launch Connect 4 and more with shared volumes and a living background score.",
+	"name": "AI Arcade",
+	"short_name": "AI Arcade",
+	"description": "AI Arcade. Live cabinets. Each title is its own world, and the house thinks back.",
 	"id": "/",
 	"start_url": "/",
 	"display": "standalone",
-	"background_color": "#07060d",
-	"theme_color": "#07060d",
+	"background_color": "#070014",
+	"theme_color": "#070014",
 	"lang": "en",
 	"icons": [
 		{
