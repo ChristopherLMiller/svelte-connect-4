@@ -3,7 +3,7 @@
 	import { fade, fly, scale } from 'svelte/transition';
 	import { ARCADE_GAMES, type ArcadeGame } from '$lib/arcade/catalog';
 	import { playHover, playSelect } from '$lib/game/audio';
-	import { openSettings, primeAudio } from '$lib/game/settings.svelte';
+	import { audioSettings, openSettings, primeAudio } from '$lib/game/settings.svelte';
 	import { APP_VERSION } from '$lib/version';
 
 	let focusId = $state(ARCADE_GAMES[0].id);
@@ -42,6 +42,7 @@
 	function onKey(event: KeyboardEvent) {
 		primeAudio();
 		if (event.key === 'Escape') return;
+		if (audioSettings.open || booting) return;
 
 		const index = ARCADE_GAMES.findIndex((game) => game.id === focusId);
 		if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
