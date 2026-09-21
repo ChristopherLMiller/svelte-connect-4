@@ -1,7 +1,7 @@
 {
-	"name": "Connect 4 — Arcade Protocol",
-	"short_name": "Connect 4",
-	"description": "A luminous sci-fi Connect 4 arena with gravity drops, bounce physics, hotseat duels, and a minimax neural core.",
+	"name": "Arcade Protocol",
+	"short_name": "Arcade",
+	"description": "A flashy sci-fi arcade floor. Launch Connect 4 and more with shared volumes and a living background score.",
 	"id": "/",
 	"start_url": "/",
 	"display": "standalone",

@@ -13,8 +13,11 @@
 	} from '$lib/game/settings.svelte';
 	import { APP_VERSION } from '$lib/version';
 
+	let { scope = 'arcade' }: { scope?: 'arcade' | 'connect4' } = $props();
+
 	const sfxPct = $derived(Math.round(audioSettings.sfxVolume * 100));
 	const musicPct = $derived(Math.round(audioSettings.musicVolume * 100));
+	const showGamePrefs = $derived(scope === 'connect4');
 	let trackName = $state(getMusicTrackName());
 
 	onMount(() =>
@@ -46,42 +49,47 @@
 			aria-modal="true"
 			aria-labelledby="settings-title"
 		>
-			<p class="kicker">Signal control</p>
+			<p class="kicker">{showGamePrefs ? 'Signal control' : 'Floor control'}</p>
 			<h2 id="settings-title">Settings</h2>
+			{#if !showGamePrefs}
+				<p class="lede">Volumes and score apply across every cabinet on the floor.</p>
+			{/if}
 
-			<p class="kicker sub">Grid skin</p>
-			<div class="skins" role="radiogroup" aria-label="Board look">
-				<button
-					type="button"
-					class:on={lookSettings.skin === 'protocol'}
-					aria-pressed={lookSettings.skin === 'protocol'}
-					onclick={() => setBoardSkin('protocol')}
-				>
-					<strong>Protocol</strong>
-					<small>Hololith hull and energy cells</small>
-				</button>
-				<button
-					type="button"
-					class:on={lookSettings.skin === 'classic'}
-					aria-pressed={lookSettings.skin === 'classic'}
-					onclick={() => setBoardSkin('classic')}
-				>
-					<strong>Arcade</strong>
-					<small>Original plastic board and discs</small>
-				</button>
-			</div>
+			{#if showGamePrefs}
+				<p class="kicker sub">Grid skin</p>
+				<div class="skins" role="radiogroup" aria-label="Board look">
+					<button
+						type="button"
+						class:on={lookSettings.skin === 'protocol'}
+						aria-pressed={lookSettings.skin === 'protocol'}
+						onclick={() => setBoardSkin('protocol')}
+					>
+						<strong>Protocol</strong>
+						<small>Hololith hull and energy cells</small>
+					</button>
+					<button
+						type="button"
+						class:on={lookSettings.skin === 'classic'}
+						aria-pressed={lookSettings.skin === 'classic'}
+						onclick={() => setBoardSkin('classic')}
+					>
+						<strong>Arcade</strong>
+						<small>Original plastic board and discs</small>
+					</button>
+				</div>
 
-			<label class="row">
-				<input
-					type="checkbox"
-					checked={lookSettings.threatAlerts}
-					onchange={(event) => setThreatAlerts(event.currentTarget.checked)}
-				/>
-				<span>
-					<strong>Threat detection</strong>
-					<small>Warn when a four is open or you're about to be finished</small>
-				</span>
-			</label>
+				<label class="row">
+					<input
+						type="checkbox"
+						checked={lookSettings.threatAlerts}
+						onchange={(event) => setThreatAlerts(event.currentTarget.checked)}
+					/>
+					<span>
+						<strong>Threat detection</strong>
+						<small>Warn when a four is open or you're about to be finished</small>
+					</span>
+				</label>
+			{/if}
 
 			<label class="row">
 				<input
@@ -91,7 +99,7 @@
 				/>
 				<span>
 					<strong>Sound effects</strong>
-					<small>Drops, bounces, blocks, wins</small>
+					<small>{showGamePrefs ? 'Drops, bounces, blocks, wins' : 'UI clicks and every cabinet'}</small>
 				</span>
 			</label>
 			<label class="slider">
@@ -190,6 +198,13 @@
 		margin: 0 0 14px;
 		font-family: var(--font-display);
 		font-size: 1.7rem;
+	}
+
+	.lede {
+		margin: -6px 0 16px;
+		color: var(--muted);
+		font-size: 0.9rem;
+		line-height: 1.45;
 	}
 
 	.kicker.sub {
