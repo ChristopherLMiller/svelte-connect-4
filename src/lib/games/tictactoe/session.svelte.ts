@@ -18,6 +18,7 @@ export class TttSession {
 	hover = $state<[number, number] | null>(null);
 	selected = $state<[number, number]>([1, 1]);
 	washing = $state(false);
+	receding = $state(false);
 	erasing = $state(false);
 	gridHidden = $state(false);
 	sketching = $state(false);
@@ -26,6 +27,7 @@ export class TttSession {
 
 	busy = $derived(
 		this.washing ||
+			this.receding ||
 			this.gridHidden ||
 			this.sketching ||
 			this.aiThinking ||
@@ -41,6 +43,7 @@ export class TttSession {
 		this.starter = 1;
 		this.screen = 'play';
 		this.washing = false;
+		this.receding = false;
 		this.erasing = false;
 		this.gridHidden = false;
 		this.sketching = false;
@@ -63,6 +66,7 @@ export class TttSession {
 		this.status = { type: 'playing' };
 		this.aiThinking = false;
 		this.washing = false;
+		this.receding = false;
 		this.erasing = false;
 		this.gridHidden = false;
 		this.sketching = false;
@@ -80,6 +84,7 @@ export class TttSession {
 		this.turnToken += 1;
 		this.aiThinking = false;
 		this.washing = false;
+		this.receding = false;
 		this.erasing = false;
 		this.gridHidden = false;
 		this.sketching = false;
@@ -100,7 +105,7 @@ export class TttSession {
 
 	rematch() {
 		if (this.screen !== 'play') return;
-		if (this.washing || this.sketching || this.gridHidden) return;
+		if (this.washing || this.receding || this.sketching || this.gridHidden) return;
 		this.turnToken += 1;
 		this.aiThinking = false;
 		this.hover = null;
@@ -211,6 +216,7 @@ export class TttSession {
 		await wait(reduced ? 520 : 1650);
 		if (token !== this.turnToken || this.screen !== 'play') {
 			this.washing = false;
+			this.receding = false;
 			return;
 		}
 		this.erasing = true;
@@ -219,13 +225,22 @@ export class TttSession {
 		await wait(reduced ? 280 : 480);
 		if (token !== this.turnToken) {
 			this.washing = false;
+			this.receding = false;
 			this.erasing = false;
 			this.gridHidden = false;
 			return;
 		}
 		this.washing = false;
+		this.receding = true;
 		this.erasing = false;
-		await wait(reduced ? 450 : 1500);
+		await wait(reduced ? 450 : 1450);
+		if (token !== this.turnToken) {
+			this.receding = false;
+			this.gridHidden = false;
+			return;
+		}
+		this.receding = false;
+		await wait(reduced ? 80 : 180);
 		if (token !== this.turnToken || this.screen !== 'play') {
 			this.gridHidden = false;
 			return;

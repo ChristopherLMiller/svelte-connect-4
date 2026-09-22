@@ -66,7 +66,7 @@ export function getAudioContext(): AudioContext | null {
 	}
 	if (!musicBus) {
 		musicBus = ctx.createGain();
-		musicBus.gain.value = prefs.musicOn ? prefs.musicVolume * 0.34 : 0;
+		musicBus.gain.value = prefs.musicOn ? prefs.musicVolume : 0;
 		musicBus.connect(ctx.destination);
 	}
 	return ctx;
@@ -101,7 +101,7 @@ export function applyAudioPrefs(next: Partial<AudioPrefs>) {
 	const audio = getAudioContext();
 	if (!audio || !sfxBus || !musicBus) return;
 	sfxBus.gain.setTargetAtTime(prefs.sfxOn ? prefs.sfxVolume : 0, audio.currentTime, 0.04);
-	musicBus.gain.setTargetAtTime(prefs.musicOn ? prefs.musicVolume * 0.34 : 0, audio.currentTime, 0.08);
+	musicBus.gain.setTargetAtTime(prefs.musicOn ? prefs.musicVolume : 0, audio.currentTime, 0.08);
 	if (prefs.musicOn) musicHooks?.start();
 	else musicHooks?.stop();
 }

@@ -8,6 +8,7 @@
 		session.screen === 'play' &&
 			session.status.type !== 'playing' &&
 			!session.washing &&
+			!session.receding &&
 			!session.gridHidden &&
 			!session.sketching
 	);
@@ -71,7 +72,7 @@
 
 <style>
 	.overlay {
-		position: fixed;
+		position: absolute;
 		inset: 0;
 		z-index: 9;
 		display: grid;

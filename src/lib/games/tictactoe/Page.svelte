@@ -36,6 +36,7 @@
 		if (
 			session.status.type !== 'playing' &&
 			!session.washing &&
+			!session.receding &&
 			!session.sketching &&
 			!session.gridHidden &&
 			(event.key === 'Enter' || event.key === ' ')
@@ -84,11 +85,16 @@
 <svelte:window onkeydown={onKey} />
 <svelte:document onvisibilitychange={() => (quiet = document.hidden)} />
 
-<div class="look" class:won={session.status.type === 'won' && !session.washing} class:quiet>
+<div
+	class="look"
+	class:won={session.status.type === 'won' && !session.washing && !session.receding}
+	class:washing={session.washing || session.receding}
+	class:quiet
+>
 	<div class="grain" aria-hidden="true"></div>
 	<div class="heat" aria-hidden="true"></div>
 	<div class="wet" aria-hidden="true"></div>
-	<TttShore celebrating={session.status.type === 'won' && !session.washing} />
+	<TttShore celebrating={session.status.type === 'won' && !session.washing && !session.receding} washing={session.washing || session.receding} />
 	<div class="shell a" aria-hidden="true"></div>
 	<div class="shell b" aria-hidden="true"></div>
 	<div class="shell c" aria-hidden="true"></div>
@@ -106,7 +112,7 @@
 		</div>
 	{/if}
 
-	<TttTide surge={session.washing} />
+	<TttTide surge={session.washing} receding={session.receding} />
 	<TttResult {session} />
 	<TttSettings />
 </div>
@@ -248,6 +254,17 @@
 		display: grid;
 		place-items: center;
 		pointer-events: none;
+		transition: opacity 0.35s linear;
+	}
+
+	.look.washing .grain,
+	.look.washing .heat {
+		mix-blend-mode: normal;
+		transform: none;
+	}
+
+	.look.washing .arena {
+		opacity: 0;
 	}
 
 	.arena > :global(*) {

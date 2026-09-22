@@ -69,6 +69,7 @@
 
 <style>
 	.arena {
+		position: relative;
 		width: 100%;
 		flex: 1;
 		min-height: 0;

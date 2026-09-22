@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { playPoke } from '../audio';
 
-	let { celebrating = false }: { celebrating?: boolean } = $props();
+	let { celebrating = false, washing = false }: { celebrating?: boolean; washing?: boolean } = $props();
 
 	const glints = [12, 41, 67, 91, 28, 73];
 	let bottle = $state(false);
@@ -41,7 +41,7 @@
 	}
 </script>
 
-<div class="shore" class:hot={celebrating}>
+<div class="shore" class:hot={celebrating} class:washing>
 	<div class="life" aria-hidden="true">
 		<div class="glare"></div>
 		<div class="sheen"></div>
@@ -127,6 +127,10 @@
 		transform: translateZ(0);
 	}
 
+	.shore.washing {
+		transform: none;
+	}
+
 	.life {
 		position: absolute;
 		inset: 0;
@@ -135,8 +139,8 @@
 	.glare {
 		position: absolute;
 		top: 10%;
-		left: 8%;
-		width: 84%;
+		left: 0;
+		width: 100%;
 		height: 52%;
 		border-radius: 50%;
 		background: radial-gradient(ellipse at 42% 38%, rgba(255, 248, 226, 0.28), rgba(255, 230, 186, 0.08) 42%, transparent 74%);
@@ -148,8 +152,8 @@
 
 	.sheen {
 		position: absolute;
-		left: 8%;
-		right: 8%;
+		left: 0;
+		right: 0;
 		bottom: 18vh;
 		height: 18vh;
 		background: linear-gradient(
@@ -164,7 +168,10 @@
 
 	.haze {
 		position: absolute;
-		inset: 18% 12% 36%;
+		left: 0;
+		right: 0;
+		top: 18%;
+		bottom: 36%;
 		background: radial-gradient(ellipse at 50% 40%, rgba(255, 248, 230, 0.22), transparent 70%);
 		animation: breathe 9s ease-in-out infinite;
 	}

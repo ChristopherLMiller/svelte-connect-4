@@ -4,12 +4,16 @@
 	let {
 		game,
 		hot = false,
+		nested = false,
+		compact = false,
 		onfocus,
 		onlaunch
 	}: {
 		game: LibraryGame;
 		hot?: boolean;
-		onfocus: () => void;
+		nested?: boolean;
+		compact?: boolean;
+		onfocus?: () => void;
 		onlaunch: () => void;
 	} = $props();
 
@@ -21,6 +25,8 @@
 <article
 	class="cab"
 	class:hot
+	class:nested
+	class:compact
 	style:--accent={game.accent}
 	style:--glow={game.glow}
 	style:--body={game.cabinet}
@@ -54,21 +60,28 @@
 		aria-describedby="{uid}-card"
 		aria-pressed={hot}
 		onclick={onlaunch}
-		onpointerenter={onfocus}
-		onfocus={onfocus}
+		onpointerenter={() => onfocus?.()}
+		onfocus={() => onfocus?.()}
 	>
 		<div class="hood">
 			<div class="crt">
-				<div class="tube">
-					<div class="live">
-						<Preview />
-					</div>
-					<div class="fx" aria-hidden="true">
-						<i class="phosphors"></i>
-						<i class="scanlines"></i>
-						<i class="beam"></i>
-						<i class="vignette"></i>
-						<i class="glare"></i>
+				<div class="bezel">
+					<i class="pin tl"></i>
+					<i class="pin tr"></i>
+					<i class="pin bl"></i>
+					<i class="pin br"></i>
+					<div class="glass">
+						<div class="live">
+							<Preview />
+						</div>
+						<div class="fx" aria-hidden="true">
+							<i class="phosphors"></i>
+							<i class="scanlines"></i>
+							<i class="beam"></i>
+							<i class="bulb"></i>
+							<i class="vignette"></i>
+							<i class="glare"></i>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -76,8 +89,10 @@
 			<div class="card" id="{uid}-card">
 				<p class="stamp">★ {game.genre} ★</p>
 				<p class="how">{game.tagline}</p>
-				<p class="blurb">{game.blurb}</p>
-				<p class="coinline">{game.players} players · 1 coin · 1 play</p>
+				{#if !compact}
+					<p class="blurb">{game.blurb}</p>
+					<p class="coinline">{game.players === '1' ? '1 player' : `${game.players} players`} · 1 coin · 1 play</p>
+				{/if}
 			</div>
 
 			<div class="vents" aria-hidden="true">
@@ -114,10 +129,11 @@
 	.cab {
 		position: relative;
 		isolation: isolate;
-		contain: layout paint;
+		contain: layout;
 		width: 100%;
 		max-width: 420px;
 		margin: 0 auto;
+		overflow: visible;
 		transform-style: preserve-3d;
 		transition: transform 220ms ease;
 	}
@@ -126,6 +142,32 @@
 	.cab:hover {
 		transform: translate3d(0, -10px, 0) scale(1.015);
 		z-index: 2;
+	}
+
+	.cab.nested {
+		width: 100%;
+		max-width: none;
+		margin: 0;
+	}
+
+	.cab.nested,
+	.cab.nested.hot,
+	.cab.nested:hover {
+		transform: none;
+		z-index: auto;
+	}
+
+	.cab.compact .vents {
+		display: none;
+	}
+
+	.cab.compact .card {
+		margin-top: 8px;
+		padding: 6px 8px 7px;
+	}
+
+	.cab.compact .hood {
+		padding: 16px 12px 8px;
 	}
 
 	.cab.hot .front,
@@ -238,56 +280,104 @@
 		text-align: left;
 		font: inherit;
 		background: transparent;
+		contain: layout paint;
 	}
 
 	.hood {
 		background:
 			linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, #1c1228), var(--body) 22%, #0a0712);
-		padding: 10px 14px 12px;
+		padding: 24px 14px 12px;
 		border: 1px solid color-mix(in srgb, var(--accent) 28%, #000);
 		border-top: 0;
 		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 	}
 
 	.crt {
-		padding: 14px 12px 12px;
-		border-radius: 18px;
+		padding: 12px 12px 16px;
+		border-radius: 16px;
 		background:
-			linear-gradient(180deg, #2a2434, #121018 40%, #07060c);
+			linear-gradient(180deg, #322a3c, #16121c 46%, #0a0810);
 		box-shadow:
-			inset 0 2px 0 rgba(255, 255, 255, 0.08),
+			inset 0 1px 0 rgba(255, 255, 255, 0.12),
+			inset 0 -10px 14px rgba(0, 0, 0, 0.35),
 			0 0 0 2px #050308,
 			0 16px 24px rgba(0, 0, 0, 0.45);
 	}
 
-	.tube {
+	.bezel {
+		position: relative;
+		padding: 9px 9px 13px;
+		border-radius: 12px;
+		background:
+			linear-gradient(180deg, #1a1622, #0c0a12 58%, #08060c);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.08),
+			inset 0 -3px 0 #050308,
+			0 0 0 1px rgba(0, 0, 0, 0.7);
+	}
+
+	.pin {
+		position: absolute;
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		z-index: 2;
+		background: conic-gradient(from 40deg, #9a9688, #4a4840, #c8c4b8, #4a4840);
+		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+	}
+
+	.pin.tl {
+		top: 4px;
+		left: 4px;
+	}
+
+	.pin.tr {
+		top: 4px;
+		right: 4px;
+	}
+
+	.pin.bl {
+		bottom: 6px;
+		left: 4px;
+	}
+
+	.pin.br {
+		bottom: 6px;
+		right: 4px;
+	}
+
+	.glass {
 		position: relative;
 		aspect-ratio: 4 / 3;
-		border-radius: 18% / 13%;
+		border-radius: 10px;
 		overflow: hidden;
 		background: #050308;
 		contain: layout paint;
 		box-shadow:
-			inset 0 0 0 3px #161018,
-			inset 0 0 22px 8px rgba(0, 0, 0, 0.82),
-			0 0 18px color-mix(in srgb, var(--accent) 22%, transparent);
+			0 0 0 2px #141018,
+			inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+			inset 0 0 18px 6px rgba(0, 0, 0, 0.42),
+			0 0 18px color-mix(in srgb, var(--accent) 18%, transparent);
 	}
 
-	.cab.hot .tube,
-	.front:hover .tube,
-	.front:focus-visible .tube {
+	.cab.hot .glass,
+	.front:hover .glass,
+	.front:focus-visible .glass {
 		box-shadow:
-			inset 0 0 0 3px #1c1424,
-			inset 0 0 18px 6px rgba(0, 0, 0, 0.7),
-			0 0 28px color-mix(in srgb, var(--accent) 45%, transparent);
+			0 0 0 2px #1c1424,
+			inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+			inset 0 0 16px 5px rgba(0, 0, 0, 0.35),
+			0 0 26px color-mix(in srgb, var(--accent) 42%, transparent);
 	}
 
 	.live {
 		position: absolute;
-		inset: -4%;
+		inset: 0;
 		contain: layout paint;
-		transform: perspective(520px) rotateX(2.5deg) scale(1.04);
-		transform-origin: 50% 50%;
+	}
+
+	.live :global(:first-child) {
+		height: 100%;
 	}
 
 	.fx,
@@ -306,24 +396,24 @@
 	.phosphors {
 		background: repeating-linear-gradient(
 			90deg,
-			rgba(255, 50, 80, 0.08) 0 1px,
-			rgba(40, 255, 110, 0.05) 1px 2px,
-			rgba(60, 110, 255, 0.07) 2px 3px
+			rgba(255, 50, 80, 0.05) 0 1px,
+			rgba(40, 255, 110, 0.04) 1px 2px,
+			rgba(60, 110, 255, 0.05) 2px 3px
 		);
 		mix-blend-mode: overlay;
-		opacity: 0.82;
+		opacity: 0.55;
 		animation: phosphor 3.8s ease-in-out infinite;
 	}
 
 	.scanlines {
 		background: repeating-linear-gradient(
 			180deg,
-			rgba(0, 0, 0, 0.32) 0 1px,
-			rgba(255, 255, 255, 0.04) 1px 2px,
+			rgba(0, 0, 0, 0.22) 0 1px,
+			rgba(255, 255, 255, 0.03) 1px 2px,
 			transparent 2px 4px
 		);
 		mix-blend-mode: multiply;
-		opacity: 0.55;
+		opacity: 0.4;
 	}
 
 	.beam {
@@ -343,21 +433,31 @@
 		will-change: transform;
 	}
 
+	.bulb {
+		background: radial-gradient(120% 88% at 50% 38%, rgba(230, 255, 250, 0.1), transparent 58%);
+		mix-blend-mode: screen;
+		opacity: 0.7;
+	}
+
 	.vignette {
-		background:
-			radial-gradient(ellipse 82% 76% at 50% 48%, transparent 54%, rgba(0, 0, 0, 0.18) 82%, rgba(0, 0, 0, 0.46) 100%);
-		box-shadow: inset 0 0 28px 10px rgba(0, 0, 0, 0.38);
+		background: radial-gradient(
+			ellipse 92% 86% at 50% 48%,
+			transparent 62%,
+			rgba(0, 0, 0, 0.16) 88%,
+			rgba(0, 0, 0, 0.38) 100%
+		);
+		box-shadow: inset 0 0 18px 6px rgba(0, 0, 0, 0.22);
 	}
 
 	.glare {
 		background: linear-gradient(
 			118deg,
-			rgba(255, 255, 255, 0.28),
-			transparent 26%,
-			transparent 58%,
-			rgba(180, 230, 255, 0.1)
+			rgba(255, 255, 255, 0.16),
+			transparent 24%,
+			transparent 64%,
+			rgba(180, 230, 255, 0.06)
 		);
-		opacity: 0.85;
+		opacity: 0.7;
 	}
 
 	.card {

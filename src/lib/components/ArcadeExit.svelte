@@ -3,12 +3,12 @@
 		tone,
 		size = 'chip'
 	}: {
-		tone: 'space' | 'shore';
+		tone: 'space' | 'shore' | 'night' | 'ash';
 		size?: 'chip' | 'banner';
 	} = $props();
 </script>
 
-<a class="exit" class:space={tone === 'space'} class:shore={tone === 'shore'} class:banner={size === 'banner'} href="/">
+<a class="exit" class:space={tone === 'space'} class:shore={tone === 'shore'} class:night={tone === 'night'} class:ash={tone === 'ash'} class:banner={size === 'banner'} href="/">
 	<span class="glyph" aria-hidden="true">
 		<i></i>
 		<i></i>
@@ -177,6 +177,80 @@
 
 	.shore .copy small {
 		color: #1d6d86;
+		opacity: 1;
+	}
+
+	.night {
+		border: 1px solid rgba(240, 196, 92, 0.55);
+		background:
+			linear-gradient(180deg, rgba(240, 196, 92, 0.18), rgba(12, 10, 28, 0.78));
+		color: #f7ead2;
+		box-shadow:
+			0 0 0 1px rgba(240, 196, 92, 0.12),
+			0 10px 28px rgba(0, 0, 0, 0.35),
+			0 0 22px rgba(226, 74, 61, 0.18);
+		font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.night:hover {
+		border-color: #f0c45c;
+		box-shadow:
+			0 0 0 1px rgba(240, 196, 92, 0.32),
+			0 12px 32px rgba(0, 0, 0, 0.4),
+			0 0 28px rgba(240, 196, 92, 0.28);
+	}
+
+	.night .glyph {
+		background: #140e28;
+		box-shadow: inset 0 0 0 1px rgba(240, 196, 92, 0.4);
+	}
+
+	.night .glyph i {
+		background: #f0c45c;
+	}
+
+	.night .glyph b {
+		border-color: transparent #e24a3d transparent transparent;
+	}
+
+	.night .copy small {
+		color: #f0c45c;
+		opacity: 1;
+	}
+
+	.ash {
+		border: 1px solid rgba(158, 27, 42, 0.4);
+		background:
+			linear-gradient(180deg, rgba(255, 250, 242, 0.92), rgba(232, 220, 204, 0.94));
+		color: #2a221c;
+		box-shadow:
+			0 0 0 1px rgba(158, 27, 42, 0.08),
+			0 10px 28px rgba(70, 50, 30, 0.16);
+		font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+	}
+
+	.ash:hover {
+		border-color: #9e1b2a;
+		box-shadow:
+			0 0 0 1px rgba(158, 27, 42, 0.18),
+			0 12px 32px rgba(70, 50, 30, 0.2);
+	}
+
+	.ash .glyph {
+		background: #9e1b2a;
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+	}
+
+	.ash .glyph i {
+		background: #fff8f2;
+	}
+
+	.ash .glyph b {
+		border-color: transparent #fff8f2 transparent transparent;
+	}
+
+	.ash .copy small {
+		color: #9e1b2a;
 		opacity: 1;
 	}
 

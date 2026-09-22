@@ -1,8 +1,8 @@
 <script lang="ts">
-	let { surge = false }: { surge?: boolean } = $props();
+	let { surge = false, receding = false }: { surge?: boolean; receding?: boolean } = $props();
 </script>
 
-<div class="tide" class:surge aria-hidden="true">
+<div class="tide" class:surge class:receding aria-hidden="true">
 	<div class="fill"></div>
 	<div class="lip"></div>
 	<div class="swell far"></div>
@@ -26,8 +26,8 @@
 		z-index: 6;
 		pointer-events: none;
 		overflow: hidden;
-		transform: translateZ(0);
-		contain: layout paint;
+		isolation: isolate;
+		contain: layout;
 		transition: height 1.35s cubic-bezier(0.22, 0.8, 0.28, 1);
 		-webkit-mask-image: linear-gradient(
 			180deg,
@@ -39,12 +39,23 @@
 		mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.2) 10%, #000 32%, #000 100%);
 	}
 
+	.tide.surge,
+	.tide.receding {
+		z-index: 8;
+		background: #14586c;
+		border-radius: 48% 48% 0 0 / 5% 5% 0 0;
+		-webkit-mask-image: none;
+		mask-image: none;
+	}
+
 	.tide.surge {
 		height: 118%;
 		transition-duration: 1.55s;
-		background: #0c3a4c;
-		-webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 100%);
-		mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 100%);
+	}
+
+	.tide.receding {
+		height: 26vh;
+		transition-duration: 1.45s;
 	}
 
 	.fill,
@@ -64,8 +75,9 @@
 		background: linear-gradient(180deg, rgba(74, 168, 188, 0) 0%, #2f8ea3 38%, #1d6d86 62%, #0c3a4c 100%);
 	}
 
-	.tide.surge .fill {
-		background: linear-gradient(180deg, #c5eef4 0%, #3aa0b8 10%, #1a7088 34%, #0c3a4c 100%);
+	.tide.surge .fill,
+	.tide.receding .fill {
+		background: linear-gradient(180deg, #3aa0b8 0%, #1a7088 22%, #0c3a4c 100%);
 	}
 
 	.lip {
@@ -76,15 +88,15 @@
 		opacity: 0.85;
 		transform: scale(1.2);
 		transform-origin: 50% 100%;
-		will-change: transform;
 	}
 
-	.tide.surge .lip {
+	.tide.surge .lip,
+	.tide.receding .lip {
 		top: -6%;
 		height: 22%;
-		background: radial-gradient(120% 90% at 50% 80%, rgba(255, 255, 255, 0.5), rgba(58, 160, 184, 0.55) 46%, transparent 74%);
+		background: radial-gradient(120% 90% at 50% 80%, #e7f8fb, #3aa0b8 46%, #1a7088 74%);
 		opacity: 1;
-		transform: scale(1.28);
+		transform: none;
 	}
 
 	.swell {
@@ -97,7 +109,6 @@
 		height: 88%;
 		background: linear-gradient(180deg, rgba(47, 142, 163, 0.75), #1d6d86 52%, #0e3f52);
 		animation: roll 11s ease-in-out infinite;
-		will-change: transform;
 	}
 
 	.swell.mid {
@@ -114,6 +125,47 @@
 		animation: roll 5.4s ease-in-out infinite;
 	}
 
+	.tide.surge .swell,
+	.tide.receding .swell {
+		animation: none;
+		transform: none;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 100%;
+		border-radius: 0;
+		opacity: 0.42;
+	}
+
+	.tide.surge .swell.far,
+	.tide.receding .swell.far {
+		opacity: 1;
+		background: linear-gradient(180deg, #2f8ea3, #1d6d86 52%, #0e3f52);
+	}
+
+	.tide.surge .swell.mid,
+	.tide.receding .swell.mid {
+		height: 72%;
+		background: linear-gradient(180deg, #5eb8c9, #2b8aa3 44%, #14586c);
+	}
+
+	.tide.surge .swell.near,
+	.tide.receding .swell.near {
+		height: 48%;
+		background:
+			radial-gradient(120% 80% at 20% 0%, #f4fcfd, transparent 46%),
+			linear-gradient(180deg, #8fd0dc, #3aa0b8 40%, #18657c);
+	}
+
+	.tide.surge .foam,
+	.tide.surge .spark,
+	.tide.surge .fish,
+	.tide.receding .foam,
+	.tide.receding .spark,
+	.tide.receding .fish {
+		animation: none;
+	}
+
 	.foam {
 		height: 56px;
 		top: 14%;
@@ -126,7 +178,6 @@
 		transform: scale(1.12);
 		animation: lace 3.6s ease-in-out infinite;
 		opacity: 0.7;
-		will-change: transform, opacity;
 	}
 
 	.spark {
@@ -150,7 +201,6 @@
 		background: rgba(8, 32, 42, 0.28);
 		box-shadow: 7px 0 0 -2px rgba(8, 32, 42, 0.18);
 		animation: dart 9s ease-in-out infinite;
-		will-change: transform;
 	}
 
 	.fish.a {

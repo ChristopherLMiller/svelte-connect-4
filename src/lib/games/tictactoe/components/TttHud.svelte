@@ -10,7 +10,7 @@
 	const p2 = $derived(session.mode === 'ai' ? 'The Tide' : 'Loop');
 	const turn = $derived(session.current === 1 ? p1 : p2);
 	const hint = $derived(
-		session.washing
+		session.washing || session.receding
 			? 'The water takes the board'
 			: session.gridHidden
 				? 'Smooth sand'
@@ -61,8 +61,8 @@
 		align-items: stretch;
 		color: #3b2a1c;
 		z-index: 3;
-		flex: 0 0 auto;
-		min-height: 60px;
+		flex: 0 0 60px;
+		height: 60px;
 	}
 
 	.brand,
@@ -182,6 +182,8 @@
 	@media (max-width: 820px) {
 		.hud {
 			grid-template-columns: 1fr 1fr;
+			height: auto;
+			flex-basis: auto;
 		}
 
 		.call,

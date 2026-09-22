@@ -13,6 +13,7 @@ export type GameManifest = {
 	order?: number;
 	theme?: string;
 	favicon?: string;
+	og?: string;
 	keywords?: string[];
 };
 

@@ -9,6 +9,7 @@
 	"keywords": ["Connect 4", "Connect Four", "gravity drop", "minimax", "hotseat", "sci-fi arcade"],
 	"theme": "#07060d",
 	"favicon": "/connect4-favicon.svg",
+	"og": "/connect4-og.png",
 	"href": "/connect4",
 	"accent": "#5ce1e6",
 	"glow": "#ff335c",

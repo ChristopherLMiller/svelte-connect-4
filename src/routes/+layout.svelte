@@ -9,7 +9,7 @@
 	const path = $derived(page.url.pathname);
 	const seo = $derived(seoForPath(path));
 	const canonical = $derived(`${origin}${seo.canonicalPath === '/' ? '/' : seo.canonicalPath}`);
-	const shareImage = $derived(shareImageFor(origin));
+	const shareImage = $derived(shareImageFor(origin, seo.image));
 
 	$effect(() => {
 		hydrateAudio();

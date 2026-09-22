@@ -1,0 +1,17 @@
+{
+	"id": "wyrm",
+	"title": "Lantern Wyrm",
+	"genre": "Night coil",
+	"players": "1",
+	"tagline": "Swallow the lanterns. Don't bite the silk.",
+	"blurb": "A silk dragon in a night market. Grow with every lantern, and keep your own tail out of your mouth.",
+	"description": "A night-market snake. Guide a silk festival dragon through the stalls, swallow floating lanterns, and grow. Hit a wall or your own coil and the night goes out.",
+	"keywords": ["Lantern Wyrm", "snake", "worm", "night market", "dragon", "arcade", "keyboard"],
+	"theme": "#0b1024",
+	"favicon": "/wyrm-favicon.svg",
+	"href": "/wyrm",
+	"accent": "#f0c45c",
+	"glow": "#e24a3d",
+	"cabinet": "#120c22",
+	"order": 3
+}

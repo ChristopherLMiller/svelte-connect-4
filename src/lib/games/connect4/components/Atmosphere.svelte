@@ -322,7 +322,8 @@
 		pointer-events: none;
 		overflow: hidden;
 		z-index: 0;
-		contain: strict;
+		transform: translateZ(0);
+		contain: layout style;
 		--voyage: 0px;
 		--drift: 0px;
 		--star-y: 0px;
@@ -921,6 +922,7 @@
 	.craft {
 		width: 34px;
 		height: 8px;
+		flex: none;
 		background: linear-gradient(90deg, #9aa4c7, #eef3ff);
 		border-radius: 2px;
 		box-shadow:

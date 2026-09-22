@@ -6,9 +6,9 @@ export const SITE_DESCRIPTION =
 	'AI Arcade. Live cabinets. Each title is its own world, and the house thinks back.';
 export const SITE_TAGLINE = 'Drop a coin. The machines are waiting.';
 export const THEME_COLOR = '#070014';
-export const OG_IMAGE = '/og.png';
-export const OG_IMAGE_FALLBACK =
-	'https://raw.githubusercontent.com/ChristopherLMiller/svelte-connect-4/main/static/og.png';
+export const OG_IMAGE = '/arcade-og.png';
+export const OG_STATIC_ROOT =
+	'https://raw.githubusercontent.com/ChristopherLMiller/svelte-connect-4/main/static';
 
 export type PageSeo = {
 	title: string;
@@ -18,6 +18,7 @@ export type PageSeo = {
 	favicon: string;
 	canonicalPath: string;
 	ogAlt: string;
+	image: string;
 	jsonLd: Record<string, unknown>;
 };
 
@@ -26,15 +27,14 @@ export function absoluteUrl(origin: string, path: string) {
 	return `${origin.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
-export function shareImageFor(origin: string) {
-	if (
-		origin.startsWith('http://sveltekit-prerender') ||
-		origin.startsWith('http://localhost') ||
-		origin.startsWith('http://127.0.0.1')
-	) {
-		return OG_IMAGE_FALLBACK;
+export function shareImageFor(origin: string, imagePath = OG_IMAGE) {
+	const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+	// Prerender origin is not public. Point crawlers at the committed static file.
+	// Leave localhost alone so local inspection shows the real arcade art, not GitHub's old Connect 4 card.
+	if (origin.startsWith('http://sveltekit-prerender')) {
+		return `${OG_STATIC_ROOT}${path}`;
 	}
-	return absoluteUrl(origin, OG_IMAGE);
+	return absoluteUrl(origin, path);
 }
 
 export function namedList(items: string[]) {
@@ -96,6 +96,7 @@ function librarySeo(): PageSeo {
 		ogAlt: titles.length
 			? `AI Arcade marquee over live game cabinets for ${namedList(titles)}.`
 			: 'AI Arcade marquee over live game cabinets.',
+		image: OG_IMAGE,
 		jsonLd: {
 			'@context': 'https://schema.org',
 			'@type': 'WebApplication',
@@ -126,6 +127,7 @@ function gameSeo(game: GameManifest): PageSeo {
 		favicon: game.favicon || '/favicon.svg',
 		canonicalPath: game.href,
 		ogAlt: `${game.title} on AI Arcade. ${game.tagline}`,
+		image: game.og || OG_IMAGE,
 		jsonLd: {
 			'@context': 'https://schema.org',
 			...videoGameJson(game),
@@ -201,7 +203,7 @@ function upsertLink(html: string, rel: string, href: string, extra = '') {
 
 export function stampHtmlSeo(html: string, seo: PageSeo, origin: string) {
 	const canonical = absoluteUrl(origin, seo.canonicalPath === '/' ? '/' : seo.canonicalPath);
-	const image = shareImageFor(origin);
+	const image = shareImageFor(origin, seo.image);
 	let next = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeAttr(seo.title)}</title>`);
 	if (!/<title>/i.test(next)) {
 		next = next.replace(/<\/head>/i, `\t<title>${escapeAttr(seo.title)}</title>\n\t</head>`);

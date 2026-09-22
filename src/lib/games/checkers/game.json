@@ -1,0 +1,17 @@
+{
+	"id": "checkers",
+	"title": "Ashcourt",
+	"genre": "Raku draughts",
+	"players": "1–2",
+	"tagline": "Oxblood against bone china.",
+	"blurb": "A walled kiln yard at noon. Oxblood glaze versus bone china. Takes go back in the fire.",
+	"description": "English draughts in a sunlit raku yard. Ember is wet oxblood glaze, bone is cooled china. Hop, or send a piece back into the fire. Crown a man and the glaze runs. Hotseat or the yard thinks back.",
+	"keywords": ["Ashcourt", "checkers", "draughts", "raku", "oxblood", "porcelain", "hotseat", "English draughts"],
+	"theme": "#efe6d6",
+	"favicon": "/checkers-favicon.svg",
+	"href": "/checkers",
+	"accent": "#9e1b2a",
+	"glow": "#3d6b5c",
+	"cabinet": "#5c1c24",
+	"order": 4
+}

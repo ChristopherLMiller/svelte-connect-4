@@ -24,7 +24,14 @@
 </svelte:head>
 
 <div class="shot" aria-hidden="true">
-	<div class="sand"></div>
+	<div class="glare"></div>
+	<div class="gull a"></div>
+	<div class="gull b"></div>
+	<div class="wood"></div>
+	<div class="shell a"></div>
+	<div class="shell b"></div>
+	<div class="print a"></div>
+	<div class="print b"></div>
 	<div class="hud">
 		<div class="brand">
 			<TttIcon size="chip" />
@@ -34,7 +41,7 @@
 			</div>
 		</div>
 		<div class="call"><b>You to scratch</b></div>
-		<div class="score">You <em>1</em> vs Tide <em>0</em></div>
+		<div class="score">You <em>1</em> · Tide <em>0</em></div>
 	</div>
 	<div class="grid">
 		<svg class="grooves" viewBox="0 0 300 300">
@@ -77,25 +84,108 @@
 		overflow: hidden;
 		container-type: size;
 		background:
-			radial-gradient(900px 420px at 50% -10%, rgba(255, 244, 220, 0.45), transparent 58%),
-			linear-gradient(180deg, #e3c79a 0%, #c19a72 55%, #a97b58 100%);
+			radial-gradient(900px 420px at 38% 18%, rgba(255, 244, 220, 0.42), transparent 58%),
+			radial-gradient(420px 280px at 92% 28%, rgba(176, 122, 78, 0.28), transparent 50%),
+			linear-gradient(180deg, #d9b887 0%, #c19a72 48%, #a97b58 78%, #8d6248 100%);
 	}
 
-	.sand {
+	.glare {
 		position: absolute;
 		inset: 0;
-		opacity: 0.28;
-		mix-blend-mode: multiply;
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+		background: radial-gradient(ellipse at 36% 28%, rgba(255, 240, 210, 0.28), transparent 48%);
+		pointer-events: none;
+	}
+
+	.gull,
+	.wood,
+	.shell,
+	.print {
+		position: absolute;
+		pointer-events: none;
+	}
+
+	.gull {
+		width: 14px;
+		height: 6px;
+		border: 1.4px solid rgba(90, 64, 42, 0.45);
+		border-bottom: 0;
+		border-radius: 14px 14px 0 0;
+		opacity: 0.55;
+	}
+
+	.gull.a {
+		left: 12%;
+		top: 16%;
+		rotate: -12deg;
+		animation: drift 7s ease-in-out infinite;
+	}
+
+	.gull.b {
+		right: 14%;
+		top: 12%;
+		width: 11px;
+		rotate: 18deg;
+		animation: drift 9s ease-in-out infinite reverse;
+	}
+
+	.wood {
+		left: 6%;
+		bottom: 28%;
+		width: 18%;
+		height: 4px;
+		border-radius: 4px;
+		background: linear-gradient(90deg, #6a4228, #c49a6a);
+		rotate: -18deg;
+		opacity: 0.7;
+	}
+
+	.shell {
+		width: 10px;
+		height: 8px;
+		border-radius: 70% 70% 40% 40%;
+		background: radial-gradient(circle at 40% 30%, #f4e4cc, #c49a72);
+		opacity: 0.8;
+	}
+
+	.shell.a {
+		left: 10%;
+		bottom: 36%;
+		rotate: -20deg;
+	}
+
+	.shell.b {
+		right: 8%;
+		bottom: 40%;
+		rotate: 30deg;
+	}
+
+	.print {
+		width: 9px;
+		height: 6px;
+		border: 1px solid rgba(90, 64, 42, 0.28);
+		border-radius: 50%;
+		opacity: 0.45;
+	}
+
+	.print.a {
+		left: 22%;
+		bottom: 34%;
+	}
+
+	.print.b {
+		left: 28%;
+		bottom: 31%;
 	}
 
 	.hud {
 		position: relative;
-		z-index: 1;
+		z-index: 2;
 		display: grid;
 		grid-template-columns: auto minmax(0, 1fr) auto;
-		gap: 6px;
+		gap: 5px;
 		padding: 5% 5% 0;
+		height: 18%;
+		box-sizing: border-box;
 	}
 
 	.brand,
@@ -103,38 +193,42 @@
 	.score {
 		border: 1px solid rgba(90, 64, 42, 0.16);
 		background: rgba(255, 248, 236, 0.55);
-		backdrop-filter: blur(8px);
 		border-radius: 10px;
-		padding: 6px 8px;
+		padding: 4px 7px;
 		color: #3b2a1c;
 		font-family: Nunito, ui-sans-serif, system-ui, sans-serif;
+		min-width: 0;
 	}
 
 	.brand {
 		display: flex;
 		align-items: center;
 		gap: 6px;
-		padding: 5px 8px 5px 5px;
+		padding: 4px 8px 4px 4px;
 	}
 
 	.brand :global(.icon) {
-		width: 22px;
-		height: 22px;
+		width: 18px;
+		height: 18px;
+		flex-shrink: 0;
 	}
 
 	.brand p {
 		margin: 0;
 		font-family: Fraunces, Georgia, serif;
 		font-style: italic;
-		font-size: 0.7rem;
+		font-size: 0.62rem;
 		line-height: 1;
+		white-space: nowrap;
 	}
 
 	.brand small,
 	.score {
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
-		font-size: 0.42rem;
+		font-size: 0.38rem;
+		display: flex;
+		align-items: center;
 	}
 
 	.call {
@@ -145,26 +239,28 @@
 	.call b {
 		font-family: Fraunces, Georgia, serif;
 		font-style: italic;
-		font-size: clamp(0.55rem, 1.8vw, 0.85rem);
+		font-size: clamp(0.5rem, 3.4cqw, 0.78rem);
 		white-space: nowrap;
 	}
 
 	.score em {
 		font-style: normal;
 		font-weight: 700;
+		margin: 0 2px;
 	}
 
 	.grid {
 		position: absolute;
 		left: 50%;
-		top: 22%;
-		height: 46%;
+		top: 24%;
+		height: 48%;
 		width: auto;
 		aspect-ratio: 1;
-		transform: translateX(-50%);
+		translate: -50% 0;
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		grid-template-rows: repeat(3, 1fr);
+		z-index: 1;
 	}
 
 	.grooves {
@@ -214,22 +310,29 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		height: 32%;
+		height: 26%;
 		overflow: hidden;
-		background: linear-gradient(180deg, transparent 0%, rgba(90, 180, 196, 0.28) 22%, #1d6d86 58%, #0e3f52 100%);
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(90, 180, 196, 0.28) 22%,
+			#1d6d86 58%,
+			#0e3f52 100%
+		);
 		-webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
 		mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
+		z-index: 1;
 	}
 
 	.swell {
 		position: absolute;
 		left: -14%;
 		right: -14%;
-		top: -8%;
+		top: -10%;
 		height: 62%;
 		border-radius: 50%;
 		background: linear-gradient(180deg, rgba(214, 246, 250, 0.35), #2b8aa3);
-		filter: blur(2px);
+		animation: swell 5.4s ease-in-out infinite;
 	}
 
 	.foam {
@@ -237,22 +340,37 @@
 		left: 0;
 		right: 0;
 		top: 10%;
-		height: 18px;
+		height: 14px;
 		background:
 			radial-gradient(12px 8px at 18% 50%, rgba(255, 255, 255, 0.45), transparent 70%),
 			radial-gradient(16px 8px at 52% 40%, rgba(255, 255, 255, 0.35), transparent 70%),
 			radial-gradient(12px 8px at 82% 60%, rgba(255, 255, 255, 0.4), transparent 70%);
-		filter: blur(1px);
 		opacity: 0.65;
 	}
 
-	@container (max-width: 420px) {
-		.brand small {
+	@keyframes drift {
+		50% {
+			translate: 8px -6px;
+		}
+	}
+
+	@keyframes swell {
+		50% {
+			translate: 0 8%;
+		}
+	}
+
+	@container (max-width: 220px) {
+		.brand small,
+		.score {
 			display: none;
 		}
+	}
 
-		.score {
-			letter-spacing: 0.04em;
+	@media (prefers-reduced-motion: reduce) {
+		.gull,
+		.swell {
+			animation: none;
 		}
 	}
 </style>

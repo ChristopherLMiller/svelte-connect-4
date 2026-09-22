@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fade, fly, scale } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
 	import ArcadeExit from '$lib/components/ArcadeExit.svelte';
 	import type { GameSession } from '../session.svelte';
 	import { lookSettings, toggleSettings } from '../settings.svelte';
@@ -78,9 +78,7 @@
 		</div>
 		<div class="call">
 			<small>{kicker} · {protocol}</small>
-			{#key turnHint}
-				<b in:fly={{ y: 10, duration: 220 }}>{turnHint}</b>
-			{/key}
+			<b>{turnHint}</b>
 		</div>
 		<div class="meters" aria-hidden="true">
 			<span></span>
@@ -124,7 +122,10 @@
 		position: relative;
 		z-index: 2;
 		margin-bottom: 6px;
-		flex-shrink: 0;
+		flex: 0 0 66px;
+		height: 66px;
+		min-height: 66px;
+		overflow: hidden;
 	}
 
 	.brand,
@@ -271,6 +272,9 @@
 		letter-spacing: 0.16em;
 		text-transform: uppercase;
 		margin-bottom: 2px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.call b {
@@ -281,6 +285,9 @@
 		text-transform: uppercase;
 		line-height: 1.1;
 		min-height: 1.2em;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.meters {
@@ -552,6 +559,10 @@
 	@media (max-width: 980px) {
 		.hud {
 			grid-template-columns: 1fr 1fr;
+			height: auto;
+			min-height: 0;
+			flex-basis: auto;
+			overflow: visible;
 		}
 
 		.turn {

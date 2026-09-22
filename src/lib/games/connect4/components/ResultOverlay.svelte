@@ -58,7 +58,7 @@
 
 <style>
 	.overlay {
-		position: fixed;
+		position: absolute;
 		inset: 0;
 		z-index: 8;
 		display: grid;

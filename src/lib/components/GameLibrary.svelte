@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { Spring } from 'svelte/motion';
 	import { fade } from 'svelte/transition';
 	import { setMusicStation } from '$lib/audio/station';
 	import ArcadeCabinet from '$lib/components/ArcadeCabinet.svelte';
@@ -7,44 +8,128 @@
 	import LibrarySettings from '$lib/components/LibrarySettings.svelte';
 	import { LIBRARY_GAMES, tickerCopy, type LibraryGame } from '$lib/games/catalog';
 	import { closeLibrarySettings, libraryPanel, openLibrarySettings } from '$lib/library/settings.svelte';
+	import { loadCabinet, recallCabinet, rememberCabinet } from '$lib/library/persist';
 	import { playLibraryHover, playLibrarySelect } from '$lib/library/sfx';
 	import { primeAudio } from '$lib/audio/prefs.svelte';
 
 	const MOTES = Array.from({ length: 18 }, (_, i) => i);
 	const LIGHTS = Array.from({ length: 56 }, (_, i) => i);
 	const TICKER = tickerCopy();
+	const COUNT = LIBRARY_GAMES.length;
+	const STEP = 360 / Math.max(COUNT, 1);
 
-	let focusId = $state(LIBRARY_GAMES[0].id);
+	function wrap(next: number) {
+		return ((next % COUNT) + COUNT) % COUNT;
+	}
+
+	function indexOfId(id: string | null | undefined) {
+		const found = LIBRARY_GAMES.findIndex((game) => game.id === id);
+		return found >= 0 ? found : 0;
+	}
+
+	const start = indexOfId(recallCabinet());
+	let index = $state(start);
 	let leaving = $state(false);
-	let leaveTitle = $state(LIBRARY_GAMES[0].title);
+	let leaveTitle = $state((LIBRARY_GAMES[start] ?? LIBRARY_GAMES[0]).title);
 	let quiet = $state(false);
+	let wide = $state(1200);
+	let calm = $state(false);
+	let dragged = false;
+	let dragging = false;
+	let dragOrigin = 0;
+	let dragSpin = 0;
+	let restored = false;
 
-	const focused = $derived(LIBRARY_GAMES.find((game) => game.id === focusId) ?? LIBRARY_GAMES[0]);
+	const spin = new Spring(-start * STEP, { stiffness: 0.1, damping: 0.82, precision: 0.05 });
+	const facingIndex = $derived(wrap(Math.round(-spin.current / STEP)));
+	const focused = $derived(LIBRARY_GAMES[index] ?? LIBRARY_GAMES[0]);
+	const rx = $derived(Math.max(168, Math.min(wide * 0.24, 268)));
+	const rz = $derived(Math.max(96, Math.min(wide * 0.11, 148)));
+
+	const DRAG = 12;
 
 	function prefersReduce() {
 		return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	}
 
-	$effect(() => {
-		setMusicStation('library');
-	});
+	function keep(i = index) {
+		const game = LIBRARY_GAMES[wrap(i)];
+		if (game) rememberCabinet(game.id);
+	}
 
-	function focusGame(game: LibraryGame) {
-		if (focusId === game.id) return;
-		focusId = game.id;
+	function shortest(from: number, to: number) {
+		let delta = to - from;
+		if (delta > COUNT / 2) delta -= COUNT;
+		if (delta < -COUNT / 2) delta += COUNT;
+		return delta;
+	}
+
+	function goTo(next: number) {
+		const to = wrap(next);
+		if (to === index) return;
+		const delta = shortest(index, to);
+		index = to;
+		keep(to);
+		spin.set(spin.target - delta * STEP, { instant: calm });
 		playLibraryHover();
 	}
+
+	function slotPose(i: number) {
+		const ang = ((i * STEP + spin.current) * Math.PI) / 180;
+		const side = Math.sin(ang);
+		const depth = Math.cos(ang);
+		const x = side * rx;
+		const z = depth * rz;
+		const yaw = -side * 20;
+		const scale = 0.84 + 0.16 * Math.max(0, depth);
+		const y = (1 - depth) * 6;
+		const opacity = depth < -0.15 ? Math.max(0, (depth + 1) * 0.4) : 0.78 + 0.22 * depth;
+		return {
+			transform: `translate(-50%, -50%) translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}deg) scale(${scale})`,
+			z: Math.round(50 + depth * 50),
+			opacity,
+			events: depth > -0.2 ? 'auto' : 'none'
+		};
+	}
+
+	$effect(() => {
+		setMusicStation('library');
+		wide = window.innerWidth;
+		calm = prefersReduce();
+		const onResize = () => (wide = window.innerWidth);
+		window.addEventListener('resize', onResize);
+		return () => window.removeEventListener('resize', onResize);
+	});
+
+	$effect(() => {
+		if (restored) return;
+		restored = true;
+		const saved = indexOfId(loadCabinet());
+		if (saved === index) return;
+		index = saved;
+		spin.set(-saved * STEP, { instant: true });
+	});
 
 	function launch(game: LibraryGame = focused) {
 		if (leaving) return;
 		primeAudio();
 		playLibrarySelect();
-		focusId = game.id;
+		index = LIBRARY_GAMES.findIndex((item) => item.id === game.id);
+		keep(index);
 		leaveTitle = game.title;
 		leaving = true;
 		window.setTimeout(() => {
 			void goto(game.href);
 		}, prefersReduce() ? 80 : 720);
+	}
+
+	function pick(i: number) {
+		if (dragged) return;
+		if (i !== index && i !== facingIndex) {
+			goTo(i);
+			return;
+		}
+		launch(LIBRARY_GAMES[i]);
 	}
 
 	function onKey(event: KeyboardEvent) {
@@ -54,21 +139,72 @@
 			return;
 		}
 		if (libraryPanel.open) return;
-		const index = LIBRARY_GAMES.findIndex((item) => item.id === focusId);
 		if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
 			event.preventDefault();
-			focusGame(LIBRARY_GAMES[(index + 1) % LIBRARY_GAMES.length]);
+			goTo(index + 1);
 			return;
 		}
 		if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
 			event.preventDefault();
-			focusGame(LIBRARY_GAMES[(index - 1 + LIBRARY_GAMES.length) % LIBRARY_GAMES.length]);
+			goTo(index - 1);
 			return;
 		}
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
 			launch();
 		}
+	}
+
+	function catchWheel(node: HTMLElement) {
+		let last = 0;
+		const on = (event: WheelEvent) => {
+			if (libraryPanel.open || leaving || dragging) return;
+			event.preventDefault();
+			const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+			if (Math.abs(delta) < 8) return;
+			const now = performance.now();
+			if (now - last < 160) return;
+			last = now;
+			goTo(index + (delta > 0 ? 1 : -1));
+		};
+		node.addEventListener('wheel', on, { passive: false });
+		return () => node.removeEventListener('wheel', on);
+	}
+
+	function onPointerDown(event: PointerEvent) {
+		if (event.button !== 0) return;
+		dragging = true;
+		dragged = false;
+		dragOrigin = event.clientX;
+		dragSpin = spin.current;
+	}
+
+	function onPointerMove(event: PointerEvent) {
+		if (!dragging) return;
+		const dx = event.clientX - dragOrigin;
+		if (!dragged) {
+			if (Math.abs(dx) < DRAG) return;
+			dragged = true;
+			(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+		}
+		spin.set(dragSpin + (dx / Math.max(160, wide * 0.2)) * STEP, { instant: true });
+	}
+
+	function onPointerUp() {
+		if (!dragging) return;
+		dragging = false;
+		if (!dragged) return;
+		const nearest = wrap(Math.round(-spin.current / STEP));
+		const snapped = -nearest * STEP;
+		if (nearest !== index) {
+			index = nearest;
+			playLibraryHover();
+		}
+		keep(nearest);
+		spin.set(snapped, { instant: calm });
+		window.setTimeout(() => {
+			dragged = false;
+		}, 40);
 	}
 </script>
 
@@ -130,20 +266,66 @@
 	</header>
 
 	<div class="floor">
-		{#each LIBRARY_GAMES as game (game.id)}
-			<ArcadeCabinet
-				{game}
-				hot={game.id === focused.id}
-				onfocus={() => focusGame(game)}
-				onlaunch={() => launch(game)}
-			/>
-		{/each}
+		<button
+			type="button"
+			class="nudge prev"
+			aria-label="Previous cabinet"
+			onclick={() => goTo(index - 1)}
+		>
+			‹
+		</button>
+		<div
+			class="stage"
+			class:calm
+			{@attach catchWheel}
+			role="group"
+			aria-label="Cabinet wheel"
+			onpointerdown={onPointerDown}
+			onpointermove={onPointerMove}
+			onpointerup={onPointerUp}
+			onpointercancel={onPointerUp}
+		>
+			<div class="ring" aria-hidden="true"></div>
+			<div class="wheel">
+				{#each LIBRARY_GAMES as game, i (game.id)}
+					{@const pose = slotPose(i)}
+					<div
+						class="slot"
+						class:hot={i === facingIndex}
+						style:transform={pose.transform}
+						style:z-index={pose.z}
+						style:opacity={pose.opacity}
+						style:pointer-events={pose.events}
+					>
+						<ArcadeCabinet
+							{game}
+							nested
+							compact
+							hot={i === facingIndex}
+							onlaunch={() => pick(i)}
+						/>
+					</div>
+				{/each}
+			</div>
+		</div>
+		<button
+			type="button"
+			class="nudge next"
+			aria-label="Next cabinet"
+			onclick={() => goTo(index + 1)}
+		>
+			›
+		</button>
+		<p class="pick">
+			<strong>{focused.title}</strong>
+			<span>{focused.tagline}</span>
+		</p>
 	</div>
 
 	<footer class="foot">
 		<p>
 			<strong>{LIBRARY_GAMES.length} cabinets online</strong>
-			<span>Arrows pick a machine · Enter starts</span>
+			<span>Arrows spin the wheel · Enter starts</span>
 		</p>
 		<div class="rail" aria-hidden="true">
 			<div class="lights">
@@ -614,15 +796,133 @@
 
 	.floor {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-		gap: clamp(28px, 4vw, 56px);
-		align-items: end;
-		align-content: end;
-		width: min(1200px, 100%);
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-rows: minmax(0, 1fr) auto;
+		align-items: center;
+		justify-items: center;
+		gap: 8px 6px;
+		width: min(1400px, 100%);
 		margin: 0 auto;
 		min-height: 0;
-		overflow: auto;
-		padding-top: 8px;
+		overflow: visible;
+		padding: 8px 0 0;
+		perspective: 1600px;
+		perspective-origin: 50% 42%;
+	}
+
+	.nudge {
+		appearance: none;
+		grid-row: 1;
+		z-index: 4;
+		width: clamp(42px, 6vw, 58px);
+		height: clamp(42px, 6vw, 58px);
+		border-radius: 50%;
+		border: 2px solid rgba(0, 240, 255, 0.45);
+		background: rgba(12, 0, 28, 0.72);
+		color: #00f0ff;
+		font-size: 1.8rem;
+		line-height: 1;
+		cursor: pointer;
+		box-shadow: 0 0 18px rgba(0, 240, 255, 0.18);
+	}
+
+	.nudge.prev {
+		grid-column: 1;
+	}
+
+	.nudge.next {
+		grid-column: 3;
+	}
+
+	.nudge:hover {
+		border-color: #ffe14a;
+		color: #ffe14a;
+		box-shadow: 0 0 18px rgba(255, 225, 74, 0.28);
+	}
+
+	.stage {
+		grid-column: 2;
+		grid-row: 1;
+		position: relative;
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		overflow: visible;
+		touch-action: none;
+		cursor: grab;
+		transform-style: preserve-3d;
+	}
+
+	.stage:active {
+		cursor: grabbing;
+	}
+
+	.ring {
+		position: absolute;
+		left: 12%;
+		right: 12%;
+		bottom: 6%;
+		height: 18%;
+		border-radius: 50%;
+		border: 2px solid rgba(0, 240, 255, 0.18);
+		box-shadow:
+			0 0 24px rgba(255, 43, 214, 0.12),
+			inset 0 0 18px rgba(0, 240, 255, 0.08);
+		transform: rotateX(72deg);
+		pointer-events: none;
+	}
+
+	.wheel {
+		position: absolute;
+		inset: 0;
+		transform-style: preserve-3d;
+		transform: rotateX(5deg) translateZ(0);
+	}
+
+	.slot {
+		position: absolute;
+		left: 50%;
+		top: 48%;
+		width: min(280px, 40vw);
+		transform-style: preserve-3d;
+		transform-origin: center center;
+		backface-visibility: hidden;
+		will-change: transform, opacity;
+	}
+
+	.stage.calm .slot:not(.hot) {
+		opacity: 0 !important;
+		pointer-events: none !important;
+	}
+
+	.stage.calm .slot.hot {
+		transform: translate(-50%, -50%) !important;
+		opacity: 1 !important;
+		filter: none;
+	}
+
+	.pick {
+		grid-column: 1 / -1;
+		grid-row: 2;
+		margin: 0;
+		text-align: center;
+		z-index: 3;
+	}
+
+	.pick strong {
+		display: block;
+		font-family: Bungee, Impact, sans-serif;
+		font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+		letter-spacing: 0.08em;
+		color: #ffe14a;
+		text-shadow: 0 0 14px rgba(255, 225, 74, 0.4);
+	}
+
+	.pick span {
+		display: block;
+		margin-top: 2px;
+		color: var(--mute);
+		font-size: 0.88rem;
 	}
 
 	.foot {
@@ -767,6 +1067,16 @@
 
 		.top {
 			flex-direction: column;
+		}
+
+		.nudge {
+			width: 40px;
+			height: 40px;
+			font-size: 1.5rem;
+		}
+
+		.slot {
+			width: min(260px, 64vw);
 		}
 
 		.lights i:nth-child(n + 40) {
