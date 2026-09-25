@@ -135,14 +135,12 @@
 		height: var(--trail-len);
 		border-radius: 999px;
 		background: linear-gradient(to bottom, var(--glow), transparent 82%);
-		box-shadow: 0 0 10px 3px color-mix(in srgb, var(--glow) 55%, transparent);
-		filter: blur(1.2px);
+		box-shadow: 0 0 12px 4px color-mix(in srgb, var(--glow) 45%, transparent);
 		opacity: var(--trail-op);
 		pointer-events: none;
 		transform-origin: 50% 0;
 		transform: translateX(-50%) rotate(var(--trail-ang));
 		z-index: 2;
-		will-change: transform, height, opacity, width;
 	}
 
 	.protocol .halo {
@@ -207,8 +205,7 @@
 
 	.protocol .trail {
 		background: linear-gradient(to bottom, var(--glow), var(--arc), transparent 80%);
-		filter: blur(1.6px);
-		box-shadow: 0 0 14px 4px color-mix(in srgb, var(--glow) 60%, transparent);
+		box-shadow: 0 0 16px 5px color-mix(in srgb, var(--glow) 55%, transparent);
 	}
 
 	.protocol.player-1 {
