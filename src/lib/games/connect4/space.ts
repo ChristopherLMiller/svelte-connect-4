@@ -93,12 +93,19 @@ export type Comet = {
 	color: string;
 };
 
+export type Speck = {
+	x: number;
+	y: number;
+	r: number;
+	color: string;
+};
+
 export type Sector = {
 	id: number;
 	origin: number;
-	dust: string;
-	glow: string;
-	distant: string;
+	dust: Speck[];
+	glow: Speck[];
+	distant: Speck[];
 	nebulae: Cloud[];
 	wisps: Cloud[];
 	planets: Planet[];
@@ -111,6 +118,11 @@ export type Sector = {
 	tint: string;
 	lane: { x: number; y: number; tilt: number; opacity: number };
 };
+
+export const VOYAGE_TRAVEL_PX_PER_S = 16;
+export const VOYAGE_DRIFT_PX_PER_S = 4.5;
+export const STAR_PARALLAX = 0.32;
+export const STAR_DRIFT_FACTOR = 0.22;
 
 const COMET_COLORS = ['#5ce1e6', '#8b7cff', '#ffe38a', '#ff6b8a', '#ffffff'];
 const EGG_COMMON: EasterKind[] = ['ufo', 'probe', 'beacon', 'pulsar', 'station'];
@@ -297,19 +309,35 @@ function specks(
 	rand: () => number,
 	count: number,
 	palette: Array<[number, number, number]>,
-	blur: [number, number],
-	w: number,
-	h: number
-) {
+	radius: [number, number]
+): Speck[] {
 	return Array.from({ length: count }, () => {
-		const x = Math.round(rand() * w);
-		const y = Math.round(rand() * h);
 		const c = pick(rand, palette);
-		const a = (0.14 + rand() * 0.5).toFixed(2);
-		const glow = blur[0] + rand() * (blur[1] - blur[0]);
-		const spread = rand() > 0.9 ? 1 : 0;
-		return `${x}px ${y}px ${glow.toFixed(1)}px ${spread}px rgba(${c[0]},${c[1]},${c[2]},${a})`;
-	}).join(',');
+		const a = 0.14 + rand() * 0.5;
+		return {
+			x: rand(),
+			y: rand(),
+			r: radius[0] + rand() * (radius[1] - radius[0]),
+			color: `rgba(${c[0]},${c[1]},${c[2]},${a.toFixed(2)})`
+		};
+	});
+}
+
+export function paintSpecks(
+	ctx: CanvasRenderingContext2D,
+	particles: Speck[],
+	width: number,
+	height: number,
+	offsetY = 0
+) {
+	for (let i = 0; i < particles.length; i += 1) {
+		const speck = particles[i];
+		const radius = Math.max(0.35, speck.r);
+		ctx.fillStyle = speck.color;
+		ctx.beginPath();
+		ctx.arc(speck.x * width, speck.y * height + offsetY, radius, 0, Math.PI * 2);
+		ctx.fill();
+	}
 }
 
 function makeEgg(id: string, kind: EasterKind, rand: () => number): EasterEgg {
@@ -428,16 +456,16 @@ export function generateSector(
 	return {
 		id: index,
 		origin,
-		dust: specks(rand, Math.min(120, Math.max(70, Math.round(area / 22000))), ice, [0, 0.35], fieldW, fieldH),
-		glow: specks(rand, Math.min(44, Math.max(22, Math.round(area / 55000))), glow, [0.8, 3.4], fieldW, fieldH),
-		distant: specks(rand, Math.min(16, Math.max(8, Math.round(area / 90000))), DISTANT, [0.3, 1.4], fieldW, fieldH),
+		dust: specks(rand, Math.min(90, Math.max(48, Math.round(area / 28000))), ice, [0.35, 0.9]),
+		glow: specks(rand, Math.min(28, Math.max(14, Math.round(area / 70000))), glow, [0.8, 1.8]),
+		distant: specks(rand, Math.min(12, Math.max(6, Math.round(area / 110000))), DISTANT, [0.5, 1.2]),
 		nebulae,
 		wisps,
 		planets: Array.from({ length: planetCount }, (_, i) => makePlanet(`${index}-p-${i}`, rand, i, index)),
 		galaxy: rand() > 0.38 ? makeGalaxy() : null,
 		galaxyB: rand() > 0.72 ? makeGalaxy() : null,
 		craft: rand() > 0.55 ? { x: rand() * 86, y: 8 + rand() * 55 } : null,
-		rocks: Array.from({ length: 6 + Math.floor(rand() * 8) }, (_, i) => ({
+		rocks: Array.from({ length: 4 + Math.floor(rand() * 5) }, (_, i) => ({
 			id: `${index}-r-${i}`,
 			x: rand() * 96,
 			y: rand() * 92,
@@ -475,9 +503,11 @@ export function createStarfield(seed = 9041, size: FieldSize = viewportSize()) {
 	const h = Math.max(720, Math.round(size.h * 1.5));
 	const area = w * h;
 	return {
-		far: specks(rand, Math.min(180, Math.max(100, Math.round(area / 18000))), ice, [0, 0.32], w, h),
-		mid: specks(rand, Math.min(70, Math.max(40, Math.round(area / 45000))), glow, [0.5, 2.8], w, h),
-		deep: specks(rand, Math.min(90, Math.max(48, Math.round(area / 35000))), DISTANT, [0.2, 1.3], w, h)
+		width: w,
+		height: h,
+		far: specks(rand, Math.min(140, Math.max(80, Math.round(area / 22000))), ice, [0.35, 0.85]),
+		mid: specks(rand, Math.min(56, Math.max(32, Math.round(area / 52000))), glow, [0.6, 1.6]),
+		deep: specks(rand, Math.min(70, Math.max(40, Math.round(area / 40000))), DISTANT, [0.4, 1.1])
 	};
 }
 
