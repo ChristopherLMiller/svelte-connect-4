@@ -2,7 +2,15 @@
 	import { createStarfield } from '../space';
 
 	let root = $state<HTMLDivElement | null>(null);
+	let midEl = $state<HTMLDivElement | null>(null);
+	let altEl = $state<HTMLDivElement | null>(null);
 	let starfield = $state(createStarfield(2026));
+
+	export function setParallax(drift: number, y: number, period: number) {
+		const x = (-drift * 0.22).toFixed(2);
+		if (midEl) midEl.style.transform = `translate3d(${x}px, ${y.toFixed(2)}px, 0)`;
+		if (altEl) altEl.style.transform = `translate3d(${x}px, ${(y - period).toFixed(2)}px, 0)`;
+	}
 
 	$effect(() => {
 		const node = root;
@@ -31,8 +39,8 @@
 <div class="starfield" bind:this={root} aria-hidden="true">
 	<div class="stars far" style:box-shadow={starfield.far}></div>
 	<div class="stars deep" style:box-shadow={starfield.deep}></div>
-	<div class="stars mid" style:box-shadow={starfield.mid}></div>
-	<div class="stars mid alt" style:box-shadow={starfield.mid}></div>
+	<div class="stars mid" bind:this={midEl} style:box-shadow={starfield.mid}></div>
+	<div class="stars mid alt" bind:this={altEl} style:box-shadow={starfield.mid}></div>
 </div>
 
 <style>
@@ -52,6 +60,7 @@
 		left: 0;
 		top: 0;
 		background: transparent;
+		backface-visibility: hidden;
 	}
 
 	.stars.far {
@@ -63,11 +72,8 @@
 	}
 
 	.stars.mid {
-		transform: translate3d(calc(var(--drift) * -0.22), var(--star-y), 0);
 		opacity: 0.85;
-	}
-
-	.stars.mid.alt {
-		transform: translate3d(calc(var(--drift) * -0.22), calc(var(--star-y) - var(--star-period)), 0);
+		will-change: transform;
+		transform: translate3d(0, 0, 0);
 	}
 </style>

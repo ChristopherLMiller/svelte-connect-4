@@ -11,6 +11,10 @@
 	} from '../space';
 
 	let root = $state<HTMLDivElement | null>(null);
+	let voyageEl = $state<HTMLDivElement | null>(null);
+	let starfield = $state<{ setParallax: (drift: number, y: number, period: number) => void } | null>(
+		null
+	);
 	let sectors = $state<Sector[]>([]);
 	let sightings = $state<Sighting[]>([]);
 
@@ -60,7 +64,8 @@
 
 	$effect(() => {
 		const node = root;
-		if (!node) return;
+		const scroller = voyageEl;
+		if (!node || !scroller) return;
 
 		const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const measure = () => ({
@@ -72,19 +77,16 @@
 		const voyageSeed = voyage.seed;
 		let nextIndex = voyage.nextIndex;
 		let field = boot;
-		sectors = voyage.sectors;
+		let fieldSectors = voyage.sectors.map((sector, slot) => ({ ...sector, id: slot }));
+		sectors = fieldSectors;
 
 		const onResize = () => {
 			const next = measure();
 			if (Math.abs(next.w - field.w) < 160 && Math.abs(next.h - field.h) < 160) return;
 			field = next;
-			node.style.setProperty('--star-period', `${next.h * 1.5}px`);
 		};
 
-		node.style.setProperty('--voyage', '0px');
-		node.style.setProperty('--drift', '0px');
-		node.style.setProperty('--star-y', '0px');
-		node.style.setProperty('--star-period', `${boot.h * 1.5}px`);
+		scroller.style.transform = 'translate3d(0px, 0px, 0)';
 		window.addEventListener('resize', onResize);
 
 		if (prefersReduce) {
@@ -96,6 +98,30 @@
 		let last = performance.now();
 		let frame = 0;
 		let lastCull = 0;
+		const pendingRefresh = new Map<number, number>();
+		let refreshFrame = 0;
+
+		const flushRefresh = () => {
+			refreshFrame = 0;
+			if (!pendingRefresh.size) return;
+			let changed = false;
+			for (const [slot, origin] of pendingRefresh) {
+				const current = fieldSectors[slot];
+				if (!current || current.origin !== origin) continue;
+				const fresh = generateSector(
+					voyageSeed,
+					nextIndex,
+					Date.now() + nextIndex * 7919,
+					origin,
+					field
+				);
+				fieldSectors[slot] = { ...fresh, id: slot, origin };
+				nextIndex += 1;
+				changed = true;
+			}
+			pendingRefresh.clear();
+			if (changed) sectors = fieldSectors.slice();
+		};
 
 		const tick = (now: number) => {
 			const dt = Math.min(0.05, (now - last) / 1000);
@@ -105,33 +131,34 @@
 
 			const height = field.h;
 			const span = height * SECTOR_SPAN;
-			const bands = sectors;
-			const period = span * bands.length;
+			const period = span * fieldSectors.length;
 			const recycleAt = height * 2.35;
+			let originsDirty = false;
+			let spawnSighting = false;
 
-			for (let i = 0; i < bands.length; i += 1) {
-				while (bands[i] && bands[i].origin + travel > recycleAt) {
-					const origin = bands[i].origin - period;
-					bands[i] = generateSector(
-						voyageSeed,
-						nextIndex,
-						Date.now() + nextIndex * 7919,
-						origin,
-						field
-					);
-					nextIndex += 1;
-					if (Math.random() < 0.09 && sightings.length < 2) {
-						sightings = [...sightings, createSighting(Date.now())];
-					}
+			for (let i = 0; i < fieldSectors.length; i += 1) {
+				while (fieldSectors[i] && fieldSectors[i].origin + travel > recycleAt) {
+					const origin = fieldSectors[i].origin - period;
+					fieldSectors[i] = { ...fieldSectors[i], origin };
+					pendingRefresh.set(i, origin);
+					originsDirty = true;
+					if (Math.random() < 0.09 && sightings.length < 2) spawnSighting = true;
 				}
 			}
 
-			node.style.setProperty('--voyage', `${travel}px`);
-			node.style.setProperty('--drift', `${drift}px`);
+			scroller.style.transform = `translate3d(${(-drift).toFixed(2)}px, ${travel.toFixed(2)}px, 0)`;
 			const starPeriod = height * 1.5;
 			const starY = ((travel * 0.32) % starPeriod + starPeriod) % starPeriod;
-			node.style.setProperty('--star-y', `${starY}px`);
-			node.style.setProperty('--star-period', `${starPeriod}px`);
+			starfield?.setParallax(drift, starY, starPeriod);
+
+			if (originsDirty) {
+				sectors = fieldSectors.slice();
+				if (!refreshFrame) refreshFrame = requestAnimationFrame(flushRefresh);
+			}
+
+			if (spawnSighting) {
+				sightings = [...sightings, createSighting(Date.now())];
+			}
 
 			if (sightings.length && now - lastCull > 900) {
 				lastCull = now;
@@ -144,6 +171,7 @@
 		frame = requestAnimationFrame(tick);
 		return () => {
 			cancelAnimationFrame(frame);
+			if (refreshFrame) cancelAnimationFrame(refreshFrame);
 			window.removeEventListener('resize', onResize);
 		};
 	});
@@ -151,11 +179,12 @@
 
 <div class="atmosphere" bind:this={root} aria-hidden="true">
 	<div class="wash"></div>
-	<Starfield />
+	<Starfield bind:this={starfield} />
+	<div class="voyage" bind:this={voyageEl}>
 	{#each sectors as sector (sector.id)}
 		<div
 			class="sector"
-			style:--origin="{sector.origin}px"
+			style:transform="translate3d(0, {sector.origin}px, 0)"
 			style:--tint="rgba({sector.tint}, 0.16)"
 		>
 			<div class="tint"></div>
@@ -298,6 +327,7 @@
 			{/if}
 		</div>
 	{/each}
+	</div>
 	<div class="ring r1"></div>
 	<div class="ring r2"></div>
 	<div class="ring r3"></div>
@@ -324,13 +354,11 @@
 		z-index: 0;
 		transform: translateZ(0);
 		contain: layout style;
-		--voyage: 0px;
-		--drift: 0px;
-		--star-y: 0px;
-		--star-period: 140vh;
+		isolation: isolate;
 	}
 
 	.wash,
+	.voyage,
 	.sector,
 	.ring,
 	.grid,
@@ -346,11 +374,18 @@
 			linear-gradient(180deg, #12081c 0%, #07060d 52%, #0c0714 100%);
 	}
 
+	.voyage {
+		inset: 0;
+		will-change: transform;
+		transform: translate3d(0, 0, 0);
+		backface-visibility: hidden;
+	}
+
 	.sector {
 		inset: -20% 0 0 0;
 		height: 140%;
-		transform: translate3d(calc(var(--drift) * -1), calc(var(--voyage) + var(--origin)), 0);
 		contain: layout style;
+		backface-visibility: hidden;
 	}
 
 	.tint {
@@ -377,17 +412,16 @@
 
 	.lane {
 		width: 160%;
-		height: 18%;
+		height: 28%;
 		border-radius: 50%;
 		background: linear-gradient(
 			90deg,
 			transparent 0%,
-			rgba(180, 200, 255, 0.08) 18%,
-			rgba(255, 255, 255, 0.16) 50%,
-			rgba(160, 140, 255, 0.1) 74%,
+			rgba(180, 200, 255, 0.05) 18%,
+			rgba(255, 255, 255, 0.11) 50%,
+			rgba(160, 140, 255, 0.07) 74%,
 			transparent 100%
 		);
-		filter: blur(10px);
 		transform: rotate(var(--tilt));
 	}
 
@@ -935,12 +969,23 @@
 	.grid {
 		inset: auto 0 -18% 0;
 		height: 50%;
+		overflow: hidden;
+		transform: perspective(420px) rotateX(64deg);
+		transform-origin: 50% 100%;
+		mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent 78%);
+		backface-visibility: hidden;
+	}
+
+	.grid::before {
+		content: '';
+		position: absolute;
+		inset: -72px 0 0 0;
+		height: calc(100% + 72px);
 		background-image:
 			linear-gradient(rgba(92, 225, 230, 0.1) 1px, transparent 1px),
 			linear-gradient(90deg, rgba(92, 225, 230, 0.1) 1px, transparent 1px);
 		background-size: 72px 72px;
-		transform: perspective(420px) rotateX(64deg);
-		mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent 78%);
+		will-change: transform;
 		animation: grid 16s linear infinite;
 	}
 
@@ -1053,7 +1098,7 @@
 
 	@keyframes grid {
 		to {
-			background-position: 0 72px;
+			transform: translate3d(0, 72px, 0);
 		}
 	}
 
@@ -1153,8 +1198,13 @@
 			animation: none;
 		}
 
+		.voyage,
 		.sector {
-			transform: none;
+			transform: none !important;
+		}
+
+		.grid::before {
+			animation: none;
 		}
 
 		.comet,

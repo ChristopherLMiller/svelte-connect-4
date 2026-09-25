@@ -78,8 +78,8 @@
 	$effect(() => {
 		if (session.shake <= 0 && session.flash <= 0) return;
 		const id = requestAnimationFrame(() => {
-			session.shake = Math.max(0, session.shake * 0.68 - 0.2);
-			session.flash = Math.max(0, session.flash * 0.78 - 0.02);
+			session.shake = Math.max(0, session.shake * 0.72 - 0.15);
+			session.flash = Math.max(0, session.flash * 0.82 - 0.015);
 		});
 		return () => cancelAnimationFrame(id);
 	});
@@ -115,7 +115,6 @@
 <div class="stage" use:observeSize>
 	<div
 		class="rig"
-		class:hit={session.flash > 0.08}
 		style="
 			width: {layout.width}px;
 			height: {layout.sky + layout.height}px;
@@ -525,10 +524,7 @@
 		position: relative;
 		transform: rotateX(3deg) translate3d(var(--shake), calc(var(--shake) * 0.4), 0);
 		transform-style: preserve-3d;
-	}
-
-	.rig.hit {
-		filter: saturate(calc(1 + var(--flash) * 0.55)) contrast(calc(1 + var(--flash) * 0.18));
+		backface-visibility: hidden;
 	}
 
 	.sky {
@@ -844,8 +840,15 @@
 	.hitflash {
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(circle at 50% 72%, rgba(255, 255, 255, calc(var(--flash) * 0.42)), transparent 58%);
-		mix-blend-mode: screen;
+		background: radial-gradient(
+			circle at 50% 72%,
+			rgba(255, 255, 255, calc(var(--flash) * 0.55)),
+			rgba(92, 225, 230, calc(var(--flash) * 0.18)) 42%,
+			transparent 62%
+		);
+		opacity: 0.9;
+		pointer-events: none;
+		will-change: opacity;
 	}
 
 	.win-beam {
