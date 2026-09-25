@@ -47,6 +47,8 @@
 	const killMarks = $derived(lookSettings.threatAlerts ? session.killShots : []);
 	const dangerMarks = $derived(lookSettings.threatAlerts ? session.dangerShots : []);
 	let lastAlert = '';
+	let rigEl = $state<HTMLDivElement | null>(null);
+	let flashEl = $state<HTMLDivElement | null>(null);
 	const measureY = $derived.by(() => {
 		const current = layout;
 		return (row: number) => ({
@@ -75,8 +77,23 @@
 		};
 	}
 
+	function paintImpact(shake: number, flash: number) {
+		const rig = rigEl;
+		if (rig) {
+			rig.style.transform = `rotateX(3deg) translate3d(${shake}px, ${shake * 0.4}px, 0)`;
+		}
+		const flashNode = flashEl;
+		if (flashNode) {
+			flashNode.style.opacity = flash > 0.04 ? String(Math.min(1, flash * 0.95)) : '0';
+			flashNode.style.background = `radial-gradient(circle at 50% 72%, rgba(255, 255, 255, ${flash * 0.55}), rgba(92, 225, 230, ${flash * 0.18}) 42%, transparent 62%)`;
+		}
+	}
+
 	$effect(() => {
-		if (session.shake <= 0 && session.flash <= 0) return;
+		const shake = session.shake;
+		const flash = session.flash;
+		paintImpact(shake, flash);
+		if (shake <= 0 && flash <= 0) return;
 		const id = requestAnimationFrame(() => {
 			session.shake = Math.max(0, session.shake * 0.72 - 0.15);
 			session.flash = Math.max(0, session.flash * 0.82 - 0.015);
@@ -115,11 +132,10 @@
 <div class="stage" use:observeSize>
 	<div
 		class="rig"
+		bind:this={rigEl}
 		style="
 			width: {layout.width}px;
 			height: {layout.sky + layout.height}px;
-			--shake: {session.shake}px;
-			--flash: {session.flash};
 		"
 	>
 		<div class="sky" style="height: {layout.sky}px;">
@@ -460,9 +476,7 @@
 				class="fx-layer"
 				style="height: {layout.sky + layout.height}px; top: -{layout.sky}px;"
 			>
-				{#if session.flash > 0.04}
-					<div class="hitflash"></div>
-				{/if}
+				<div class="hitflash" bind:this={flashEl} aria-hidden="true"></div>
 				{#each session.fx as burst (burst.id)}
 					<Explosion
 						fx={burst}
@@ -522,7 +536,7 @@
 
 	.rig {
 		position: relative;
-		transform: rotateX(3deg) translate3d(var(--shake), calc(var(--shake) * 0.4), 0);
+		transform: rotateX(3deg) translate3d(0, 0, 0);
 		transform-style: preserve-3d;
 		backface-visibility: hidden;
 	}
@@ -840,13 +854,7 @@
 	.hitflash {
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(
-			circle at 50% 72%,
-			rgba(255, 255, 255, calc(var(--flash) * 0.55)),
-			rgba(92, 225, 230, calc(var(--flash) * 0.18)) 42%,
-			transparent 62%
-		);
-		opacity: 0.9;
+		opacity: 0;
 		pointer-events: none;
 		will-change: opacity;
 	}
