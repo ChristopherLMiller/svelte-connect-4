@@ -1,10 +1,13 @@
 <script lang="ts">
+	import SpeckField from './SpeckField.svelte';
 	import Starfield from './Starfield.svelte';
 	import {
 		createSighting,
 		createVoyage,
 		generateSector,
 		SECTOR_SPAN,
+		VOYAGE_DRIFT_PX_PER_S,
+		VOYAGE_TRAVEL_PX_PER_S,
 		type Planet,
 		type Sector,
 		type Sighting
@@ -12,9 +15,6 @@
 
 	let root = $state<HTMLDivElement | null>(null);
 	let voyageEl = $state<HTMLDivElement | null>(null);
-	let starfield = $state<{ setParallax: (drift: number, y: number, period: number) => void } | null>(
-		null
-	);
 	let sectors = $state<Sector[]>([]);
 	let sightings = $state<Sighting[]>([]);
 
@@ -86,20 +86,20 @@
 			field = next;
 		};
 
-		scroller.style.transform = 'translate3d(0px, 0px, 0)';
 		window.addEventListener('resize', onResize);
 
 		if (prefersReduce) {
+			scroller.style.transform = 'translate3d(0px, 0px, 0)';
 			return () => window.removeEventListener('resize', onResize);
 		}
 
-		let travel = 0;
-		let drift = 0;
-		let last = performance.now();
-		let frame = 0;
-		let lastCull = 0;
+		let voyageAnim: Animation | null = null;
+		let travelOffset = 0;
+		let driftOffset = 0;
+		let recycleTimer = 0;
 		const pendingRefresh = new Map<number, number>();
 		let refreshFrame = 0;
+		const CHUNK_S = 45;
 
 		const flushRefresh = () => {
 			refreshFrame = 0;
@@ -123,15 +123,15 @@
 			if (changed) sectors = fieldSectors.slice();
 		};
 
-		const tick = (now: number) => {
-			const dt = Math.min(0.05, (now - last) / 1000);
-			last = now;
-			travel += 16 * dt;
-			drift += 4.5 * dt;
+		const travelNow = () => {
+			const t = typeof voyageAnim?.currentTime === 'number' ? voyageAnim.currentTime / 1000 : 0;
+			return travelOffset + VOYAGE_TRAVEL_PX_PER_S * t;
+		};
 
+		const recycle = () => {
+			const travel = travelNow();
 			const height = field.h;
-			const span = height * SECTOR_SPAN;
-			const period = span * fieldSectors.length;
+			const period = height * SECTOR_SPAN * fieldSectors.length;
 			const recycleAt = height * 2.35;
 			let originsDirty = false;
 			let spawnSighting = false;
@@ -146,31 +146,63 @@
 				}
 			}
 
-			scroller.style.transform = `translate3d(${(-drift).toFixed(2)}px, ${travel.toFixed(2)}px, 0)`;
-			const starPeriod = height * 1.5;
-			const starY = ((travel * 0.32) % starPeriod + starPeriod) % starPeriod;
-			starfield?.setParallax(drift, starY, starPeriod);
-
 			if (originsDirty) {
 				sectors = fieldSectors.slice();
 				if (!refreshFrame) refreshFrame = requestAnimationFrame(flushRefresh);
 			}
-
 			if (spawnSighting) {
 				sightings = [...sightings, createSighting(Date.now())];
 			}
-
-			if (sightings.length && now - lastCull > 900) {
-				lastCull = now;
+			if (sightings.length) {
+				const now = performance.now();
 				const keep = sightings.filter((egg) => now - egg.born < egg.life);
 				if (keep.length !== sightings.length) sightings = keep;
 			}
-			frame = requestAnimationFrame(tick);
 		};
 
-		frame = requestAnimationFrame(tick);
+		const playChunk = () => {
+			if (voyageAnim) {
+				try {
+					voyageAnim.commitStyles();
+				} catch {
+					/* ignore */
+				}
+				voyageAnim.onfinish = null;
+				voyageAnim.cancel();
+			}
+			const dist = VOYAGE_TRAVEL_PX_PER_S * CHUNK_S;
+			const drift = VOYAGE_DRIFT_PX_PER_S * CHUNK_S;
+			const fromX = -driftOffset;
+			const fromY = travelOffset;
+			voyageAnim = scroller.animate(
+				[
+					{ transform: `translate3d(${fromX.toFixed(1)}px, ${fromY.toFixed(1)}px, 0)` },
+					{
+						transform: `translate3d(${(fromX - drift).toFixed(1)}px, ${(fromY + dist).toFixed(1)}px, 0)`
+					}
+				],
+				{
+					duration: CHUNK_S * 1000,
+					easing: 'linear',
+					fill: 'forwards'
+				}
+			);
+			voyageAnim.onfinish = () => {
+				travelOffset += dist;
+				driftOffset += drift;
+				playChunk();
+			};
+		};
+
+		playChunk();
+		recycleTimer = window.setInterval(recycle, 180);
+
 		return () => {
-			cancelAnimationFrame(frame);
+			if (voyageAnim) {
+				voyageAnim.onfinish = null;
+				voyageAnim.cancel();
+			}
+			window.clearInterval(recycleTimer);
 			if (refreshFrame) cancelAnimationFrame(refreshFrame);
 			window.removeEventListener('resize', onResize);
 		};
@@ -179,7 +211,7 @@
 
 <div class="atmosphere" bind:this={root} aria-hidden="true">
 	<div class="wash"></div>
-	<Starfield bind:this={starfield} />
+	<Starfield />
 	<div class="voyage" bind:this={voyageEl}>
 	{#each sectors as sector (sector.id)}
 		<div
@@ -240,9 +272,9 @@
 					style:--spin="{sector.galaxyB.spin}s"
 				></i>
 			{/if}
-			<div class="motes far" style:box-shadow={sector.dust}></div>
-			<div class="motes glow" style:box-shadow={sector.glow}></div>
-			<div class="motes worlds" style:box-shadow={sector.distant}></div>
+			<div class="motes">
+				<SpeckField dust={sector.dust} glow={sector.glow} distant={sector.distant} />
+			</div>
 			{#each sector.planets as planet (planet.id)}
 				<div
 					class={planet.className}
@@ -376,7 +408,6 @@
 
 	.voyage {
 		inset: 0;
-		will-change: transform;
 		transform: translate3d(0, 0, 0);
 		backface-visibility: hidden;
 	}
@@ -399,7 +430,6 @@
 	.nebula,
 	.wisp,
 	.galaxy,
-	.motes,
 	.world,
 	.comet,
 	.pebble,
@@ -462,15 +492,10 @@
 	}
 
 	.motes {
-		width: 2px;
-		height: 2px;
-		left: 0;
-		top: 0;
-		background: transparent;
-	}
-
-	.motes.worlds {
-		opacity: 0.9;
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+		pointer-events: none;
 	}
 
 	.world {
@@ -516,7 +541,6 @@
 	}
 
 	.world.atmo-ion .atmo {
-		mix-blend-mode: screen;
 		opacity: 0.85;
 	}
 
@@ -538,7 +562,6 @@
 		width: 28%;
 		height: 20%;
 		background: radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 70%);
-		filter: blur(1px);
 		z-index: 3;
 		animation: glint 5.5s ease-in-out var(--phase, 0s) infinite;
 	}
@@ -553,7 +576,6 @@
 			var(--halo, rgba(140, 180, 255, 0.22)) 48%,
 			transparent 62%
 		);
-		mix-blend-mode: screen;
 		opacity: 0.55;
 		z-index: 2;
 		animation: aurora 9s ease-in-out infinite;
@@ -565,7 +587,6 @@
 		left: 58%;
 		top: 46%;
 		background: radial-gradient(ellipse, var(--lo), color-mix(in srgb, var(--mid) 20%, transparent) 70%);
-		filter: blur(1px);
 		opacity: 0.85;
 	}
 
@@ -624,7 +645,8 @@
 		border-left-color: transparent;
 		border-right-color: color-mix(in srgb, var(--ring, rgba(255, 214, 140, 0.38)) 28%, transparent);
 		border-radius: 50%;
-		transform: rotateX(76deg);
+		/* Flat ellipse instead of rotateX — 3D rings re-rasterize every voyage frame on mobile GPUs. */
+		transform: scaleY(0.28) rotate(0deg);
 		transform-origin: 50% 50%;
 		animation: ring-spin 48s linear infinite;
 	}
@@ -665,7 +687,7 @@
 		transform: rotate(var(--tilt)) scale(var(--scale, 1));
 		opacity: 0.92;
 		z-index: 4;
-		filter: drop-shadow(0 0 8px rgba(92, 225, 230, 0.25));
+		box-shadow: 0 0 10px rgba(92, 225, 230, 0.22);
 	}
 
 	.egg.whale {
@@ -804,9 +826,9 @@
 		box-shadow:
 			16px 0 0 #ff335c,
 			32px 0 0 #5ce1e6,
-			48px 0 0 #ffe38a;
+			48px 0 0 #ffe38a,
+			0 0 8px rgba(92, 225, 230, 0.45);
 		animation: four-glow 3s ease-in-out infinite;
-		filter: drop-shadow(0 0 6px rgba(92, 225, 230, 0.55));
 	}
 
 	.egg.probe {
@@ -1040,10 +1062,10 @@
 
 	@keyframes ring-spin {
 		from {
-			transform: rotateX(76deg) rotate(0deg);
+			transform: scaleY(0.28) rotate(0deg);
 		}
 		to {
-			transform: rotateX(76deg) rotate(360deg);
+			transform: scaleY(0.28) rotate(360deg);
 		}
 	}
 
@@ -1143,13 +1165,18 @@
 	@keyframes pulsar {
 		50% {
 			transform: scale(1.5);
-			filter: drop-shadow(0 0 10px #ffe38a);
+			opacity: 1;
+			box-shadow: 0 0 14px 4px rgba(255, 227, 138, 0.85);
 		}
 	}
 
 	@keyframes four-glow {
 		50% {
-			filter: drop-shadow(0 0 12px rgba(255, 227, 138, 0.9));
+			box-shadow:
+				16px 0 0 #ff335c,
+				32px 0 0 #5ce1e6,
+				48px 0 0 #ffe38a,
+				0 0 12px rgba(255, 227, 138, 0.7);
 			transform: rotate(var(--tilt)) scale(calc(var(--scale, 1) * 1.08));
 		}
 	}
