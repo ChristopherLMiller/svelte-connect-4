@@ -3,83 +3,45 @@
 	import TttHud from './components/TttHud.svelte';
 	import TttMenu from './components/TttMenu.svelte';
 	import TttResult from './components/TttResult.svelte';
+	import TttGuide from './components/TttGuide.svelte';
 	import TttSettings from './components/TttSettings.svelte';
+	import TttSand from './components/TttSand.svelte';
 	import TttShore from './components/TttShore.svelte';
-	import TttTide from './components/TttTide.svelte';
-	import { primeAudio } from '$lib/audio/prefs.svelte';
-	import { closeTttSettings, tttPanel } from './settings.svelte';
+	import TttLight from './components/TttLight.svelte';
+	import TttWater from './components/TttWater.svelte';
+	import { boardKeys } from '../kit/keys';
+	import { tttPanels } from './settings.svelte';
 	import { TttSession } from './session.svelte';
 
 	const session = new TttSession();
 	let quiet = $state(false);
 
-	function onKey(event: KeyboardEvent) {
-		primeAudio();
-		if (event.key === 'Escape' && tttPanel.open) {
-			closeTttSettings();
-			return;
-		}
-		if (tttPanel.open) return;
-
-		if (session.screen === 'menu') {
-			if (event.key === 'Enter') {
-				if (!session.resume()) session.start(session.mode, session.difficulty);
-			}
-			return;
-		}
-
-		if (event.key === 'Escape') {
-			session.backToMenu();
-			return;
-		}
-
-		if (
+	const onKey = boardKeys({
+		panels: tttPanels,
+		screen: () => session.screen,
+		startFromMenu: () => {
+			if (!session.resume()) session.start(session.mode, session.difficulty);
+		},
+		backToMenu: () => session.backToMenu(),
+		canRematch: () =>
 			session.status.type !== 'playing' &&
 			!session.washing &&
 			!session.receding &&
 			!session.sketching &&
-			!session.gridHidden &&
-			(event.key === 'Enter' || event.key === ' ')
-		) {
-			event.preventDefault();
-			session.rematch();
-			return;
+			!session.gridHidden,
+		rematch: () => session.rematch(),
+		busy: () => session.busy,
+		nudge: (dr, dc) => session.nudge(dr, dc),
+		play: () => void session.playSelected(),
+		wasd: false,
+		extra: (event) => {
+			const numeric = Number(event.key);
+			if (numeric >= 1 && numeric <= 9) {
+				const index = numeric - 1;
+				void session.playCell(Math.floor(index / 3), index % 3);
+			}
 		}
-
-		if (session.busy) return;
-
-		if (event.key === 'ArrowLeft') {
-			event.preventDefault();
-			session.nudge(0, -1);
-			return;
-		}
-		if (event.key === 'ArrowRight') {
-			event.preventDefault();
-			session.nudge(0, 1);
-			return;
-		}
-		if (event.key === 'ArrowUp') {
-			event.preventDefault();
-			session.nudge(-1, 0);
-			return;
-		}
-		if (event.key === 'ArrowDown') {
-			event.preventDefault();
-			session.nudge(1, 0);
-			return;
-		}
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			void session.playSelected();
-			return;
-		}
-
-		const numeric = Number(event.key);
-		if (numeric >= 1 && numeric <= 9) {
-			const index = numeric - 1;
-			void session.playCell(Math.floor(index / 3), index % 3);
-		}
-	}
+	});
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -91,9 +53,15 @@
 	class:washing={session.washing || session.receding}
 	class:quiet
 >
-	<div class="grain" aria-hidden="true"></div>
-	<div class="heat" aria-hidden="true"></div>
-	<div class="wet" aria-hidden="true"></div>
+	<TttSand
+		won={session.status.type === 'won' && !session.washing && !session.receding}
+		hot={session.status.type === 'won' && !session.washing && !session.receding}
+	/>
+	<TttLight
+		won={session.status.type === 'won' && !session.washing && !session.receding}
+		washing={session.washing || session.receding}
+		moves={session.board.flat().filter((cell) => cell !== 0).length}
+	/>
 	<TttShore celebrating={session.status.type === 'won' && !session.washing && !session.receding} washing={session.washing || session.receding} />
 	<div class="shell a" aria-hidden="true"></div>
 	<div class="shell b" aria-hidden="true"></div>
@@ -112,9 +80,10 @@
 		</div>
 	{/if}
 
-	<TttTide surge={session.washing} receding={session.receding} />
+	<TttWater surge={session.washing} receding={session.receding} />
 	<TttResult {session} />
 	<TttSettings />
+	<TttGuide />
 </div>
 
 <style>
@@ -135,9 +104,6 @@
 		animation-play-state: paused;
 	}
 
-	.grain,
-	.heat,
-	.wet,
 	.shell {
 		pointer-events: none;
 		position: absolute;
@@ -145,50 +111,6 @@
 
 	.stage > :global(*) {
 		pointer-events: auto;
-	}
-
-	.heat {
-		inset: 0;
-		z-index: 1;
-		background:
-			radial-gradient(ellipse at 36% 32%, rgba(255, 240, 210, 0.22), transparent 48%),
-			radial-gradient(ellipse at 70% 58%, rgba(255, 226, 180, 0.1), transparent 42%);
-		mix-blend-mode: screen;
-		opacity: 0.65;
-		isolation: isolate;
-		transform: translateZ(0);
-	}
-
-	.won .heat {
-		opacity: 0.9;
-		background:
-			radial-gradient(ellipse at 50% 42%, rgba(255, 232, 180, 0.3), transparent 52%),
-			radial-gradient(ellipse at 36% 32%, rgba(255, 240, 210, 0.22), transparent 48%);
-	}
-
-	.grain {
-		inset: 0;
-		opacity: 0.28;
-		mix-blend-mode: multiply;
-		isolation: isolate;
-		transform: translateZ(0);
-		background-image: url('/sand-grain.png');
-		background-size: 96px 96px;
-	}
-
-	.wet {
-		left: 0;
-		right: 0;
-		bottom: 0;
-		height: 44vh;
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			rgba(149, 108, 78, 0.14) 32%,
-			rgba(92, 86, 72, 0.16) 52%,
-			rgba(45, 108, 128, 0.14) 74%,
-			transparent 100%
-		);
 	}
 
 	.shell {
@@ -255,12 +177,6 @@
 		place-items: center;
 		pointer-events: none;
 		transition: opacity 0.35s linear;
-	}
-
-	.look.washing .grain,
-	.look.washing .heat {
-		mix-blend-mode: normal;
-		transform: none;
 	}
 
 	.look.washing .arena {

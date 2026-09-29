@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { fade, fly } from 'svelte/transition';
 	import ArcadeExit from '$lib/components/ArcadeExit.svelte';
+	import ArcadeTile from '$lib/components/ArcadeTile.svelte';
 	import WyrmIcon from './WyrmIcon.svelte';
 	import { playSelect } from '../audio';
 	import { peekSaved } from '../persist';
-	import { persistWyrmPlay, wyrmBest, wyrmPlay, openWyrmSettings } from '../settings.svelte';
+	import { persistWyrmPlay, wyrmBest, wyrmPlay, openWyrmSettings, openWyrmGuide } from '../settings.svelte';
 	import type { WyrmSession } from '../session.svelte';
 	import type { Difficulty } from '../types';
 
@@ -101,8 +102,7 @@
 	<p class="kicker" in:fly={{ y: 12, duration: 420 }}>A silk dragon in the stalls</p>
 	<h1 in:fly={{ y: 18, duration: 560 }}>Lantern Wyrm</h1>
 	<p class="lede">
-		Steer with arrows or WASD. Swallow every lantern you can. Grow. The stalls do not yield, and neither
-		does your own tail.
+		Swallow every lantern you can. Grow. The stalls do not yield, and neither does your own tail.
 	</p>
 
 	<div class="modes">
@@ -126,9 +126,12 @@
 			<button class="ghost" onclick={resume}>Resume the coil</button>
 		{/if}
 		<button class="go" onclick={launch}>Enter the market</button>
-		<button class="ghost" onclick={() => openWyrmSettings()}>Settings</button>
 	</div>
-	<ArcadeExit tone="night" size="banner" />
+	<nav class="dock" aria-label="Market">
+		<ArcadeTile tone="night" size="tile" kicker="Lore" label="How to play" onclick={openWyrmGuide} />
+		<ArcadeTile tone="night" size="tile" kicker="Tune" label="Settings" onclick={openWyrmSettings} />
+		<ArcadeExit tone="night" size="tile" />
+	</nav>
 </section>
 
 <style>
@@ -446,6 +449,24 @@
 	@media (max-width: 760px) {
 		.modes {
 			grid-template-columns: 1fr;
+		}
+	}
+
+	.dock {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+		width: min(760px, 100%);
+		margin: 18px auto 0;
+	}
+
+	@media (max-width: 560px) {
+		.dock {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.dock > :global(.exit) {
+			grid-column: 1 / -1;
 		}
 	}
 </style>

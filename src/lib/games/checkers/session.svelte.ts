@@ -3,6 +3,8 @@ import { playCrown, playFall, playSelect, playStep, playWin } from './audio';
 import {
 	applyMove,
 	cloneBoard,
+	DRAW_PLIES,
+	firstHop,
 	jumpingFrom,
 	legalMoves,
 	movesFrom,
@@ -15,13 +17,15 @@ import { persistAshPlay, recordAshScore, ashPlay } from './settings.svelte';
 import type { Coord, Difficulty, Fall, GameMode, GameStatus, Ghost, Move, Player, Scorch, Screen } from './types';
 import { playable, same, SIZE } from './types';
 
+/** Ember plays the dark men, and the dark men always move first. */
+const DARK: Player = 1;
+
 export class AshSession {
 	screen = $state<Screen>('menu');
 	mode = $state<GameMode>(ashPlay.mode);
 	difficulty = $state<Difficulty>(ashPlay.difficulty);
 	board = $state(setupBoard());
-	current = $state<Player>(1);
-	starter = $state<Player>(1);
+	current = $state<Player>(DARK);
 	status = $state<GameStatus>({ type: 'playing' });
 	scores = $state({ 1: 0, 2: 0 });
 	aiThinking = $state(false);
@@ -38,6 +42,8 @@ export class AshSession {
 	kindle = $state(0);
 	turnPulse = $state(0);
 	animating = $state(false);
+	/** Plies since the last capture or man move, for the no-progress draw. */
+	idle = $state(0);
 	fallKey = 0;
 	scorchKey = 0;
 	private turnToken = 0;
@@ -53,6 +59,8 @@ export class AshSession {
 		if (this.chaining) return moves.filter((move) => move.captured.length);
 		return moves;
 	});
+	/** Next landing square of each option; multi-jumps are entered one hop at a time. */
+	landings = $derived(this.options.map((move) => move.path[1]));
 	busy = $derived(
 		this.animating ||
 			this.aiThinking ||
@@ -65,10 +73,9 @@ export class AshSession {
 		this.mode = mode;
 		this.difficulty = difficulty;
 		this.scores = scoresFor(mode, difficulty);
-		this.starter = 1;
 		this.screen = 'play';
 		writeSaved(null);
-		this.resetRound(false);
+		this.resetRound();
 	}
 
 	resume() {
@@ -78,7 +85,6 @@ export class AshSession {
 		this.mode = saved.mode;
 		this.difficulty = saved.difficulty;
 		this.scores = scoresFor(saved.mode, saved.difficulty);
-		this.starter = saved.starter;
 		this.board = cloneBoard(saved.board);
 		this.current = saved.current;
 		this.status = { type: 'playing' };
@@ -89,12 +95,13 @@ export class AshSession {
 		this.falls = [];
 		this.scorches = [];
 		this.lastMove = null;
-		this.selected = null;
-		this.chaining = null;
+		this.chaining = saved.chaining ?? null;
+		this.selected = this.chaining;
+		this.idle = saved.idle ?? 0;
 		this.hover = null;
 		this.heat = 0;
 		this.kindle = 0;
-		this.cursor = { r: saved.current === 1 ? 5 : 2, c: 0 };
+		this.cursor = this.chaining ?? { r: saved.current === 1 ? 5 : 2, c: 0 };
 		this.screen = 'play';
 		ashPlay.mode = saved.mode;
 		ashPlay.difficulty = saved.difficulty;
@@ -111,10 +118,10 @@ export class AshSession {
 		this.screen = 'menu';
 	}
 
-	resetRound(advanceStarter = true) {
-		if (advanceStarter) this.starter = opponent(this.starter);
+	resetRound() {
 		this.board = setupBoard();
-		this.current = this.starter;
+		this.current = DARK;
+		this.idle = 0;
 		this.status = { type: 'playing' };
 		this.aiThinking = false;
 		this.animating = false;
@@ -138,7 +145,7 @@ export class AshSession {
 		if (this.animating) return;
 		this.turnToken += 1;
 		this.aiThinking = false;
-		this.resetRound(true);
+		this.resetRound();
 	}
 
 	setHover(cell: Coord | null) {
@@ -170,11 +177,10 @@ export class AshSession {
 	async playSquare(r: number, c: number) {
 		if (this.busy || (this.mode === 'ai' && this.current === 2)) return;
 		const at = { r, c };
-		const dest = this.options
-			.filter((move) => same(move.to, at))
-			.sort((a, b) => b.captured.length - a.captured.length)[0];
-		if (dest) {
-			await this.enact(dest);
+		const step = this.options.find((move) => same(move.path[1], at));
+		const whole = step ? null : this.options.find((move) => same(move.to, at));
+		if (step || whole) {
+			await this.enact(step ? firstHop(step) : whole!);
 			return;
 		}
 		if (this.chaining) return;
@@ -311,9 +317,23 @@ export class AshSession {
 		window.setTimeout(() => {
 			this.falls = this.falls.filter((fall) => fall.key > this.fallKey - 6);
 		}, 720);
-		const nextStatus = statusFor(next, opponent(piece.player));
+		const more =
+			move.captured.length && !move.crown
+				? movesFrom(next, piece.player, move.to).filter((hop) => hop.captured.length)
+				: [];
+		this.idle = move.captured.length || !piece.king ? 0 : this.idle + 1;
+		const nextStatus: GameStatus = more.length
+			? { type: 'playing' }
+			: this.idle >= DRAW_PLIES
+				? { type: 'draw' }
+				: statusFor(next, opponent(piece.player));
 		this.status = nextStatus;
 		this.animating = false;
+		if (nextStatus.type === 'draw') {
+			this.chaining = null;
+			writeSaved(null);
+			return;
+		}
 		if (nextStatus.type === 'won') {
 			this.chaining = null;
 			this.scores[nextStatus.winner] += 1;
@@ -322,9 +342,6 @@ export class AshSession {
 			playWin(nextStatus.winner);
 			return;
 		}
-		const more = move.captured.length
-			? movesFrom(next, piece.player, move.to).filter((hop) => hop.captured.length)
-			: [];
 		if (more.length) {
 			this.chaining = move.to;
 			this.selected = move.to;
@@ -354,7 +371,8 @@ export class AshSession {
 			difficulty: this.difficulty,
 			board: cloneBoard(board),
 			current,
-			starter: this.starter
+			chaining: this.chaining,
+			idle: this.idle
 		});
 	}
 
@@ -365,7 +383,8 @@ export class AshSession {
 			difficulty: this.difficulty,
 			board: cloneBoard(this.board),
 			current: this.current,
-			starter: this.starter
+			chaining: this.chaining,
+			idle: this.idle
 		};
 	}
 }

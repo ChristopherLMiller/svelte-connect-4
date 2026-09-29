@@ -63,6 +63,10 @@ function at(board: Board, r: number, c: number): Cell {
 	return board[r]?.[c] ?? null;
 }
 
+/**
+ * Complete jump sequences only: a jump must be continued while another jump is available,
+ * and crowning ends the turn.
+ */
 function walkCaptures(
 	board: Board,
 	from: Coord,
@@ -71,7 +75,7 @@ function walkCaptures(
 	path: Coord[],
 	captured: Coord[]
 ): Move[] {
-	const hops: Move[] = [];
+	const sequences: Move[] = [];
 	for (const dir of dirsFor(piece)) {
 		const mr = from.r + dir.r;
 		const mc = from.c + dir.c;
@@ -91,19 +95,20 @@ function walkCaptures(
 		const midCoord = { r: mr, c: mc };
 		const nextPath = [...path, landCoord];
 		const nextCaps = [...captured, midCoord];
-		hops.push({
+		const hop: Move = {
 			from: path[0] ?? from,
 			to: landCoord,
 			path: nextPath,
 			captured: nextCaps,
 			crown: crowned
-		});
-		if (crowned) continue;
-		hops.push(
-			...walkCaptures(next, landCoord, moved, new Set(seen).add(`${mr}:${mc}`), nextPath, nextCaps)
-		);
+		};
+		const further = crowned
+			? []
+			: walkCaptures(next, landCoord, moved, new Set(seen).add(`${mr}:${mc}`), nextPath, nextCaps);
+		if (further.length) sequences.push(...further);
+		else sequences.push(hop);
 	}
-	return hops;
+	return sequences;
 }
 
 function quietMoves(board: Board, from: Coord, piece: Piece): Move[] {
@@ -130,15 +135,33 @@ export function piecesOf(board: Board, player: Player) {
 	return list;
 }
 
+/** Jumps are compulsory: when any jump exists, only jumps are legal (any jump may be chosen). */
 export function legalMoves(board: Board, player: Player): Move[] {
+	const pieces = piecesOf(board, player);
 	const captures: Move[] = [];
-	const quiets: Move[] = [];
-	for (const { piece, at } of piecesOf(board, player)) {
+	for (const { piece, at } of pieces) {
 		captures.push(...walkCaptures(board, at, piece, new Set(), [at], []));
-		quiets.push(...quietMoves(board, at, piece));
 	}
-	return [...captures, ...quiets];
+	if (captures.length) return captures;
+	const quiets: Move[] = [];
+	for (const { piece, at } of pieces) quiets.push(...quietMoves(board, at, piece));
+	return quiets;
 }
+
+/** The first hop of a move, so a multi-jump can be played one landing at a time. */
+export function firstHop(move: Move): Move {
+	if (move.path.length <= 2) return move;
+	return {
+		from: move.from,
+		to: move.path[1],
+		path: move.path.slice(0, 2),
+		captured: move.captured.slice(0, 1),
+		crown: false
+	};
+}
+
+/** A draw is declared after this many consecutive plies with no capture and no man moved. */
+export const DRAW_PLIES = 80;
 
 export function jumpingFrom(board: Board, player: Player) {
 	const seen = new Set<string>();

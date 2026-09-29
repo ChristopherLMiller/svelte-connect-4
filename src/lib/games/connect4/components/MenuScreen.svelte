@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { fly, fade } from 'svelte/transition';
 	import ArcadeExit from '$lib/components/ArcadeExit.svelte';
+	import ArcadeTile from '$lib/components/ArcadeTile.svelte';
 	import { playSelect } from '../audio';
 	import { countDiscs } from '../persist';
 	import type { GameSession } from '../session.svelte';
 	import {
 		matchSave,
+		openGuide,
 		openSettings,
 		persistSettings,
 		playSettings,
@@ -105,13 +107,15 @@
 		{:else}
 			<button class="go" onclick={launch}>Initialize match</button>
 		{/if}
-		<button class="gear" onclick={openSettings}>Settings</button>
 	</div>
-	<ArcadeExit tone="space" size="banner" />
+	<nav class="dock" aria-label="Chamber">
+		<ArcadeTile tone="space" size="tile" kicker="Manual" label="How to play" onclick={openGuide} />
+		<ArcadeTile tone="space" size="tile" kicker="Tune" label="Settings" onclick={openSettings} />
+		<ArcadeExit tone="space" size="tile" />
+	</nav>
 	{#if saved}
 		<p class="saved" in:fade={{ duration: 180 }}>{savedLine} waiting in storage.</p>
 	{/if}
-	<p class="hint">Keys 1-7 drop. Arrows aim. Enter resumes or starts. Esc closes settings, then this chamber.</p>
 </section>
 
 <style>
@@ -144,12 +148,10 @@
 	.word {
 		display: block;
 		position: relative;
-		background: linear-gradient(90deg, #fff, #c9c0ff 40%, #5ce1e6 70%, #ff335c);
-		background-size: 200% 100%;
+		background: linear-gradient(90deg, #fff, #c9c0ff 30%, #5ce1e6 62%, #ff335c 100%);
 		-webkit-background-clip: text;
 		background-clip: text;
 		color: transparent;
-		animation: sheen 5s linear infinite;
 		filter: drop-shadow(0 12px 24px rgba(92, 225, 230, 0.22));
 	}
 
@@ -187,8 +189,20 @@
 		margin: 0 auto;
 	}
 
+	.four-wrap::before {
+		content: '';
+		position: absolute;
+		inset: 8% -18%;
+		border-radius: 50%;
+		background: radial-gradient(closest-side, rgba(255, 51, 92, 0.42), transparent);
+		opacity: 0;
+		pointer-events: none;
+		animation: fourglow 2.2s ease-in-out infinite;
+	}
+
 	h1 em {
 		display: block;
+		position: relative;
 		font-style: normal;
 		background: linear-gradient(180deg, #fff1b0, #f5c24b 40%, #ff335c);
 		-webkit-background-clip: text;
@@ -369,10 +383,22 @@
 		background: linear-gradient(180deg, #ffe38a, #f5c24b 45%, #e08a1a);
 		color: #2a1600;
 		border: 0;
+		position: relative;
 		box-shadow:
 			0 12px 30px rgba(245, 194, 75, 0.28),
 			inset 0 1px 0 rgba(255, 255, 255, 0.5);
 		animation: cta 1.8s ease-in-out infinite;
+	}
+
+	.go::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		box-shadow: 0 16px 40px rgba(245, 194, 75, 0.5);
+		opacity: 0;
+		pointer-events: none;
+		animation: ctaglow 1.8s ease-in-out infinite;
 	}
 
 	.gear {
@@ -391,12 +417,6 @@
 		}
 	}
 
-	@keyframes sheen {
-		to {
-			background-position: 200% 0;
-		}
-	}
-
 	@keyframes rgb {
 		50% {
 			opacity: 0.15;
@@ -405,8 +425,19 @@
 
 	@keyframes fourpulse {
 		50% {
-			filter: drop-shadow(0 0 18px rgba(255, 51, 92, 0.55));
 			transform: scale(1.04);
+		}
+	}
+
+	@keyframes fourglow {
+		50% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes ctaglow {
+		50% {
+			opacity: 1;
 		}
 	}
 
@@ -431,9 +462,6 @@
 
 	@keyframes cta {
 		50% {
-			box-shadow:
-				0 16px 40px rgba(245, 194, 75, 0.5),
-				inset 0 1px 0 rgba(255, 255, 255, 0.5);
 			transform: scale(1.03);
 		}
 	}
@@ -444,17 +472,21 @@
 		.word::before,
 		.word::after,
 		h1 em,
+		.four-wrap::before,
 		.orbiter,
 		.card::after,
-		.go {
+		.go,
+		.go::after {
 			animation: none;
 		}
 	}
 
-	.hint {
-		margin: 18px 0 0;
-		color: color-mix(in srgb, var(--muted) 80%, transparent);
-		font-size: 0.85rem;
+	.dock {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+		width: min(760px, 100%);
+		margin: 18px auto 0;
 	}
 
 	.saved {
@@ -467,6 +499,16 @@
 	@media (max-width: 680px) {
 		.modes {
 			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.dock {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.dock > :global(.exit) {
+			grid-column: 1 / -1;
 		}
 	}
 </style>

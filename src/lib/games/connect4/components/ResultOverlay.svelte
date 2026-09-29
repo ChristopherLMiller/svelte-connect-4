@@ -222,18 +222,10 @@
 		font-family: var(--font-display);
 		font-size: clamp(1.8rem, 6vw, 2.5rem);
 		line-height: 1.05;
-		background: linear-gradient(90deg, #fff, #5ce1e6, #ff335c, #fff);
-		background-size: 220% 100%;
+		background: linear-gradient(90deg, #fff, #5ce1e6 45%, #ff335c 85%, #fff);
 		-webkit-background-clip: text;
 		background-clip: text;
 		color: transparent;
-		animation: sheen 3s linear infinite;
-	}
-
-	@keyframes sheen {
-		to {
-			background-position: 220% 0;
-		}
 	}
 
 	@keyframes bloom {
@@ -290,8 +282,7 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		.bloom,
-		.sweep,
-		h2 {
+		.sweep {
 			animation: none;
 		}
 	}

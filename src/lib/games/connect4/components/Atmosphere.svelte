@@ -1,325 +1,220 @@
 <script lang="ts">
-	import SpeckField from './SpeckField.svelte';
-	import Starfield from './Starfield.svelte';
+	import { untrack } from 'svelte';
 	import {
 		createSighting,
+		createStarfield,
 		createVoyage,
 		generateSector,
 		SECTOR_SPAN,
 		VOYAGE_DRIFT_PX_PER_S,
 		VOYAGE_TRAVEL_PX_PER_S,
-		type Planet,
+		type EasterEgg,
 		type Sector,
 		type Sighting
 	} from '../space';
+	import { createSpaceRenderer, type SectorFrame } from '../spaceGpu';
 
-	let root = $state<HTMLDivElement | null>(null);
-	let voyageEl = $state<HTMLDivElement | null>(null);
-	let sectors = $state<Sector[]>([]);
+	type EggHost = { slot: number; eggs: EasterEgg[] };
+
+	let failed = $state(false);
+	let eggHosts = $state<EggHost[]>([]);
 	let sightings = $state<Sighting[]>([]);
+	const hosts = new Map<number, HTMLElement>();
+	const DRIFT_PER_TRAVEL = VOYAGE_DRIFT_PX_PER_S / VOYAGE_TRAVEL_PX_PER_S;
 
-	function glide(node: HTMLElement, planet: Planet) {
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return {};
-
-		let current = planet;
-		let anim: Animation | null = null;
-
-		const play = (next: Planet) => {
-			anim?.cancel();
-			anim = node.animate(
-				[
-					{ transform: 'translate3d(0px, 0px, 0px)' },
-					{ transform: `translate3d(${next.dx}, ${next.dy}, 0px)` }
-				],
-				{
-					duration: Math.max(8, next.cruise) * 1000,
-					delay: Math.max(0, next.phase) * 1000,
-					easing: 'linear',
-					fill: 'forwards',
-					iterations: 1
-				}
-			);
-		};
-
-		play(current);
-		return {
-			update(next: Planet) {
-				if (
-					next.dx === current.dx &&
-					next.dy === current.dy &&
-					next.cruise === current.cruise &&
-					next.phase === current.phase
-				) {
-					current = next;
-					return;
-				}
-				current = next;
-				play(next);
-			},
-			destroy() {
-				anim?.cancel();
-			}
+	function host(slot: number) {
+		return (node: HTMLElement) => {
+			hosts.set(slot, node);
+			return () => {
+				if (hosts.get(slot) === node) hosts.delete(slot);
+			};
 		};
 	}
 
-	$effect(() => {
-		const node = root;
-		const scroller = voyageEl;
-		if (!node || !scroller) return;
-
-		const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		const measure = () => ({
-			w: Math.max(node.clientWidth || 0, window.innerWidth),
-			h: Math.max(node.clientHeight || 0, window.innerHeight)
-		});
-		const boot = measure();
-		const voyage = createVoyage(Date.now(), boot);
-		const voyageSeed = voyage.seed;
-		let nextIndex = voyage.nextIndex;
-		let field = boot;
-		let fieldSectors = voyage.sectors.map((sector, slot) => ({ ...sector, id: slot }));
-		sectors = fieldSectors;
-
-		const onResize = () => {
-			const next = measure();
-			if (Math.abs(next.w - field.w) < 160 && Math.abs(next.h - field.h) < 160) return;
-			field = next;
-		};
-
-		window.addEventListener('resize', onResize);
-
-		if (prefersReduce) {
-			scroller.style.transform = 'translate3d(0px, 0px, 0)';
-			return () => window.removeEventListener('resize', onResize);
-		}
-
-		let voyageAnim: Animation | null = null;
-		let travelOffset = 0;
-		let driftOffset = 0;
-		let recycleTimer = 0;
-		const pendingRefresh = new Map<number, number>();
-		let refreshFrame = 0;
-		const CHUNK_S = 45;
-
-		const flushRefresh = () => {
-			refreshFrame = 0;
-			if (!pendingRefresh.size) return;
-			let changed = false;
-			for (const [slot, origin] of pendingRefresh) {
-				const current = fieldSectors[slot];
-				if (!current || current.origin !== origin) continue;
-				const fresh = generateSector(
-					voyageSeed,
-					nextIndex,
-					Date.now() + nextIndex * 7919,
-					origin,
-					field
-				);
-				fieldSectors[slot] = { ...fresh, id: slot, origin };
-				nextIndex += 1;
-				changed = true;
-			}
-			pendingRefresh.clear();
-			if (changed) sectors = fieldSectors.slice();
-		};
-
-		const travelNow = () => {
-			const t = typeof voyageAnim?.currentTime === 'number' ? voyageAnim.currentTime / 1000 : 0;
-			return travelOffset + VOYAGE_TRAVEL_PX_PER_S * t;
-		};
-
-		const recycle = () => {
-			const travel = travelNow();
-			const height = field.h;
-			const period = height * SECTOR_SPAN * fieldSectors.length;
-			const recycleAt = height * 2.35;
-			let originsDirty = false;
-			let spawnSighting = false;
-
-			for (let i = 0; i < fieldSectors.length; i += 1) {
-				while (fieldSectors[i] && fieldSectors[i].origin + travel > recycleAt) {
-					const origin = fieldSectors[i].origin - period;
-					fieldSectors[i] = { ...fieldSectors[i], origin };
-					pendingRefresh.set(i, origin);
-					originsDirty = true;
-					if (Math.random() < 0.09 && sightings.length < 2) spawnSighting = true;
-				}
+	function space(canvas: HTMLCanvasElement) {
+		return untrack(() => {
+			const renderer = createSpaceRenderer(canvas);
+			if (!renderer) {
+				failed = true;
+				return;
 			}
 
-			if (originsDirty) {
-				sectors = fieldSectors.slice();
-				if (!refreshFrame) refreshFrame = requestAnimationFrame(flushRefresh);
-			}
-			if (spawnSighting) {
-				sightings = [...sightings, createSighting(Date.now())];
-			}
-			if (sightings.length) {
-				const now = performance.now();
-				const keep = sightings.filter((egg) => now - egg.born < egg.life);
-				if (keep.length !== sightings.length) sightings = keep;
-			}
-		};
+			const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			let w = Math.max(1, canvas.clientWidth || window.innerWidth);
+			let h = Math.max(1, canvas.clientHeight || window.innerHeight);
+			let field = { w, h };
+			let starSize = { w, h };
+			const voyage = createVoyage(Date.now(), field);
+			const seed = voyage.seed;
+			let nextIndex = voyage.nextIndex;
+			const slots: Array<{ sector: Sector; born: number }> = voyage.sectors.map((sector) => ({
+				sector,
+				born: 0
+			}));
 
-		const playChunk = () => {
-			if (voyageAnim) {
-				try {
-					voyageAnim.commitStyles();
-				} catch {
-					/* ignore */
-				}
-				voyageAnim.onfinish = null;
-				voyageAnim.cancel();
-			}
-			const dist = VOYAGE_TRAVEL_PX_PER_S * CHUNK_S;
-			const drift = VOYAGE_DRIFT_PX_PER_S * CHUNK_S;
-			const fromX = -driftOffset;
-			const fromY = travelOffset;
-			voyageAnim = scroller.animate(
-				[
-					{ transform: `translate3d(${fromX.toFixed(1)}px, ${fromY.toFixed(1)}px, 0)` },
-					{
-						transform: `translate3d(${(fromX - drift).toFixed(1)}px, ${(fromY + dist).toFixed(1)}px, 0)`
-					}
-				],
-				{
-					duration: CHUNK_S * 1000,
-					easing: 'linear',
-					fill: 'forwards'
-				}
-			);
-			voyageAnim.onfinish = () => {
-				travelOffset += dist;
-				driftOffset += drift;
-				playChunk();
+			const publishEggs = () => {
+				eggHosts = slots
+					.map((entry, slot) => ({ slot, eggs: entry.sector.eggs }))
+					.filter((entry) => entry.eggs.length > 0);
 			};
-		};
 
-		playChunk();
-		recycleTimer = window.setInterval(recycle, 180);
+			/** Resolution steps applied when the GPU can't keep up with the display. */
+			const SCALES = [1, 0.75, 0.5];
+			let level = 0;
+			const pixelRatio = () =>
+				Math.max(0.5, Math.min(1.5, window.devicePixelRatio || 1) * SCALES[level]);
 
-		return () => {
-			if (voyageAnim) {
-				voyageAnim.onfinish = null;
-				voyageAnim.cancel();
-			}
-			window.clearInterval(recycleTimer);
-			if (refreshFrame) cancelAnimationFrame(refreshFrame);
-			window.removeEventListener('resize', onResize);
-		};
-	});
+			renderer.resize(w, h, pixelRatio());
+			renderer.setStars(createStarfield(2026, starSize));
+			slots.forEach((entry, slot) => renderer.setSector(slot, entry.sector));
+			publishEggs();
+
+			let start = performance.now();
+			let raf = 0;
+			let lastSweep = 0;
+
+			let windowStart = 0;
+			let windowFrames = 0;
+			let bestInterval = Number.POSITIVE_INFINITY;
+			let slowWindows = 0;
+			let fastWindows = 0;
+			let holdUntil = 0;
+
+			const adapt = (now: number) => {
+				if (!windowStart) {
+					windowStart = now;
+					windowFrames = 0;
+					return;
+				}
+				windowFrames += 1;
+				const span = now - windowStart;
+				if (span < 1000) return;
+				const avg = span / windowFrames;
+				windowStart = now;
+				windowFrames = 0;
+				bestInterval = Math.min(bestInterval, avg);
+				if (avg > bestInterval * 1.3) {
+					slowWindows += 1;
+					fastWindows = 0;
+				} else if (avg < bestInterval * 1.1) {
+					fastWindows += 1;
+					slowWindows = 0;
+				}
+				if (slowWindows >= 2 && level < SCALES.length - 1) {
+					level += 1;
+					slowWindows = 0;
+					holdUntil = now + 30_000;
+					renderer.resize(w, h, pixelRatio());
+				} else if (fastWindows >= 5 && level > 0 && now > holdUntil) {
+					level -= 1;
+					fastWindows = 0;
+					renderer.resize(w, h, pixelRatio());
+				}
+			};
+
+			const recycle = (t: number, travel: number) => {
+				const period = field.h * SECTOR_SPAN * slots.length;
+				const recycleAt = field.h * 2.35;
+				let changed = false;
+				for (let i = 0; i < slots.length; i += 1) {
+					if (slots[i].sector.origin + travel <= recycleAt) continue;
+					let origin = slots[i].sector.origin;
+					while (origin + travel > recycleAt) origin -= period;
+					const sector = generateSector(seed, nextIndex, Date.now() + nextIndex * 7919, origin, field);
+					nextIndex += 1;
+					slots[i] = { sector, born: t };
+					renderer.setSector(i, sector);
+					changed = true;
+					if (Math.random() < 0.09 && sightings.length < 2) {
+						sightings = [...sightings, createSighting(Date.now())];
+					}
+				}
+				if (changed) publishEggs();
+			};
+
+			const frame = (now: number) => {
+				raf = 0;
+				const t = calm ? 0 : (now - start) / 1000;
+				const travel = VOYAGE_TRAVEL_PX_PER_S * t;
+				if (!calm) recycle(t, travel);
+
+				const frames: SectorFrame[] = slots.map((entry) => {
+					const y = -0.2 * h + entry.sector.origin + travel;
+					return { x: -DRIFT_PER_TRAVEL * (y + 0.2 * h), y, age: t - entry.born };
+				});
+				renderer.render(t, frames, calm);
+				if (!calm) adapt(now);
+
+				for (const [slot, node] of hosts) {
+					const f = frames[slot];
+					if (f) node.style.transform = `translate3d(${f.x.toFixed(1)}px, ${f.y.toFixed(1)}px, 0)`;
+				}
+
+				if (sightings.length && now - lastSweep > 1000) {
+					lastSweep = now;
+					const alive = performance.now();
+					const keep = sightings.filter((egg) => alive - egg.born < egg.life);
+					if (keep.length !== sightings.length) sightings = keep;
+				}
+
+				if (!calm && !document.hidden) raf = requestAnimationFrame(frame);
+			};
+
+			const kick = () => {
+				windowStart = 0;
+				if (!raf) raf = requestAnimationFrame(frame);
+			};
+
+			const resize = () => {
+				w = Math.max(1, canvas.clientWidth || window.innerWidth);
+				h = Math.max(1, canvas.clientHeight || window.innerHeight);
+				renderer.resize(w, h, pixelRatio());
+				if (Math.abs(w - field.w) >= 160 || Math.abs(h - field.h) >= 160) field = { w, h };
+				if (Math.abs(w - starSize.w) >= 160 || Math.abs(h - starSize.h) >= 160) {
+					starSize = { w, h };
+					renderer.setStars(createStarfield(2026, starSize));
+				}
+				kick();
+			};
+
+			const onVisibility = () => {
+				if (!document.hidden) kick();
+			};
+
+			const onLost = (event: Event) => {
+				event.preventDefault();
+				if (raf) cancelAnimationFrame(raf);
+				raf = 0;
+				failed = true;
+			};
+
+			const observer = new ResizeObserver(resize);
+			observer.observe(canvas);
+			document.addEventListener('visibilitychange', onVisibility);
+			canvas.addEventListener('webglcontextlost', onLost);
+			start = performance.now();
+			kick();
+
+			return () => {
+				if (raf) cancelAnimationFrame(raf);
+				observer.disconnect();
+				document.removeEventListener('visibilitychange', onVisibility);
+				canvas.removeEventListener('webglcontextlost', onLost);
+				renderer.dispose();
+			};
+		});
+	}
 </script>
 
-<div class="atmosphere" bind:this={root} aria-hidden="true">
-	<div class="wash"></div>
-	<Starfield />
-	<div class="voyage" bind:this={voyageEl}>
-	{#each sectors as sector (sector.id)}
-		<div
-			class="sector"
-			style:transform="translate3d(0, {sector.origin}px, 0)"
-			style:--tint="rgba({sector.tint}, 0.16)"
-		>
-			<div class="tint"></div>
-			<i
-				class="lane"
-				style:left="{sector.lane.x}%"
-				style:top="{sector.lane.y}%"
-				style:opacity={sector.lane.opacity}
-				style:--tilt="{sector.lane.tilt}deg"
-			></i>
-			{#each sector.nebulae as cloud (cloud.id)}
-				<i
-					class="nebula"
-					style:left="{cloud.x}%"
-					style:top="{cloud.y}%"
-					style:width="{cloud.w}vw"
-					style:height="{cloud.h}vw"
-					style:opacity={cloud.opacity}
-					style:--a={cloud.a}
-					style:--b={cloud.b}
-					style:--tilt="{cloud.tilt}deg"
-				></i>
-			{/each}
-			{#each sector.wisps as wisp (wisp.id)}
-				<i
-					class="wisp"
-					style:left="{wisp.x}%"
-					style:top="{wisp.y}%"
-					style:width="{wisp.w}vw"
-					style:height="{wisp.h}vw"
-					style:opacity={wisp.opacity}
-					style:--a={wisp.a}
-					style:--tilt="{wisp.tilt}deg"
-				></i>
-			{/each}
-			{#if sector.galaxy}
-				<i
-					class="galaxy"
-					style:left="{sector.galaxy.x}%"
-					style:top="{sector.galaxy.y}%"
-					style:width="{sector.galaxy.size}px"
-					style:height="{sector.galaxy.size}px"
-					style:--spin="{sector.galaxy.spin}s"
-				></i>
-			{/if}
-			{#if sector.galaxyB}
-				<i
-					class="galaxy dim"
-					style:left="{sector.galaxyB.x}%"
-					style:top="{sector.galaxyB.y}%"
-					style:width="{sector.galaxyB.size}px"
-					style:height="{sector.galaxyB.size}px"
-					style:--spin="{sector.galaxyB.spin}s"
-				></i>
-			{/if}
-			<div class="motes">
-				<SpeckField dust={sector.dust} glow={sector.glow} distant={sector.distant} />
-			</div>
-			{#each sector.planets as planet (planet.id)}
-				<div
-					class={planet.className}
-					style:left="{planet.x}%"
-					style:top="{planet.y}%"
-					style:width="{planet.size}px"
-					style:height="{planet.size}px"
-					style:--spin="{planet.spin}s"
-					style:--phase="{planet.phase}s"
-					style:--axial="{planet.axial}deg"
-					style:--orbit="{planet.orbit}s"
-					style:--hi={planet.hi}
-					style:--mid={planet.mid}
-					style:--lo={planet.lo}
-					style:--halo={planet.halo}
-					style:--ring={planet.ring}
-					style:--haze={planet.haze}
-					style:--moon={planet.moonTint}
-					use:glide={planet}
-				>
-					<i class="halo"></i>
-					{#if planet.atmo !== 'none'}
-						<i class="atmo"></i>
-					{/if}
-					{#if planet.ringed}
-						<i class="rings back"></i>
-					{/if}
-					<span class="spin">
-						<i class="body"></i>
-						{#if planet.storm}<i class="storm"></i>{/if}
-						{#if planet.cities}<i class="cities"></i>{/if}
-					</span>
-					<i class="glint"></i>
-					{#if planet.atmo === 'aurora'}
-						<i class="aurora"></i>
-					{/if}
-					{#if planet.ringed}
-						<i class="rings front"></i>
-					{/if}
-					{#if planet.moon}
-						<i class="moon"></i>
-					{/if}
-				</div>
-			{/each}
-			{#each sector.eggs as egg (egg.id)}
+<div class="atmosphere" aria-hidden="true">
+	{#if failed}
+		<div class="wash"></div>
+	{:else}
+		<canvas class="space" {@attach space}></canvas>
+	{/if}
+	{#each eggHosts as entry (entry.slot)}
+		<div class="eggs" {@attach host(entry.slot)}>
+			{#each entry.eggs as egg (egg.id)}
 				<i
 					class={['egg', egg.kind]}
 					style:left="{egg.x}%"
@@ -330,41 +225,8 @@
 					style:--tilt="{egg.tilt}deg"
 				></i>
 			{/each}
-			{#each sector.comets as comet (comet.id)}
-				<i
-					class="comet"
-					style:--x="{comet.x}%"
-					style:--y="{comet.y}%"
-					style:--angle="{comet.angle}deg"
-					style:--streak="{comet.travel}vw"
-					style:--dur="{comet.dur}s"
-					style:--delay="{comet.delay}s"
-					style:--len="{comet.len}px"
-					style:--thick="{comet.thick}px"
-					style:--color={comet.color}
-				></i>
-			{/each}
-			{#each sector.rocks as rock (rock.id)}
-				<i
-					class="pebble"
-					style:left="{rock.x}%"
-					style:top="{rock.y}%"
-					style:width="{rock.w}px"
-					style:height="{rock.h}px"
-					style:--spin="{rock.rot}deg"
-				></i>
-			{/each}
-			{#if sector.craft}
-				<div class="craft" style:left="{sector.craft.x}%" style:top="{sector.craft.y}%"></div>
-			{/if}
 		</div>
 	{/each}
-	</div>
-	<div class="ring r1"></div>
-	<div class="ring r2"></div>
-	<div class="ring r3"></div>
-	<div class="grid"></div>
-	<div class="vignette"></div>
 	{#each sightings as egg (egg.id)}
 		<i
 			class={['sighting', 'egg', egg.kind]}
@@ -384,301 +246,39 @@
 		pointer-events: none;
 		overflow: hidden;
 		z-index: 0;
-		transform: translateZ(0);
-		contain: layout style;
+		contain: strict;
 		isolation: isolate;
+		background: #07060d;
 	}
 
-	.wash,
-	.voyage,
-	.sector,
-	.ring,
-	.grid,
-	.vignette {
+	.space,
+	.wash {
 		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		display: block;
 	}
 
 	.wash {
-		inset: 0;
 		background:
 			radial-gradient(1100px 700px at 8% 4%, rgba(139, 124, 255, 0.22), transparent 58%),
 			radial-gradient(900px 560px at 94% 10%, rgba(255, 51, 92, 0.14), transparent 52%),
 			linear-gradient(180deg, #12081c 0%, #07060d 52%, #0c0714 100%);
 	}
 
-	.voyage {
-		inset: 0;
-		transform: translate3d(0, 0, 0);
-		backface-visibility: hidden;
-	}
-
-	.sector {
-		inset: -20% 0 0 0;
-		height: 140%;
-		contain: layout style;
-		backface-visibility: hidden;
-	}
-
-	.tint {
+	.eggs {
 		position: absolute;
-		inset: 10% 8%;
-		border-radius: 50%;
-		background: radial-gradient(ellipse at 50% 40%, var(--tint), transparent 70%);
-		opacity: 0.85;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 140%;
+		will-change: transform;
 	}
 
-	.nebula,
-	.wisp,
-	.galaxy,
-	.world,
-	.comet,
-	.pebble,
-	.craft,
-	.lane,
 	.egg,
 	.sighting {
 		position: absolute;
-	}
-
-	.lane {
-		width: 160%;
-		height: 28%;
-		border-radius: 50%;
-		background: linear-gradient(
-			90deg,
-			transparent 0%,
-			rgba(180, 200, 255, 0.05) 18%,
-			rgba(255, 255, 255, 0.11) 50%,
-			rgba(160, 140, 255, 0.07) 74%,
-			transparent 100%
-		);
-		transform: rotate(var(--tilt));
-	}
-
-	.nebula {
-		border-radius: 50%;
-		background:
-			radial-gradient(ellipse 70% 55% at 38% 42%, var(--a), transparent 62%),
-			radial-gradient(ellipse 40% 50% at 62% 58%, var(--b), transparent 60%);
-		transform: rotate(var(--tilt));
-	}
-
-	.wisp {
-		border-radius: 50%;
-		background: radial-gradient(ellipse at 50% 50%, var(--a), transparent 70%);
-		transform: rotate(var(--tilt));
-	}
-
-	.galaxy {
-		border-radius: 50%;
-		background:
-			radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18), transparent 18%),
-			conic-gradient(
-				from 30deg,
-				transparent 0 12%,
-				rgba(139, 124, 255, 0.22) 18%,
-				transparent 32%,
-				rgba(92, 225, 230, 0.16) 44%,
-				transparent 58%,
-				rgba(255, 180, 220, 0.12) 70%,
-				transparent 84%
-			);
-		opacity: 0.55;
-		animation: twirl var(--spin, 90s) linear infinite;
-	}
-
-	.galaxy.dim {
-		opacity: 0.32;
-	}
-
-	.motes {
-		position: absolute;
-		inset: 0;
-		overflow: hidden;
-		pointer-events: none;
-	}
-
-	.world {
-		overflow: visible;
-	}
-
-	.world .halo,
-	.world .body,
-	.world .rings,
-	.world .moon,
-	.world .spin,
-	.world .glint,
-	.world .aurora,
-	.world .storm,
-	.world .cities,
-	.world .atmo {
-		position: absolute;
-		border-radius: 50%;
-	}
-
-	.world .spin {
-		inset: 0;
-		overflow: hidden;
-		z-index: 1;
-		animation: planet-spin var(--spin, 48s) linear infinite;
-	}
-
-	.world.retro .spin {
-		animation-direction: reverse;
-	}
-
-	.world .halo {
-		inset: -22%;
-		background: radial-gradient(circle, var(--halo, rgba(139, 124, 255, 0.28)), transparent 68%);
-		animation: halo-breathe 7s ease-in-out var(--phase, 0s) infinite;
-	}
-
-	.world .atmo {
-		inset: -34%;
-		background: radial-gradient(circle, var(--haze, rgba(160, 200, 255, 0.16)), transparent 72%);
-		z-index: 0;
-		pointer-events: none;
-	}
-
-	.world.atmo-ion .atmo {
-		opacity: 0.85;
-	}
-
-	.world.atmo-burn .halo {
-		animation-duration: 3.4s;
-	}
-
-	.world .body {
-		inset: 0;
-		box-shadow: inset -14px -10px 22px rgba(0, 0, 0, 0.48);
-		background:
-			radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.34), transparent 26%),
-			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 46%, var(--hi));
-	}
-
-	.world .glint {
-		left: 18%;
-		top: 16%;
-		width: 28%;
-		height: 20%;
-		background: radial-gradient(circle, rgba(255, 255, 255, 0.45), transparent 70%);
-		z-index: 3;
-		animation: glint 5.5s ease-in-out var(--phase, 0s) infinite;
-	}
-
-	.world .aurora {
-		inset: -18%;
-		background: conic-gradient(
-			from 200deg,
-			transparent 0 18%,
-			var(--haze, rgba(80, 255, 210, 0.28)) 24%,
-			transparent 38%,
-			var(--halo, rgba(140, 180, 255, 0.22)) 48%,
-			transparent 62%
-		);
-		opacity: 0.55;
-		z-index: 2;
-		animation: aurora 9s ease-in-out infinite;
-	}
-
-	.world .storm {
-		width: 22%;
-		height: 14%;
-		left: 58%;
-		top: 46%;
-		background: radial-gradient(ellipse, var(--lo), color-mix(in srgb, var(--mid) 20%, transparent) 70%);
-		opacity: 0.85;
-	}
-
-	.world .cities {
-		inset: 0;
-		background:
-			radial-gradient(1.2px 1.2px at 62% 38%, #ffe38a, transparent),
-			radial-gradient(1px 1px at 70% 52%, #5ce1e6, transparent),
-			radial-gradient(1.4px 1.4px at 78% 44%, #ffb0d0, transparent),
-			radial-gradient(1px 1px at 66% 61%, #fff, transparent),
-			radial-gradient(1.1px 1.1px at 74% 70%, #ffe38a, transparent),
-			radial-gradient(0.9px 0.9px at 84% 56%, #8b7cff, transparent);
-		clip-path: inset(0 0 0 52%);
-		opacity: 0.8;
-	}
-
-	.gas .body {
-		background:
-			radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.32), transparent 26%),
-			repeating-linear-gradient(
-				104deg,
-				var(--mid) 0 10px,
-				var(--hi) 10px 16px,
-				var(--lo) 16px 22px,
-				var(--mid) 22px 30px
-			);
-	}
-
-	.ocean .body {
-		background:
-			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.4), transparent 26%),
-			radial-gradient(circle at 28% 62%, color-mix(in srgb, var(--hi) 70%, #0a2030) 0 18%, transparent 42%),
-			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 42%, var(--hi));
-	}
-
-	.toxic .body {
-		background:
-			radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.28), transparent 24%),
-			radial-gradient(circle at 62% 58%, var(--hi), transparent 36%),
-			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 48%, var(--hi));
-	}
-
-	.dust .body {
-		background:
-			radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.22), transparent 24%),
-			radial-gradient(circle at 58% 40%, color-mix(in srgb, var(--lo) 55%, transparent) 0 12%, transparent 28%),
-			radial-gradient(circle at 70% 68%, var(--lo), var(--mid) 46%, var(--hi));
-	}
-
-	.ringed .rings {
-		left: -72%;
-		top: -72%;
-		width: 244%;
-		height: 244%;
-		border: 8px solid var(--ring, rgba(255, 214, 140, 0.38));
-		border-left-color: transparent;
-		border-right-color: color-mix(in srgb, var(--ring, rgba(255, 214, 140, 0.38)) 28%, transparent);
-		border-radius: 50%;
-		/* Flat ellipse instead of rotateX — 3D rings re-rasterize every voyage frame on mobile GPUs. */
-		transform: scaleY(0.28) rotate(0deg);
-		transform-origin: 50% 50%;
-		animation: ring-spin 48s linear infinite;
-	}
-
-	.ringed .rings.back {
-		z-index: 0;
-	}
-
-	.ringed .rings.front {
-		z-index: 2;
-		clip-path: inset(50% 0 0 0);
-		border-color: var(--ring, rgba(255, 228, 170, 0.55));
-	}
-
-	.ringed:not(.gas) .rings {
-		border-width: 5px;
-		animation-duration: 36s;
-	}
-
-	.world .moon {
-		width: 18%;
-		height: 18%;
-		left: 50%;
-		top: 50%;
-		background: radial-gradient(circle at 30% 30%, #f6f2ea, var(--moon, #9b9488) 58%, #6c655c);
-		box-shadow: inset -4px -3px 6px rgba(0, 0, 0, 0.4);
-		animation: moon var(--orbit, 14s) linear infinite;
-		z-index: 4;
-	}
-
-	.ember .halo {
-		animation-duration: 3.4s;
 	}
 
 	.egg {
@@ -915,183 +515,10 @@
 		animation: flyby var(--dur, 16s) linear var(--delay, 0s) forwards;
 	}
 
-	.ring {
-		left: 50%;
-		top: 42%;
-		border: 1px solid rgba(92, 225, 230, 0.12);
-		border-radius: 50%;
-	}
-
-	.r1 {
-		width: min(92vw, 820px);
-		height: min(92vw, 820px);
-		animation: spin 48s linear infinite;
-	}
-
-	.r2 {
-		width: min(68vw, 560px);
-		height: min(68vw, 560px);
-		border-color: rgba(255, 51, 92, 0.12);
-		animation: spin 32s linear infinite reverse;
-	}
-
-	.r3 {
-		width: min(110vw, 1040px);
-		height: min(110vw, 1040px);
-		border-color: rgba(139, 124, 255, 0.1);
-		border-style: dashed;
-		animation: spin 72s linear infinite;
-	}
-
-	.comet {
-		left: var(--x);
-		top: var(--y);
-		width: var(--len);
-		height: var(--thick);
-		border-radius: 999px;
-		background: linear-gradient(90deg, transparent 0%, var(--color) 58%, #fff 100%);
-		box-shadow: 6px 0 10px 1px color-mix(in srgb, var(--color) 55%, transparent);
-		opacity: 0;
-		animation: streak var(--dur) linear var(--delay) infinite;
-	}
-
-	.comet::after {
-		content: '';
-		position: absolute;
-		right: -2px;
-		top: 50%;
-		width: 5px;
-		height: 5px;
-		translate: 0 -50%;
-		border-radius: 50%;
-		background: #fff;
-		box-shadow: 0 0 8px 2px var(--color);
-	}
-
-	.pebble {
-		border-radius: 40% 60% 55% 45%;
-		background: radial-gradient(circle at 30% 30%, #8a8498, #3b3548 70%);
-		opacity: 0.55;
-		animation: tumble 22s linear infinite;
-	}
-
-	.craft {
-		width: 34px;
-		height: 8px;
-		flex: none;
-		background: linear-gradient(90deg, #9aa4c7, #eef3ff);
-		border-radius: 2px;
-		box-shadow:
-			-16px 0 0 -2px rgba(92, 225, 230, 0.55),
-			16px 0 0 -2px rgba(92, 225, 230, 0.55),
-			0 0 12px rgba(255, 255, 255, 0.4);
-		animation: cruise 28s linear infinite;
-	}
-
-	.grid {
-		inset: auto 0 -18% 0;
-		height: 50%;
-		overflow: hidden;
-		transform: perspective(420px) rotateX(64deg);
-		transform-origin: 50% 100%;
-		mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent 78%);
-		backface-visibility: hidden;
-	}
-
-	.grid::before {
-		content: '';
-		position: absolute;
-		inset: -72px 0 0 0;
-		height: calc(100% + 72px);
-		background-image:
-			linear-gradient(rgba(92, 225, 230, 0.1) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(92, 225, 230, 0.1) 1px, transparent 1px);
-		background-size: 72px 72px;
-		will-change: transform;
-		animation: grid 16s linear infinite;
-	}
-
-	.vignette {
-		inset: 0;
-		background: radial-gradient(circle at 50% 38%, transparent 30%, rgba(0, 0, 0, 0.5) 100%);
-	}
 
 	@keyframes twirl {
 		to {
 			transform: rotate(360deg);
-		}
-	}
-
-	@keyframes spin {
-		from {
-			transform: translate(-50%, -50%) rotate(0deg);
-		}
-		to {
-			transform: translate(-50%, -50%) rotate(360deg);
-		}
-	}
-
-	@keyframes planet-spin {
-		from {
-			transform: rotate(var(--axial, 0deg));
-		}
-		to {
-			transform: rotate(calc(var(--axial, 0deg) + 360deg));
-		}
-	}
-
-	@keyframes halo-breathe {
-		50% {
-			opacity: 0.65;
-		}
-	}
-
-	@keyframes glint {
-		50% {
-			opacity: 0.45;
-			transform: translate(6%, 4%) scale(1.1);
-		}
-	}
-
-	@keyframes aurora {
-		50% {
-			opacity: 0.85;
-			transform: rotate(18deg) scale(1.05);
-		}
-	}
-
-	@keyframes ring-spin {
-		from {
-			transform: scaleY(0.28) rotate(0deg);
-		}
-		to {
-			transform: scaleY(0.28) rotate(360deg);
-		}
-	}
-
-	@keyframes moon {
-		from {
-			transform: rotate(0deg) translate(118%) rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg) translate(118%) rotate(-360deg);
-		}
-	}
-
-	@keyframes streak {
-		0% {
-			transform: rotate(var(--angle)) translateX(0);
-			opacity: 0;
-		}
-		7% {
-			opacity: 1;
-		}
-		82% {
-			opacity: 1;
-		}
-		100% {
-			transform: rotate(var(--angle)) translateX(var(--streak));
-			opacity: 0;
 		}
 	}
 
@@ -1101,26 +528,6 @@
 		}
 		to {
 			transform: rotate(calc(var(--spin) + 220deg));
-		}
-	}
-
-	@keyframes cruise {
-		0% {
-			transform: translate3d(0, 0, 0);
-			opacity: 0;
-		}
-		8% {
-			opacity: 0.85;
-		}
-		100% {
-			transform: translate3d(40vw, 12vh, 0);
-			opacity: 0;
-		}
-	}
-
-	@keyframes grid {
-		to {
-			transform: translate3d(0, 72px, 0);
 		}
 	}
 
@@ -1206,35 +613,11 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.galaxy,
-		.world,
-		.world .spin,
-		.world .halo,
-		.world .glint,
-		.world .aurora,
-		.world .atmo,
-		.world .rings,
-		.ring,
-		.comet,
-		.pebble,
-		.craft,
-		.grid,
-		.moon,
 		.egg,
 		.sighting {
 			animation: none;
 		}
 
-		.voyage,
-		.sector {
-			transform: none !important;
-		}
-
-		.grid::before {
-			animation: none;
-		}
-
-		.comet,
 		.sighting {
 			opacity: 0;
 		}

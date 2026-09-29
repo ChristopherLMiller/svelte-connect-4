@@ -49,6 +49,7 @@
 	let lastAlert = '';
 	let rigEl = $state<HTMLDivElement | null>(null);
 	let flashEl = $state<HTMLDivElement | null>(null);
+	let impactLast = 0;
 	const measureY = $derived.by(() => {
 		const current = layout;
 		return (row: number) => ({
@@ -84,8 +85,7 @@
 		}
 		const flashNode = flashEl;
 		if (flashNode) {
-			flashNode.style.opacity = flash > 0.04 ? String(Math.min(1, flash * 0.95)) : '0';
-			flashNode.style.background = `radial-gradient(circle at 50% 72%, rgba(255, 255, 255, ${flash * 0.55}), rgba(92, 225, 230, ${flash * 0.18}) 42%, transparent 62%)`;
+			flashNode.style.opacity = flash > 0.04 ? String(Math.min(1, flash * flash * 0.95)) : '0';
 		}
 	}
 
@@ -93,10 +93,16 @@
 		const shake = session.shake;
 		const flash = session.flash;
 		paintImpact(shake, flash);
-		if (shake <= 0 && flash <= 0) return;
-		const id = requestAnimationFrame(() => {
-			session.shake = Math.max(0, session.shake * 0.72 - 0.15);
-			session.flash = Math.max(0, session.flash * 0.82 - 0.015);
+		if (shake <= 0 && flash <= 0) {
+			impactLast = 0;
+			return;
+		}
+		const id = requestAnimationFrame((now) => {
+			// Decay constants are tuned per 60Hz frame; scale by elapsed frames so 120Hz+ matches.
+			const steps = impactLast ? Math.min(4, (now - impactLast) / (1000 / 60)) : 1;
+			impactLast = now;
+			session.shake = Math.max(0, session.shake * 0.72 ** steps - 0.15 * steps);
+			session.flash = Math.max(0, session.flash * 0.82 ** steps - 0.015 * steps);
 		});
 		return () => cancelAnimationFrame(id);
 	});
@@ -143,7 +149,7 @@
 				<div
 					class={['laser', { scan: session.aiThinking, flight: livePiece !== null }]}
 					style="
-						left: {discX(layout, wellCol) + layout.disc / 2}px;
+						transform: translateX({discX(layout, wellCol) + layout.disc / 2}px);
 						height: {layout.sky + layout.height}px;
 					"
 				></div>
@@ -154,7 +160,7 @@
 					style="
 						width: {layout.disc}px;
 						height: {layout.disc}px;
-						left: {discX(layout, session.hoverCol)}px;
+						translate: {discX(layout, session.hoverCol)}px 0;
 					"
 				>
 					<span class="reticle" aria-hidden="true"></span>
@@ -186,7 +192,7 @@
 							width: {layout.disc}px;
 							height: {layout.disc}px;
 							left: {discX(layout, piece.col)}px;
-							top: {piece.y}px;
+							transform: translate3d(0, {piece.y}px, 0);
 						"
 					>
 						<Disc
@@ -496,7 +502,6 @@
 							</filter>
 						</defs>
 						<polyline
-							class="beam-glow"
 							points={winLine}
 							fill="none"
 							stroke={winColor}
@@ -504,6 +509,26 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							filter="url(#{uid}-beam)"
+						/>
+						<polyline
+							points={winLine}
+							fill="none"
+							stroke="rgba(255, 255, 255, 0.35)"
+							stroke-width="11"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							filter="url(#{uid}-beam)"
+						/>
+					</svg>
+					<svg class="win-beam dashes" width={layout.width} height={layout.sky + layout.height} aria-hidden="true">
+						<polyline
+							class="beam-glow"
+							points={winLine}
+							fill="none"
+							stroke={winColor}
+							stroke-width="9"
+							stroke-linecap="round"
+							stroke-linejoin="round"
 						/>
 						<polyline
 							class="beam-core"
@@ -553,9 +578,10 @@
 		background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(92, 225, 230, 0.15) 70%, transparent);
 		box-shadow: 0 0 18px rgba(92, 225, 230, 0.8);
 		animation: laser 0.8s ease-in-out infinite;
+		left: 0;
 		z-index: 4;
 		pointer-events: none;
-		transition: left 140ms ease;
+		transition: transform 140ms ease;
 	}
 
 	.laser.scan {
@@ -574,10 +600,11 @@
 
 	.ghost-disc {
 		position: absolute;
+		left: 0;
 		bottom: 0;
 		animation: bob 1.2s ease-in-out infinite;
 		z-index: 4;
-		transition: left 140ms ease;
+		transition: translate 140ms ease;
 	}
 
 	.ghost-disc.scan {
@@ -695,7 +722,6 @@
 			transparent 100%
 		);
 		animation: boardsweep 1.1s linear infinite;
-		mix-blend-mode: screen;
 	}
 
 	.board.threat {
@@ -703,6 +729,19 @@
 			0 28px 70px rgba(0, 0, 0, 0.55),
 			0 0 0 1px rgba(255, 51, 92, 0.5),
 			0 0 64px rgba(255, 51, 92, 0.32);
+	}
+
+	.board.threat::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		pointer-events: none;
+		box-shadow:
+			0 0 0 1px rgba(255, 51, 92, 0.75),
+			0 0 80px rgba(255, 51, 92, 0.48);
+		opacity: 0;
+		will-change: opacity;
 		animation: threatpulse 0.9s ease-in-out infinite;
 	}
 
@@ -727,10 +766,12 @@
 
 	.piece {
 		position: absolute;
+		top: 0;
 	}
 
 	.piece.live {
 		z-index: 4;
+		will-change: transform;
 	}
 
 	.well-ring,
@@ -774,6 +815,8 @@
 		z-index: 2;
 		overflow: visible;
 		pointer-events: none;
+		/* Own layer: the masked, filtered hull only rasterizes when the layout changes. */
+		will-change: transform;
 	}
 
 	.hits {
@@ -857,6 +900,12 @@
 		opacity: 0;
 		pointer-events: none;
 		will-change: opacity;
+		background: radial-gradient(
+			circle at 50% 72%,
+			rgba(255, 255, 255, 0.55),
+			rgba(92, 225, 230, 0.18) 42%,
+			transparent 62%
+		);
 	}
 
 	.win-beam {
@@ -872,8 +921,8 @@
 		animation: beam 0.9s linear infinite;
 	}
 
-	.beam-core {
-		filter: drop-shadow(0 0 8px #fff);
+	.win-beam.dashes {
+		will-change: transform;
 	}
 
 	@keyframes bob {
@@ -923,10 +972,7 @@
 
 	@keyframes threatpulse {
 		50% {
-			box-shadow:
-				0 28px 70px rgba(0, 0, 0, 0.55),
-				0 0 0 1px rgba(255, 51, 92, 0.75),
-				0 0 80px rgba(255, 51, 92, 0.48);
+			opacity: 1;
 		}
 	}
 
@@ -954,7 +1000,7 @@
 		.well-ring,
 		.mark,
 		.board.thinking::after,
-		.board.threat,
+		.board.threat::before,
 		.board.won,
 		.beam-glow,
 		.beam-core {

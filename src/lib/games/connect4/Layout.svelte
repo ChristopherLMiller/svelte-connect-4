@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Atmosphere from './components/Atmosphere.svelte';
+	import HowToPlay from './components/HowToPlay.svelte';
 	import SettingsPanel from './components/SettingsPanel.svelte';
 	import { setMusicStation } from '$lib/audio/station';
 	import { primeAudio, hydrateSettings } from './settings.svelte';
@@ -33,6 +34,7 @@
 		{@render children()}
 	</div>
 	<SettingsPanel />
+	<HowToPlay />
 </div>
 
 <style>

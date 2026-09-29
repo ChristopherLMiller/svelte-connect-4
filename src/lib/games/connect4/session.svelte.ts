@@ -1,4 +1,4 @@
-import { chooseAiColumn } from './ai';
+import { chooseAiColumnAsync } from './aiClient';
 import { playBlock, playBounce, playDraw, playDrop, playHover, playInvalid, playWin } from './audio';
 import {
 	applyMove,
@@ -173,17 +173,18 @@ export class GameSession {
 		const token = this.turnToken;
 		this.aiThinking = true;
 		this.hoverCol = null;
-		const col = chooseAiColumn(this.board, 2, this.difficulty);
+		const choice = chooseAiColumnAsync(this.board, 2, this.difficulty);
 		const reduced =
 			typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		let col: number;
 
 		if (reduced) {
 			const thinkFor = this.difficulty === 'hard' ? 520 : this.difficulty === 'medium' ? 380 : 260;
-			await wait(thinkFor);
+			[col] = await Promise.all([choice, wait(thinkFor)]);
 		} else {
 			const valid = getValidColumns(this.board);
 			const hops = this.difficulty === 'hard' ? 7 : this.difficulty === 'medium' ? 5 : 4;
-			let cursor = valid[Math.floor(Math.random() * Math.max(1, valid.length))] ?? col;
+			let cursor = valid[Math.floor(Math.random() * Math.max(1, valid.length))] ?? 3;
 			for (let i = 0; i < hops; i += 1) {
 				if (token !== this.turnToken || this.screen !== 'play') {
 					this.aiThinking = false;
@@ -191,12 +192,17 @@ export class GameSession {
 				}
 				if (valid.length > 0) {
 					const step = 1 + Math.floor(Math.random() * Math.max(1, valid.length - 1));
-					cursor = valid[(valid.indexOf(cursor) + step) % valid.length] ?? col;
+					cursor = valid[(valid.indexOf(cursor) + step) % valid.length] ?? cursor;
 				}
 				this.hoverCol = cursor;
 				this.selectedCol = cursor;
 				playHover();
 				await wait(150 + Math.random() * 80);
+			}
+			col = await choice;
+			if (token !== this.turnToken || this.screen !== 'play') {
+				this.aiThinking = false;
+				return;
 			}
 			this.hoverCol = col;
 			this.selectedCol = col;
@@ -265,7 +271,7 @@ export class GameSession {
 					window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 				if (reduced) return;
 				this.flash = Math.min(1, 0.22 + impact * 0.9);
-				this.spawnFx('impact', col, row, player, impact);
+				if (impact > 0.25) this.spawnFx('impact', col, row, player, impact);
 			}
 		);
 

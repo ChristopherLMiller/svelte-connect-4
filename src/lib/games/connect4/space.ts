@@ -100,14 +100,31 @@ export type Speck = {
 	color: string;
 };
 
+export type FarGalaxy = {
+	x: number;
+	y: number;
+	size: number;
+	tilt: number;
+	squash: number;
+	arms: string;
+	core: string;
+	opacity: number;
+};
+
+export type DustCloud = Cloud & { seed: number };
+
 export type Sector = {
 	id: number;
 	origin: number;
 	dust: Speck[];
 	glow: Speck[];
 	distant: Speck[];
+	/** Star-dust band specks, clustered along a lane. */
+	band: Speck[];
 	nebulae: Cloud[];
 	wisps: Cloud[];
+	clouds: DustCloud[];
+	farGalaxies: FarGalaxy[];
 	planets: Planet[];
 	galaxy: { x: number; y: number; size: number; spin: number } | null;
 	galaxyB: { x: number; y: number; size: number; spin: number } | null;
@@ -323,23 +340,6 @@ function specks(
 	});
 }
 
-export function paintSpecks(
-	ctx: CanvasRenderingContext2D,
-	particles: Speck[],
-	width: number,
-	height: number,
-	offsetY = 0
-) {
-	for (let i = 0; i < particles.length; i += 1) {
-		const speck = particles[i];
-		const radius = Math.max(0.35, speck.r);
-		ctx.fillStyle = speck.color;
-		ctx.beginPath();
-		ctx.arc(speck.x * width, speck.y * height + offsetY, radius, 0, Math.PI * 2);
-		ctx.fill();
-	}
-}
-
 function makeEgg(id: string, kind: EasterKind, rand: () => number): EasterEgg {
 	return {
 		id,
@@ -390,7 +390,7 @@ export function generateSector(
 	const area = fieldW * fieldH;
 	const planetCount = 2;
 
-	const nebulaCount = 2 + Math.floor(rand() * 3);
+	const nebulaCount = 3 + Math.floor(rand() * 4);
 	const nebulae = Array.from({ length: nebulaCount }, (_, i) => {
 		const pair = pick(rand, NEBULA);
 		return {
@@ -406,7 +406,7 @@ export function generateSector(
 		};
 	});
 
-	const wisps = Array.from({ length: 1 + Math.floor(rand() * 3) }, (_, i) => {
+	const wisps = Array.from({ length: 3 + Math.floor(rand() * 4) }, (_, i) => {
 		const pair = pick(rand, NEBULA);
 		return {
 			id: `${index}-w-${i}`,
@@ -446,6 +446,71 @@ export function generateSector(
 		eggs.push(makeEgg(`${index}-egg-b`, pick(rand, EGG_COMMON), rand));
 	}
 
+	const clouds: DustCloud[] = Array.from({ length: 1 + Math.floor(rand() * 3) }, (_, i) => {
+		const pair = pick(rand, NEBULA);
+		return {
+			id: `${index}-d-${i}`,
+			x: -15 + rand() * 80,
+			y: -5 + rand() * 70,
+			w: 40 + rand() * 50,
+			h: 18 + rand() * 26,
+			a: pair[0],
+			b: pair[1],
+			tilt: -30 + rand() * 60,
+			opacity: 0.55 + rand() * 0.4,
+			seed: rand() * 1000
+		};
+	});
+
+	const band: Speck[] = [];
+	if (rand() < 0.7) {
+		const cx = fieldW * (0.2 + rand() * 0.6);
+		const cy = fieldH * (0.2 + rand() * 0.6);
+		const angle = ((-40 + rand() * 80) * Math.PI) / 180;
+		const length = fieldW * (0.9 + rand() * 0.5);
+		const spread = fieldH * (0.04 + rand() * 0.06);
+		const count = 180 + Math.floor(rand() * 140);
+		const tones = [...ice, ...glow];
+		for (let i = 0; i < count; i += 1) {
+			const along = (rand() - 0.5) * length;
+			const off = (rand() + rand() + rand() - 1.5) * spread;
+			const c = pick(rand, tones);
+			band.push({
+				x: (cx + Math.cos(angle) * along - Math.sin(angle) * off) / fieldW,
+				y: (cy + Math.sin(angle) * along + Math.cos(angle) * off) / fieldH,
+				r: 0.3 + rand() * rand() * 0.9,
+				color: `rgba(${c[0]},${c[1]},${c[2]},${(0.12 + rand() * 0.45).toFixed(2)})`
+			});
+		}
+		const pair = pick(rand, NEBULA);
+		clouds.push({
+			id: `${index}-band`,
+			x: ((cx - length / 2) / fieldW) * 100,
+			y: ((cy - spread * 3) / fieldH) * 100,
+			w: (length / size.w) * 100,
+			h: ((spread * 6) / size.w) * 100,
+			a: pair[0],
+			b: pair[1],
+			tilt: (angle * 180) / Math.PI,
+			opacity: 0.5 + rand() * 0.3,
+			seed: rand() * 1000
+		});
+	}
+
+	const farGalaxies: FarGalaxy[] = Array.from({ length: 3 + Math.floor(rand() * 5) }, () => {
+		const hue = rand() < 0.6 ? 200 + rand() * 60 : 280 + rand() * 60;
+		return {
+			x: rand() * 96,
+			y: rand() * 94,
+			size: 14 + rand() * rand() * 48,
+			tilt: rand() * 360,
+			squash: 0.25 + rand() * 0.75,
+			arms: hsla(hue, 60 + rand() * 30, 72, 0.5 + rand() * 0.3),
+			core: hsla(30 + rand() * 30, 70, 88, 0.85),
+			opacity: 0.35 + rand() * 0.45
+		};
+	});
+
 	const makeGalaxy = () => ({
 		x: rand() * 86,
 		y: 6 + rand() * 76,
@@ -456,14 +521,17 @@ export function generateSector(
 	return {
 		id: index,
 		origin,
-		dust: specks(rand, Math.min(90, Math.max(48, Math.round(area / 28000))), ice, [0.35, 0.9]),
-		glow: specks(rand, Math.min(28, Math.max(14, Math.round(area / 70000))), glow, [0.8, 1.8]),
-		distant: specks(rand, Math.min(12, Math.max(6, Math.round(area / 110000))), DISTANT, [0.5, 1.2]),
+		dust: specks(rand, Math.min(280, Math.max(150, Math.round(area / 9000))), ice, [0.35, 0.9]),
+		glow: specks(rand, Math.min(80, Math.max(40, Math.round(area / 25000))), glow, [0.8, 1.8]),
+		distant: specks(rand, Math.min(36, Math.max(18, Math.round(area / 38000))), DISTANT, [0.5, 1.2]),
+		band,
 		nebulae,
 		wisps,
+		clouds,
+		farGalaxies,
 		planets: Array.from({ length: planetCount }, (_, i) => makePlanet(`${index}-p-${i}`, rand, i, index)),
 		galaxy: rand() > 0.38 ? makeGalaxy() : null,
-		galaxyB: rand() > 0.72 ? makeGalaxy() : null,
+		galaxyB: rand() > 0.55 ? makeGalaxy() : null,
 		craft: rand() > 0.55 ? { x: rand() * 86, y: 8 + rand() * 55 } : null,
 		rocks: Array.from({ length: 4 + Math.floor(rand() * 5) }, (_, i) => ({
 			id: `${index}-r-${i}`,
@@ -505,9 +573,9 @@ export function createStarfield(seed = 9041, size: FieldSize = viewportSize()) {
 	return {
 		width: w,
 		height: h,
-		far: specks(rand, Math.min(140, Math.max(80, Math.round(area / 22000))), ice, [0.35, 0.85]),
-		mid: specks(rand, Math.min(56, Math.max(32, Math.round(area / 52000))), glow, [0.6, 1.6]),
-		deep: specks(rand, Math.min(70, Math.max(40, Math.round(area / 40000))), DISTANT, [0.4, 1.1])
+		far: specks(rand, Math.min(460, Math.max(260, Math.round(area / 6500))), ice, [0.35, 0.85]),
+		mid: specks(rand, Math.min(170, Math.max(96, Math.round(area / 17000))), glow, [0.6, 1.6]),
+		deep: specks(rand, Math.min(220, Math.max(120, Math.round(area / 13000))), DISTANT, [0.4, 1.1])
 	};
 }
 

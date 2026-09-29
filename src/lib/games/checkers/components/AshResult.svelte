@@ -5,8 +5,6 @@
 	let { session }: { session: AshSession } = $props();
 
 	const ended = $derived(session.screen === 'play' && session.status.type !== 'playing' && !session.animating);
-	const p1 = $derived(session.mode === 'ai' ? 'You' : 'Ember');
-	const p2 = $derived(session.mode === 'ai' ? 'The Yard' : 'Bone');
 	const winner = $derived(session.status.type === 'won' ? session.status.winner : 1);
 	const specks = Array.from({ length: 20 }, (_, i) => ({
 		i,
@@ -18,26 +16,35 @@
 	const copy = $derived.by(() => {
 		if (session.status.type === 'draw') {
 			return {
-				kicker: 'Even clay',
-				title: 'The yard cools',
-				body: 'No hop left that changes the glaze. Let the china settle and try again.'
+				kicker: 'A draw',
+				title: 'The kiln cools',
+				body: 'Forty moves each with only kings moving and nothing taken.'
 			};
 		}
 		if (session.status.type === 'won' && session.status.winner === 1) {
-			return {
-				kicker: session.mode === 'ai' ? 'You held the yard' : 'Ember takes the noon',
-				title: `${p1} remains`,
-				body: 'Bone china went back into the fire. The tiles remember the heat.'
-			};
+			return session.mode === 'ai'
+				? {
+						kicker: 'Victory',
+						title: 'You win the yard',
+						body: 'Bone has nothing left to move. Nicely played.'
+					}
+				: {
+						kicker: 'Ember wins',
+						title: 'Ember takes the yard',
+						body: 'Bone has nothing left to move. Swap seats and go again?'
+					};
 		}
-		return {
-			kicker: session.mode === 'ai' ? 'The yard keeps its due' : 'Bone claims the board',
-			title: `${p2} remains`,
-			body:
-				session.mode === 'ai'
-					? 'Every take was already in the clay. Step onto the tiles again?'
-					: 'Pass the board. Hop it again before the glaze dries.'
-		};
+		return session.mode === 'ai'
+			? {
+					kicker: 'Defeat',
+					title: 'The yard wins',
+					body: 'You have nothing left to move. Step onto the tiles again?'
+				}
+			: {
+					kicker: 'Bone wins',
+					title: 'Bone takes the yard',
+					body: 'Ember has nothing left to move. Swap seats and go again?'
+				};
 	});
 </script>
 

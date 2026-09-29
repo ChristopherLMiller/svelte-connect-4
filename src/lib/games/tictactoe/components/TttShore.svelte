@@ -43,8 +43,6 @@
 
 <div class="shore" class:hot={celebrating} class:washing>
 	<div class="life" aria-hidden="true">
-		<div class="glare"></div>
-		<div class="sheen"></div>
 		<div class="haze"></div>
 		<div class="ripples a"></div>
 		<div class="ripples b"></div>
@@ -127,43 +125,9 @@
 		transform: translateZ(0);
 	}
 
-	.shore.washing {
-		transform: none;
-	}
-
 	.life {
 		position: absolute;
 		inset: 0;
-	}
-
-	.glare {
-		position: absolute;
-		top: 10%;
-		left: 0;
-		width: 100%;
-		height: 52%;
-		border-radius: 50%;
-		background: radial-gradient(ellipse at 42% 38%, rgba(255, 248, 226, 0.28), rgba(255, 230, 186, 0.08) 42%, transparent 74%);
-		opacity: 0.7;
-		mix-blend-mode: screen;
-		isolation: isolate;
-		transform: translateZ(0);
-	}
-
-	.sheen {
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 18vh;
-		height: 18vh;
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			rgba(255, 255, 255, 0.08) 40%,
-			rgba(210, 236, 240, 0.16) 70%,
-			transparent 100%
-		);
-		opacity: 0.8;
 	}
 
 	.haze {
@@ -174,6 +138,7 @@
 		bottom: 36%;
 		background: radial-gradient(ellipse at 50% 40%, rgba(255, 248, 230, 0.22), transparent 70%);
 		animation: breathe 9s ease-in-out infinite;
+		will-change: opacity;
 	}
 
 	.ripples {
@@ -676,11 +641,6 @@
 		font-size: 0.58rem;
 	}
 
-	.hot .glare,
-	.hot .sheen {
-		opacity: 1;
-	}
-
 	.hot .glint {
 		animation-duration: 1.4s;
 	}
@@ -725,33 +685,33 @@
 
 	@keyframes scuttle {
 		0% {
-			left: 8%;
+			translate: 0 0;
 			rotate: 0deg;
 		}
 		40% {
-			left: 28%;
+			translate: 20vw 0;
 			rotate: 8deg;
 		}
 		70% {
-			left: 16%;
+			translate: 8vw 0;
 			rotate: -12deg;
 		}
 		100% {
-			left: 8%;
+			translate: 0 0;
 			rotate: 0deg;
 		}
 	}
 
 	@keyframes bolt {
 		0% {
-			left: 8%;
+			translate: 0 0;
 		}
 		50% {
-			left: 46%;
+			translate: 38vw 0;
 			rotate: 18deg;
 		}
 		100% {
-			left: 8%;
+			translate: 0 0;
 		}
 	}
 

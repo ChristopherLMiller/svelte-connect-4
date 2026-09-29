@@ -27,10 +27,10 @@
 	const protocol = $derived(lookSettings.skin === 'protocol');
 	const speed = $derived(Math.hypot(vx, vy));
 	const rising = $derived(vy < 0);
-	const trailLen = $derived(Math.min(size * 2.45, speed * (protocol ? 0.09 : 0.072)));
+	const trailLen = $derived(Math.min(1, (speed * (protocol ? 0.09 : 0.072)) / (size * 2.45)));
 	const trailAng = $derived((Math.atan2(vx, -(vy || 0.001)) * 180) / Math.PI);
 	const trailOp = $derived(Math.min(0.9, Math.max(0, (speed - 18) / 1180)));
-	const trailW = $derived(size * (0.68 + 0.22 * Math.min(1, speed / 1650)));
+	const trailW = $derived((0.68 + 0.22 * Math.min(1, speed / 1650)) / 0.9);
 	const trailY = $derived(rising ? '88%' : '12%');
 </script>
 
@@ -41,8 +41,8 @@
 	{#if falling}
 		<span
 			class="trail"
-			style:--trail-len="{trailLen}px"
-			style:--trail-w="{trailW}px"
+			style:--trail-len={trailLen}
+			style:--trail-w={trailW}
 			style:--trail-ang="{trailAng}deg"
 			style:--trail-op={trailOp}
 			style:--trail-y={trailY}
@@ -131,15 +131,16 @@
 	.trail {
 		left: 50%;
 		top: var(--trail-y, 50%);
-		width: var(--trail-w);
-		height: var(--trail-len);
+		width: calc(var(--size) * 0.9);
+		height: calc(var(--size) * 2.45);
 		border-radius: 999px;
 		background: linear-gradient(to bottom, var(--glow), transparent 82%);
 		box-shadow: 0 0 12px 4px color-mix(in srgb, var(--glow) 45%, transparent);
 		opacity: var(--trail-op);
 		pointer-events: none;
 		transform-origin: 50% 0;
-		transform: translateX(-50%) rotate(var(--trail-ang));
+		transform: translateX(-50%) rotate(var(--trail-ang)) scale(var(--trail-w), var(--trail-len));
+		will-change: transform, opacity;
 		z-index: 2;
 	}
 
@@ -238,6 +239,16 @@
 		animation: pulse 0.8s ease-in-out infinite;
 	}
 
+	.winning .core::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		box-shadow: 0 0 32px var(--glow);
+		opacity: 0;
+		animation: flare 0.8s ease-in-out infinite;
+	}
+
 	.protocol.winning .ticks {
 		animation: spin 2.8s linear infinite;
 	}
@@ -249,9 +260,12 @@
 	@keyframes pulse {
 		50% {
 			transform: scale(1.06);
-			box-shadow:
-				0 12px 20px rgba(0, 0, 0, 0.35),
-				0 0 32px var(--glow);
+		}
+	}
+
+	@keyframes flare {
+		50% {
+			opacity: 1;
 		}
 	}
 
@@ -263,6 +277,7 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		.winning .core,
+		.winning .core::after,
 		.protocol.winning .ticks,
 		.protocol.winning .halo {
 			animation: none;

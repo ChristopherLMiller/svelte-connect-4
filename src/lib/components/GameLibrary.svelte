@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { untrack } from 'svelte';
 	import { Spring } from 'svelte/motion';
 	import { fade } from 'svelte/transition';
 	import { setMusicStation } from '$lib/audio/station';
 	import ArcadeCabinet from '$lib/components/ArcadeCabinet.svelte';
+	import HallBackdrop from '$lib/components/HallBackdrop.svelte';
 	import HallEggs from '$lib/components/HallEggs.svelte';
 	import LibrarySettings from '$lib/components/LibrarySettings.svelte';
 	import { LIBRARY_GAMES, tickerCopy, type LibraryGame } from '$lib/games/catalog';
@@ -12,7 +14,6 @@
 	import { playLibraryHover, playLibrarySelect } from '$lib/library/sfx';
 	import { primeAudio } from '$lib/audio/prefs.svelte';
 
-	const MOTES = Array.from({ length: 18 }, (_, i) => i);
 	const LIGHTS = Array.from({ length: 56 }, (_, i) => i);
 	const TICKER = tickerCopy();
 	const COUNT = LIBRARY_GAMES.length;
@@ -40,13 +41,75 @@
 	let dragSpin = 0;
 	let restored = false;
 
-	const spin = new Spring(-start * STEP, { stiffness: 0.1, damping: 0.82, precision: 0.05 });
+	const spin = new Spring(-start * STEP, { stiffness: 0.14, damping: 0.6, precision: 0.05 });
 	const facingIndex = $derived(wrap(Math.round(-spin.current / STEP)));
 	const focused = $derived(LIBRARY_GAMES[index] ?? LIBRARY_GAMES[0]);
 	const rx = $derived(Math.max(168, Math.min(wide * 0.24, 268)));
 	const rz = $derived(Math.max(96, Math.min(wide * 0.11, 148)));
 
 	const DRAG = 12;
+	/** Horizontal blur radii (px) for each motion-blur level. */
+	const BLUR_LEVELS = [2, 4.5, 8, 13];
+
+	/** Ghost silhouettes smeared along the arc behind each cabinet while spinning. */
+	const GHOSTS = Array.from({ length: 10 }, (_, k) => k);
+	const WARP_COLORS = ['#ff2bd6', '#00f0ff', '#ffe14a', '#ffffff'];
+	/** Neon speed lines that rush across the stage while the wheel spins. */
+	const WARP = Array.from({ length: 18 }, (_, i) => ({
+		y: 6 + ((i * 37) % 88),
+		w: 90 + ((i * 53) % 220),
+		d: 0.42 + ((i * 29) % 40) / 100,
+		delay: -((i * 17) % 60) / 100,
+		color: WARP_COLORS[i % WARP_COLORS.length]
+	}));
+	const BURST = Array.from({ length: 14 }, (_, i) => {
+		const a = (i / 14) * Math.PI * 2 + (i % 2) * 0.2;
+		const d = 150 + (i % 3) * 60;
+		return { x: Math.cos(a) * d, y: Math.sin(a) * d * 0.7, color: WARP_COLORS[i % 3] };
+	});
+
+	/** Signed wheel angular velocity in cabinet-steps per second, sampled every frame. */
+	let vel = $state(0);
+	const speed = $derived(Math.abs(vel));
+	const smear = $derived(calm ? 0 : Math.min(1, Math.max(0, (speed - 0.1) / 1.1)));
+	let slotHeight = $state(0);
+	/** Bumped each time the wheel lands on a cabinet after a real spin. */
+	let landKey = $state(0);
+
+	function blurLevel(depth: number) {
+		const v = speed * Math.max(0, depth);
+		if (calm || v < 0.5) return 0;
+		if (v < 1.2) return 1;
+		if (v < 2.1) return 2;
+		if (v < 3.1) return 3;
+		return 4;
+	}
+
+	$effect(() => {
+		let last = untrack(() => spin.current);
+		let lastT = performance.now();
+		let smooth = 0;
+		let peak = 0;
+		let raf = 0;
+		const tick = (now: number) => {
+			const dt = Math.max(1, now - lastT) / 1000;
+			const angle = spin.current;
+			const raw = (angle - last) / STEP / dt;
+			smooth += (raw - smooth) * Math.min(1, dt * 18);
+			last = angle;
+			lastT = now;
+			const next = Math.abs(smooth) < 0.05 ? 0 : Math.round(smooth * 20) / 20;
+			if (next !== vel) vel = next;
+			peak = Math.max(peak, Math.abs(smooth));
+			if (peak > 0.9 && Math.abs(smooth) < 0.35 && Math.abs(angle - spin.target) < STEP * 0.12) {
+				peak = 0;
+				landKey += 1;
+			}
+			raf = requestAnimationFrame(tick);
+		};
+		raf = requestAnimationFrame(tick);
+		return () => cancelAnimationFrame(raf);
+	});
 
 	function prefersReduce() {
 		return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -74,22 +137,79 @@
 		playLibraryHover();
 	}
 
-	function slotPose(i: number) {
-		const ang = ((i * STEP + spin.current) * Math.PI) / 180;
+	function arcPose(deg: number, push = 0, lean = 0, bank = 0) {
+		const ang = (deg * Math.PI) / 180;
 		const side = Math.sin(ang);
 		const depth = Math.cos(ang);
 		const x = side * rx;
-		const z = depth * rz;
-		const yaw = -side * 20;
+		const z = depth * rz - push;
+		const yaw = -side * 20 + lean;
 		const scale = 0.84 + 0.16 * Math.max(0, depth);
 		const y = (1 - depth) * 6;
 		const opacity = depth < -0.15 ? Math.max(0, (depth + 1) * 0.4) : 0.78 + 0.22 * depth;
 		return {
-			transform: `translate(-50%, -50%) translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}deg) scale(${scale})`,
-			z: Math.round(50 + depth * 50),
+			depth,
 			opacity,
-			events: depth > -0.2 ? 'auto' : 'none'
+			transform: `translate(-50%, -50%) translate3d(${x}px, ${y}px, ${z}px) rotateY(${yaw}deg) rotateZ(${bank}deg) scale(${scale})`
 		};
+	}
+
+	function slotPose(i: number) {
+		const lean = calm ? 0 : Math.max(-18, Math.min(18, -vel * 7));
+		const bank = calm ? 0 : Math.max(-6, Math.min(6, vel * 2.2));
+		const pose = arcPose(i * STEP + spin.current, 0, lean, bank);
+		const blur = blurLevel(pose.depth);
+		return {
+			filter: blur ? `url(#spin-blur-${blur})` : 'none',
+			transform: pose.transform,
+			z: Math.round(50 + pose.depth * 50),
+			opacity: pose.opacity,
+			depth: pose.depth,
+			events: pose.depth > -0.2 ? 'auto' : 'none'
+		};
+	}
+
+	/** Trailing echo k of cabinet i, placed back along the arc opposite the direction of travel. */
+	function ghostPose(i: number, k: number, lead: number) {
+		const arc = Math.min(STEP * 0.95, speed * STEP * 0.34);
+		const back = -Math.sign(vel) * arc * ((k + 1) / GHOSTS.length);
+		const lean = Math.max(-18, Math.min(18, -vel * 7));
+		const pose = arcPose(i * STEP + spin.current + back, 16 + k * 3, lean);
+		const fade = Math.pow(1 - k / GHOSTS.length, 1.2);
+		return {
+			transform: pose.transform,
+			opacity: Math.min(lead, pose.opacity) * fade * smear * 0.9
+		};
+	}
+
+	let hallEl = $state<HTMLElement>();
+	let stageEl = $state<HTMLElement>();
+	let gust = $state<{ x: number; y: number; rx: number; ry: number } | null>(null);
+
+	/** Centres the neon spoke field on the cabinet stage. */
+	function placeGust() {
+		if (!hallEl || !stageEl) return;
+		const hall = hallEl.getBoundingClientRect();
+		const stage = stageEl.getBoundingClientRect();
+		gust = {
+			x: stage.left + stage.width / 2 - hall.left,
+			y: stage.top + stage.height * 0.5 - hall.top,
+			rx: stage.width * 0.9,
+			ry: stage.height * 0.75
+		};
+	}
+
+	$effect(() => {
+		void wide;
+		void slotHeight;
+		const raf = requestAnimationFrame(() => untrack(placeGust));
+		return () => cancelAnimationFrame(raf);
+	});
+
+	function measure(node: HTMLElement) {
+		const observer = new ResizeObserver(() => (slotHeight = node.offsetHeight));
+		observer.observe(node);
+		return () => observer.disconnect();
 	}
 
 	$effect(() => {
@@ -211,22 +331,18 @@
 <svelte:window onkeydown={onKey} />
 <svelte:document onvisibilitychange={() => (quiet = document.hidden)} />
 
-<section class="hall" class:leaving class:quiet in:fade={{ duration: 420 }}>
-	<div class="ceiling" aria-hidden="true">
-		<span class="pipe mag"></span>
-		<span class="pipe cyan"></span>
-		<span class="pipe gold"></span>
-		<span class="lamp a"></span>
-		<span class="lamp b"></span>
-	</div>
-	<div class="void" aria-hidden="true"></div>
-	<div class="haze" aria-hidden="true"></div>
-	<div class="grid" aria-hidden="true"><i></i></div>
-	<div class="carpet" aria-hidden="true"></div>
-	<div class="scan" aria-hidden="true"><i></i></div>
-	{#each MOTES as i (i)}
-		<i class="mote" style:--i={i} aria-hidden="true"></i>
-	{/each}
+<section class="hall" class:leaving class:quiet in:fade={{ duration: 420 }} bind:this={hallEl}>
+	<HallBackdrop {quiet} {calm} rush={calm ? 0 : vel} {gust} />
+
+	<svg class="fx-defs" width="0" height="0" aria-hidden="true">
+		<defs>
+			{#each BLUR_LEVELS as radius, i (i)}
+				<filter id="spin-blur-{i + 1}" x="-25%" y="-5%" width="150%" height="110%">
+					<feGaussianBlur stdDeviation="{radius} 0" />
+				</filter>
+			{/each}
+		</defs>
+	</svg>
 
 	<div class="sign left" aria-hidden="true">
 		<span>FREE</span>
@@ -272,11 +388,12 @@
 			aria-label="Previous cabinet"
 			onclick={() => goTo(index - 1)}
 		>
-			‹
+			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.25 5.5 8.75 12l6.5 6.5" /></svg>
 		</button>
 		<div
 			class="stage"
 			class:calm
+			bind:this={stageEl}
 			{@attach catchWheel}
 			role="group"
 			aria-label="Cabinet wheel"
@@ -285,16 +402,45 @@
 			onpointerup={onPointerUp}
 			onpointercancel={onPointerUp}
 		>
-			<div class="ring" aria-hidden="true"></div>
+			{#if smear > 0.04}
+				<div class="warp" class:rev={vel < 0} style:opacity={smear} aria-hidden="true">
+					{#each WARP as line, i (i)}
+						<i
+							style:top="{line.y}%"
+							style:width="{line.w}px"
+							style:--d="{line.d}s"
+							style:--delay="{line.delay}s"
+							style:--c={line.color}
+						></i>
+					{/each}
+				</div>
+			{/if}
+			<div class="ring" style:--rush={smear} aria-hidden="true"></div>
 			<div class="wheel">
 				{#each LIBRARY_GAMES as game, i (game.id)}
 					{@const pose = slotPose(i)}
+					{#if smear > 0 && slotHeight > 0 && pose.depth > -0.35}
+						{#each GHOSTS as k (k)}
+							{@const ghost = ghostPose(i, k, pose.opacity)}
+							<div
+								class="ghost"
+								aria-hidden="true"
+								style:--accent={game.accent}
+								style:--glow={game.glow}
+								style:height="{slotHeight}px"
+								style:transform={ghost.transform}
+								style:opacity={ghost.opacity}
+							></div>
+						{/each}
+					{/if}
 					<div
+						{@attach measure}
 						class="slot"
 						class:hot={i === facingIndex}
 						style:transform={pose.transform}
 						style:z-index={pose.z}
 						style:opacity={pose.opacity}
+						style:filter={pose.filter}
 						style:pointer-events={pose.events}
 					>
 						<ArcadeCabinet
@@ -304,8 +450,30 @@
 							hot={i === facingIndex}
 							onlaunch={() => pick(i)}
 						/>
+						{#if i === facingIndex && landKey && !calm}
+							{#key landKey}
+								<i class="sweep" aria-hidden="true"></i>
+							{/key}
+						{/if}
 					</div>
 				{/each}
+				{#if landKey && !calm}
+					{#key landKey}
+						<div
+							class="landing"
+							style:--accent={focused.accent}
+							style:transform="translate(-50%, -50%) translate3d(0, 0, {rz + 40}px)"
+							aria-hidden="true"
+						>
+							<i class="shock"></i>
+							<i class="shock late"></i>
+							<i class="column"></i>
+							{#each BURST as spark, s (s)}
+								<b style:--x="{spark.x}px" style:--y="{spark.y}px" style:--c={spark.color}></b>
+							{/each}
+						</div>
+					{/key}
+				{/if}
 			</div>
 		</div>
 		<button
@@ -314,7 +482,7 @@
 			aria-label="Next cabinet"
 			onclick={() => goTo(index + 1)}
 		>
-			›
+			<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.75 5.5 15.25 12l-6.5 6.5" /></svg>
 		</button>
 		<p class="pick">
 			<strong>{focused.title}</strong>
@@ -363,7 +531,9 @@
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		gap: clamp(16px, 3vh, 32px);
-		padding: clamp(16px, 3vw, 36px) var(--gutter) 0;
+		/* Top band is reserved for the neon pipes drawn by the backdrop. */
+		--pipes: 44px;
+		padding: max(var(--pipes), clamp(16px, 3vw, 36px)) var(--gutter) 0;
 		overflow: hidden;
 		background: #070014;
 		color: var(--ink);
@@ -374,174 +544,11 @@
 		animation-play-state: paused;
 	}
 
-	.void,
-	.haze,
-	.grid,
-	.carpet,
-	.scan,
-	.mote,
 	.sign,
 	.poster,
-	.changer,
-	.ceiling {
+	.changer {
 		pointer-events: none;
 		position: absolute;
-	}
-
-	.ceiling {
-		inset: 0 0 auto;
-		height: 18%;
-		z-index: 1;
-		background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
-	}
-
-	.pipe {
-		position: absolute;
-		top: 10px;
-		height: 8px;
-		border-radius: 8px;
-		box-shadow: 0 0 18px currentColor;
-	}
-
-	.pipe.mag {
-		left: 8%;
-		width: 28%;
-		color: #ff2bd6;
-		background: #ff2bd6;
-	}
-
-	.pipe.cyan {
-		left: 38%;
-		width: 26%;
-		top: 22px;
-		color: #00f0ff;
-		background: #00f0ff;
-	}
-
-	.pipe.gold {
-		right: 8%;
-		width: 22%;
-		color: #ffe14a;
-		background: #ffe14a;
-	}
-
-	.lamp {
-		position: absolute;
-		top: 0;
-		width: 90px;
-		height: 42vh;
-		background: linear-gradient(180deg, rgba(255, 225, 74, 0.16), transparent 70%);
-		clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
-		opacity: 0.7;
-	}
-
-	.lamp.a {
-		left: 18%;
-	}
-
-	.lamp.b {
-		right: 18%;
-		background: linear-gradient(180deg, rgba(0, 240, 255, 0.14), transparent 70%);
-	}
-
-	.void {
-		inset: 0;
-		z-index: 0;
-		background:
-			radial-gradient(900px 520px at 18% -10%, rgba(255, 43, 214, 0.28), transparent 58%),
-			radial-gradient(820px 540px at 88% 0%, rgba(0, 240, 255, 0.2), transparent 52%),
-			radial-gradient(700px 480px at 50% 120%, rgba(255, 225, 74, 0.1), transparent 60%),
-			linear-gradient(180deg, #140022 0%, #070014 42%, #12081f 100%);
-	}
-
-	.haze {
-		inset: 0;
-		z-index: 0;
-		background: radial-gradient(ellipse at 50% 80%, rgba(90, 20, 120, 0.35), transparent 55%);
-		animation: breathe 7s ease-in-out infinite;
-		will-change: opacity;
-	}
-
-	.grid {
-		left: -10%;
-		right: -10%;
-		bottom: -12%;
-		height: 62%;
-		z-index: 0;
-		overflow: hidden;
-		transform: perspective(700px) rotateX(62deg);
-		transform-style: preserve-3d;
-		mask-image: linear-gradient(180deg, transparent, #000 22%, #000 82%, transparent);
-	}
-
-	.grid i {
-		position: absolute;
-		inset: -20%;
-		background-image:
-			linear-gradient(rgba(0, 240, 255, 0.22) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(255, 43, 214, 0.16) 1px, transparent 1px);
-		background-size: 64px 64px;
-		animation: gridShift 18s linear infinite;
-		will-change: transform;
-	}
-
-	.carpet {
-		left: 8%;
-		right: 8%;
-		bottom: 0;
-		height: 18%;
-		z-index: 0;
-		background:
-			repeating-linear-gradient(90deg, rgba(90, 20, 80, 0.35) 0 12px, rgba(40, 8, 50, 0.25) 12px 24px);
-		mask-image: linear-gradient(180deg, transparent, #000 40%);
-		opacity: 0.55;
-	}
-
-	.scan {
-		inset: 0;
-		z-index: 4;
-		overflow: hidden;
-		mix-blend-mode: overlay;
-		opacity: 0.08;
-		isolation: isolate;
-		transform: translateZ(0);
-	}
-
-	.scan i {
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: -12px;
-		height: calc(100% + 24px);
-		background: repeating-linear-gradient(
-			180deg,
-			rgba(255, 255, 255, 0.35) 0 1px,
-			transparent 1px 3px
-		);
-		animation: scanMove 6s linear infinite;
-		will-change: transform;
-	}
-
-	.mote {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		left: calc(6% + (var(--i) * 5.1%));
-		bottom: 12%;
-		background: #ffe14a;
-		opacity: 0.45;
-		box-shadow: 0 0 10px #ffe14a;
-		animation: float 5.4s ease-in-out infinite;
-		animation-delay: calc(var(--i) * -0.28s);
-		z-index: 1;
-		will-change: transform, opacity;
-	}
-
-	.mote:nth-child(odd) {
-		background: #00f0ff;
-		box-shadow: 0 0 10px #00f0ff;
-		width: 4px;
-		height: 4px;
 	}
 
 	.sign {
@@ -811,19 +818,62 @@
 	}
 
 	.nudge {
+		--size: clamp(42px, 6vw, 58px);
 		appearance: none;
+		position: relative;
+		display: grid;
+		place-items: center;
 		grid-row: 1;
 		z-index: 4;
-		width: clamp(42px, 6vw, 58px);
-		height: clamp(42px, 6vw, 58px);
+		width: var(--size);
+		height: var(--size);
+		padding: 0;
 		border-radius: 50%;
 		border: 2px solid rgba(0, 240, 255, 0.45);
-		background: rgba(12, 0, 28, 0.72);
+		background: radial-gradient(circle at 50% 35%, rgba(40, 10, 70, 0.9), rgba(12, 0, 28, 0.78) 70%);
 		color: #00f0ff;
-		font-size: 1.8rem;
-		line-height: 1;
 		cursor: pointer;
 		box-shadow: 0 0 18px rgba(0, 240, 255, 0.18);
+		transition:
+			transform 180ms cubic-bezier(0.3, 1.6, 0.5, 1),
+			border-color 180ms ease,
+			color 180ms ease;
+	}
+
+	.nudge svg {
+		width: 46%;
+		height: 46%;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		filter: drop-shadow(0 0 4px currentColor);
+		transition: transform 180ms ease;
+	}
+
+	/* Spinning neon ring + glow; only opacity/transform animate. */
+	.nudge::before,
+	.nudge::after {
+		content: '';
+		position: absolute;
+		border-radius: 50%;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 200ms ease;
+	}
+
+	.nudge::before {
+		inset: -7px;
+		background: conic-gradient(from 0deg, transparent 0 10%, #ffe14a 22%, transparent 36%, #ff2bd6 60%, transparent 74%, #00f0ff 88%, transparent);
+		mask: radial-gradient(circle, transparent calc(50% - 2.5px), #000 calc(50% - 2px) 50%, transparent calc(50% + 0.5px));
+	}
+
+	.nudge::after {
+		inset: -2px;
+		box-shadow:
+			0 0 26px rgba(255, 225, 74, 0.45),
+			inset 0 0 14px rgba(255, 225, 74, 0.25);
 	}
 
 	.nudge.prev {
@@ -834,10 +884,62 @@
 		grid-column: 3;
 	}
 
-	.nudge:hover {
+	.nudge:hover,
+	.nudge:focus-visible {
 		border-color: #ffe14a;
 		color: #ffe14a;
-		box-shadow: 0 0 18px rgba(255, 225, 74, 0.28);
+		transform: scale(1.1);
+		outline: none;
+	}
+
+	.nudge:hover::before,
+	.nudge:focus-visible::before {
+		opacity: 1;
+		animation: nudge-spin 1.8s linear infinite;
+	}
+
+	.nudge:hover::after,
+	.nudge:focus-visible::after {
+		opacity: 1;
+	}
+
+	.nudge.prev:hover svg {
+		animation: nudge-left 0.9s ease-in-out infinite;
+	}
+
+	.nudge.next:hover svg {
+		animation: nudge-right 0.9s ease-in-out infinite;
+	}
+
+	.nudge:active {
+		transform: scale(0.92);
+		transition-duration: 60ms;
+	}
+
+	.nudge.prev:active svg {
+		transform: translateX(-3px);
+	}
+
+	.nudge.next:active svg {
+		transform: translateX(3px);
+	}
+
+	@keyframes nudge-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	@keyframes nudge-left {
+		50% {
+			transform: translateX(-3px);
+		}
+	}
+
+	@keyframes nudge-right {
+		50% {
+			transform: translateX(3px);
+		}
 	}
 
 	.stage {
@@ -870,6 +972,174 @@
 			inset 0 0 18px rgba(0, 240, 255, 0.08);
 		transform: rotateX(72deg);
 		pointer-events: none;
+		--rush: 0;
+	}
+
+	.ring::after {
+		content: '';
+		position: absolute;
+		inset: -4px;
+		border-radius: inherit;
+		border: 3px solid #00f0ff;
+		box-shadow:
+			0 0 26px #00f0ff,
+			0 0 60px rgba(255, 43, 214, 0.8),
+			inset 0 0 40px rgba(0, 240, 255, 0.6);
+		opacity: var(--rush);
+	}
+
+	.warp {
+		position: absolute;
+		inset: -10% -20%;
+		overflow: hidden;
+		pointer-events: none;
+		-webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+		mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+	}
+
+	.warp.rev {
+		transform: scaleX(-1);
+	}
+
+	.warp i {
+		position: absolute;
+		left: 0;
+		height: 2px;
+		border-radius: 2px;
+		background: linear-gradient(90deg, transparent, var(--c) 70%, #fff);
+		box-shadow: 0 0 10px var(--c);
+		will-change: transform;
+		animation: warp var(--d) linear var(--delay) infinite;
+	}
+
+	@keyframes warp {
+		from {
+			transform: translateX(-30vw);
+		}
+		to {
+			transform: translateX(130vw);
+		}
+	}
+
+	.sweep {
+		position: absolute;
+		inset: 0;
+		border-radius: 14px;
+		pointer-events: none;
+		overflow: hidden;
+		z-index: 5;
+	}
+
+	.sweep::before {
+		content: '';
+		position: absolute;
+		top: -10%;
+		bottom: -10%;
+		width: 45%;
+		left: 0;
+		background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.75) 45%, rgba(255, 255, 255, 0.95) 50%, transparent);
+		transform: translateX(-120%) skewX(-12deg);
+		animation: sweep 0.75s cubic-bezier(0.3, 0.7, 0.3, 1) forwards;
+	}
+
+	@keyframes sweep {
+		to {
+			transform: translateX(320%) skewX(-12deg);
+		}
+	}
+
+	.landing {
+		position: absolute;
+		left: 50%;
+		top: 48%;
+		width: 0;
+		height: 0;
+		pointer-events: none;
+		transform-style: preserve-3d;
+	}
+
+	.landing .shock {
+		position: absolute;
+		left: -170px;
+		top: -170px;
+		width: 340px;
+		height: 340px;
+		border-radius: 50%;
+		border: 4px solid var(--accent);
+		box-shadow:
+			0 0 30px var(--accent),
+			inset 0 0 30px var(--accent);
+		opacity: 0;
+		animation: shock 0.8s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+	}
+
+	.landing .shock.late {
+		border-color: #fff;
+		border-width: 2px;
+		animation-delay: 0.12s;
+	}
+
+	@keyframes shock {
+		0% {
+			opacity: 1;
+			transform: scale(0.35, 0.25);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(1.6, 1.15);
+		}
+	}
+
+	.landing .column {
+		position: absolute;
+		left: -70px;
+		top: -420px;
+		width: 140px;
+		height: 700px;
+		background: radial-gradient(closest-side, rgba(255, 255, 255, 0.85), color-mix(in srgb, var(--accent) 60%, transparent) 45%, transparent);
+		opacity: 0;
+		animation: column 0.7s ease-out forwards;
+	}
+
+	@keyframes column {
+		0% {
+			opacity: 0.95;
+			transform: scaleX(0.2);
+		}
+		40% {
+			opacity: 0.7;
+			transform: scaleX(1);
+		}
+		100% {
+			opacity: 0;
+			transform: scaleX(1.4);
+		}
+	}
+
+	.landing b {
+		position: absolute;
+		left: -5px;
+		top: -5px;
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow:
+			0 0 12px var(--c),
+			0 0 24px var(--c);
+		opacity: 0;
+		animation: spark 0.75s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+	}
+
+	@keyframes spark {
+		0% {
+			opacity: 1;
+			transform: translate(0, 0) scale(1.2);
+		}
+		100% {
+			opacity: 0;
+			transform: translate(var(--x), var(--y)) scale(0.2);
+		}
 	}
 
 	.wheel {
@@ -888,6 +1158,56 @@
 		transform-origin: center center;
 		backface-visibility: hidden;
 		will-change: transform, opacity;
+	}
+
+	.ghost {
+		--streak: color-mix(in srgb, var(--accent) 45%, #fff);
+		position: absolute;
+		left: 50%;
+		top: 48%;
+		width: min(280px, 40vw);
+		border-radius: 14px;
+		pointer-events: none;
+		backface-visibility: hidden;
+		will-change: transform, opacity;
+		background:
+			linear-gradient(
+				180deg,
+				transparent 3%,
+				var(--streak) 4% 5.5%,
+				transparent 7% 12%,
+				color-mix(in srgb, var(--streak) 70%, transparent) 13% 14%,
+				transparent 15% 22%,
+				var(--streak) 23% 24%,
+				transparent 25% 33%,
+				color-mix(in srgb, var(--glow) 80%, #fff) 34% 35.5%,
+				transparent 37% 45%,
+				color-mix(in srgb, var(--streak) 55%, transparent) 46% 47%,
+				transparent 48% 56%,
+				var(--streak) 57% 58.5%,
+				transparent 60% 67%,
+				color-mix(in srgb, var(--streak) 65%, transparent) 68% 69%,
+				transparent 70% 79%,
+				var(--streak) 80% 81%,
+				transparent 82% 90%,
+				color-mix(in srgb, var(--streak) 50%, transparent) 91% 92%,
+				transparent 93%
+			),
+			linear-gradient(
+				180deg,
+				color-mix(in srgb, var(--accent) 34%, transparent),
+				color-mix(in srgb, var(--glow) 24%, transparent) 50%,
+				color-mix(in srgb, var(--accent) 16%, transparent)
+			);
+		mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
+	}
+
+	.fx-defs {
+		position: absolute;
+		width: 0;
+		height: 0;
+		overflow: hidden;
+		pointer-events: none;
 	}
 
 	.stage.calm .slot:not(.hot) {
@@ -1008,36 +1328,6 @@
 		}
 	}
 
-	@keyframes breathe {
-		50% {
-			opacity: 0.65;
-		}
-	}
-
-	@keyframes gridShift {
-		to {
-			transform: translate3d(64px, 64px, 0);
-		}
-	}
-
-	@keyframes scanMove {
-		to {
-			transform: translate3d(0, 12px, 0);
-		}
-	}
-
-	@keyframes float {
-		0%,
-		100% {
-			translate: 0 0;
-			opacity: 0.2;
-		}
-		50% {
-			translate: 12px -46px;
-			opacity: 0.8;
-		}
-	}
-
 	@keyframes live {
 		to {
 			transform: scale(2.4);
@@ -1060,8 +1350,7 @@
 	@media (max-width: 860px) {
 		.sign,
 		.poster,
-		.changer,
-		.lamp {
+		.changer {
 			display: none;
 		}
 
@@ -1070,9 +1359,7 @@
 		}
 
 		.nudge {
-			width: 40px;
-			height: 40px;
-			font-size: 1.5rem;
+			--size: 40px;
 		}
 
 		.slot {
@@ -1087,7 +1374,7 @@
 	@media (max-width: 520px) {
 		.hall {
 			--gutter: 12px;
-			padding: 14px var(--gutter) 0;
+			padding: var(--pipes) var(--gutter) 0;
 		}
 
 		.lights i:nth-child(n + 28) {
@@ -1097,10 +1384,6 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		h1,
-		.haze,
-		.grid i,
-		.scan i,
-		.mote,
 		.lights i,
 		.credits b,
 		.credits b::after,

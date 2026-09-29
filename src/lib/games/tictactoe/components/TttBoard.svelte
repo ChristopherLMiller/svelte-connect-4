@@ -47,6 +47,15 @@
 	);
 	const preview = $derived(session.current);
 
+	const fan = (count: number, reach: number, jitter: number, delay: number) =>
+		Array.from({ length: count }, (_, i) => {
+			const a = (i / count) * Math.PI * 2 + (i % 2) * jitter;
+			const d = reach * (0.7 + ((i * 37) % 10) / 22);
+			return { dx: Math.cos(a) * d, dy: Math.sin(a) * d, s: 0.7 + ((i * 53) % 7) / 10, wait: (i % 3) * delay };
+		});
+	const grains = fan(12, 40, 0.35, 0.03);
+	const sparks = fan(10, 46, 0.3, 0.08);
+
 	function hover(row: number, col: number) {
 		if (session.busy) return;
 		if (session.hover?.[0] !== row || session.hover?.[1] !== col) playSelect();
@@ -84,7 +93,20 @@
 			>
 				{#if cell !== 0}
 					<span class="ink">
+						<span class="damp" aria-hidden="true"></span>
+						<span class="kick" aria-hidden="true">
+							{#each grains as g, i (i)}
+								<i style:--dx={g.dx} style:--dy={g.dy} style:--s={g.s} style:--wait="{g.wait}s"></i>
+							{/each}
+						</span>
 						<TttMark player={cell} winning={win.has(`${r}:${c}`)} />
+						{#if win.has(`${r}:${c}`)}
+							<span class="sparks" aria-hidden="true">
+								{#each sparks as g, i (i)}
+									<i style:--dx={g.dx} style:--dy={g.dy} style:--s={g.s} style:--wait="{g.wait}s"></i>
+								{/each}
+							</span>
+						{/if}
 					</span>
 				{:else if hinting && session.hover?.[0] === r && session.hover?.[1] === c}
 					<span class="ink ghost">
@@ -261,6 +283,106 @@
 		position: relative;
 		width: 100%;
 		height: 100%;
+		container-type: size;
+	}
+
+	.ink > :global(svg) {
+		position: relative;
+		z-index: 1;
+	}
+
+	.damp {
+		position: absolute;
+		inset: 14%;
+		border-radius: 46% 54% 50% 50%;
+		background: radial-gradient(circle, rgba(92, 58, 36, 0.13), rgba(92, 58, 36, 0.05) 50%, transparent 70%);
+		animation: damp 2.6s ease-out forwards;
+		pointer-events: none;
+	}
+
+	.kick,
+	.sparks {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+
+	.sparks {
+		z-index: 2;
+	}
+
+	.kick i,
+	.sparks i {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		border-radius: 50%;
+		opacity: 0;
+	}
+
+	.kick i {
+		width: calc(var(--s) * 4.6cqw);
+		height: calc(var(--s) * 4.6cqw);
+		margin: calc(var(--s) * -2.3cqw);
+		background: radial-gradient(circle at 35% 30%, #fff3d8, #d8b684 70%);
+		box-shadow: 0 0.8cqw 0.6cqw rgba(70, 42, 24, 0.45);
+		animation: kick 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+		animation-delay: calc(0.12s + var(--wait));
+	}
+
+	.sparks i {
+		width: calc(var(--s) * 5cqw);
+		height: calc(var(--s) * 5cqw);
+		margin: calc(var(--s) * -2.5cqw);
+		background: radial-gradient(circle, #fffbe8 0 22%, rgba(255, 214, 130, 0.9) 36%, transparent 70%);
+		animation: spark 1.3s ease-out infinite;
+		animation-delay: calc(0.5s + var(--wait));
+	}
+
+	@keyframes damp {
+		0% {
+			opacity: 0;
+			scale: 0.5;
+		}
+		18% {
+			opacity: 1;
+			scale: 1.08;
+		}
+		100% {
+			opacity: 0.55;
+			scale: 1;
+		}
+	}
+
+	@keyframes kick {
+		0% {
+			opacity: 0.95;
+			translate: 0 0;
+		}
+		60% {
+			opacity: 0.85;
+		}
+		100% {
+			opacity: 0;
+			translate: calc(var(--dx) * 1cqw) calc(var(--dy) * 1cqh + 6cqh);
+			scale: 0.5;
+		}
+	}
+
+	@keyframes spark {
+		0% {
+			opacity: 0;
+			translate: 0 0;
+			scale: 0.3;
+		}
+		20% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			translate: calc(var(--dx) * 1cqw) calc(var(--dy) * 1cqh);
+			scale: 1.1;
+		}
 	}
 
 	@keyframes scratch {
@@ -321,6 +443,17 @@
 		.slash path {
 			animation: none;
 			stroke-dashoffset: 0;
+		}
+
+		.damp,
+		.kick i,
+		.sparks i {
+			animation: none;
+		}
+
+		.kick i,
+		.sparks i {
+			display: none;
 		}
 
 		.cell.win::before,

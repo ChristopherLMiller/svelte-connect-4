@@ -10,7 +10,7 @@
 	const p2 = $derived(session.mode === 'ai' ? 'The Yard' : 'Bone');
 	const turn = $derived(session.current === 1 ? p1 : p2);
 	const kicker = $derived(
-		session.chaining ? 'Keep hopping' : session.mustTake ? 'A take is open' : `${turn} to hop`
+		session.chaining ? 'Keep hopping' : session.mustTake ? 'A take is forced' : `${turn} to hop`
 	);
 	const hint = $derived(
 		session.status.type === 'won'
@@ -24,7 +24,7 @@
 						: session.chaining
 							? `${turn} — finish the hop`
 							: session.mustTake
-							? `${turn} — hop or take`
+							? `${turn} — you must take`
 							: session.selected
 								? 'Hop a ring, or tap the piece to drop it'
 								: `${turn} to hop`

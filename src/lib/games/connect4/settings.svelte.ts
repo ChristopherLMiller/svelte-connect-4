@@ -80,6 +80,7 @@ export function setThreatAlerts(on: boolean) {
 }
 
 export function openSettings() {
+	guide.open = false;
 	panel.open = true;
 }
 
@@ -90,6 +91,19 @@ export function closeSettings() {
 export function toggleSettings() {
 	if (panel.open) closeSettings();
 	else openSettings();
+}
+
+export const guide = $state({
+	open: false
+});
+
+export function openGuide() {
+	panel.open = false;
+	guide.open = true;
+}
+
+export function closeGuide() {
+	guide.open = false;
 }
 
 let lifecycleBound = false;

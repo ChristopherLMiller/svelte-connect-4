@@ -7,7 +7,7 @@
 
 	const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 	const hide = $derived(new Set(session.hidden));
-	const landings = $derived(new Set(session.options.map((move) => `${move.to.r}:${move.to.c}`)));
+	const landings = $derived(new Set(session.landings.map((to) => `${to.r}:${to.c}`)));
 	const jumperKeys = $derived(new Set(session.jumpers.map((jumper) => `${jumper.r}:${jumper.c}`)));
 	const pickKey = $derived(session.selected ? `${session.selected.r}:${session.selected.c}` : '');
 	const hoverKey = $derived(session.hover ? `${session.hover.r}:${session.hover.c}` : '');
@@ -21,14 +21,19 @@
 		delay: (i * 0.47) % 5,
 		dur: 5 + (i % 4)
 	}));
-	const sparks = [
-		{ x: -22, y: -26 },
-		{ x: 18, y: -20 },
-		{ x: 24, y: 10 },
-		{ x: -16, y: 18 },
-		{ x: 6, y: -32 },
-		{ x: -26, y: 4 }
+	const sparks = Array.from({ length: 10 }, (_, i) => {
+		const a = (i / 10) * Math.PI * 2 + (i % 3) * 0.3;
+		const d = 34 + (i % 4) * 9;
+		return { x: Math.round(Math.cos(a) * d), y: Math.round(Math.sin(a) * d - 10) };
+	});
+	const shards = [
+		{ x: -38, y: -30, rot: -140 },
+		{ x: 34, y: -36, rot: 120 },
+		{ x: 42, y: 18, rot: 200 },
+		{ x: -30, y: 30, rot: -220 },
+		{ x: 6, y: -46, rot: 90 }
 	];
+	const rays = Array.from({ length: 8 }, (_, i) => i * 45);
 	const stones = $derived.by(() => {
 		const list: Ghost[] = [];
 		for (let r = 0; r < SIZE; r += 1) {
@@ -118,7 +123,7 @@
 		</div>
 	</aside>
 
-	<div class="slab" class:hot={session.mustTake}>
+	<div class="slab" class:hot={session.mustTake} style:--heat={Math.min(1, session.heat / 8)}>
 		<div class="lip"></div>
 		<ol class="ranks" aria-hidden="true">
 			{#each Array.from({ length: SIZE }, (_, i) => SIZE - i) as rank (rank)}
@@ -193,23 +198,45 @@
 				</span>
 			{/each}
 
+			{#if session.lastMove}
+				{#key session.lastMove}
+					<span
+						class="ripple"
+						style:--r={session.lastMove.to.r}
+						style:--c={session.lastMove.to.c}
+						aria-hidden="true"
+					></span>
+				{/key}
+			{/if}
+
+			{#if session.kindle && session.ghost?.king}
+				{#key session.kindle}
+					<span class="crowning" style:--r={session.ghost.r} style:--c={session.ghost.c} aria-hidden="true">
+						{#each rays as deg (deg)}
+							<i style:--a="{deg}deg"></i>
+						{/each}
+					</span>
+				{/key}
+			{/if}
+
 			{#each session.scorches as mark (mark.id)}
 				<span class="burst" style:--r={mark.r} style:--c={mark.c} aria-hidden="true">
 					{#each sparks as spark, i (`${mark.id}-${i}`)}
-						<i style:--dx="{spark.x}%" style:--dy="{spark.y}%" style:--delay="{i * 18}ms"></i>
+						<i style:--dx={spark.x} style:--dy={spark.y} style:--delay="{i * 14}ms"></i>
 					{/each}
 				</span>
 			{/each}
 
 			{#each session.falls as fall (fall.key)}
 				<span
-					class={['stone', 'fall', fall.player === 1 ? 'ember' : 'bone', fall.king && 'king']}
+					class={['shatter', fall.player === 1 ? 'ember' : 'bone']}
 					style:--r={fall.r}
 					style:--c={fall.c}
 					aria-hidden="true"
 				>
-					<i></i>
-					<b></b>
+					{#each shards as shard, i (i)}
+						<s style:--dx={shard.x} style:--dy={shard.y} style:--rot="{shard.rot}deg" style:--k={i}></s>
+					{/each}
 				</span>
 			{/each}
 		</div>
@@ -398,6 +425,10 @@
 			0 0 0 1px rgba(247, 244, 236, 0.16);
 	}
 
+	.board {
+		--crackle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' fill='none' stroke='%236e5c48' stroke-width='0.8' stroke-linejoin='round'%3E%3Cpath stroke-opacity='0.2' d='M0 18L22 24L38 12L60 20L84 8L120 18M22 24L28 52L12 70L0 66M28 52L56 58L60 20M56 58L78 44L84 8M78 44L104 56L120 50M104 56L100 84L120 92M56 58L50 88L28 96L12 70M50 88L76 100L100 84M76 100L82 120M28 96L20 120M84 8L82 0M12 70L0 76'/%3E%3Cpath stroke-opacity='0.1' d='M38 12L44 36L28 52M78 44L70 72L50 88M100 84L92 108L76 100M12 70L6 94L20 120M104 56L114 72'/%3E%3C/svg%3E");
+	}
+
 	.cell {
 		appearance: none;
 		border: 0;
@@ -405,12 +436,20 @@
 		position: relative;
 		cursor: pointer;
 		background:
+			radial-gradient(120% 90% at 22% 12%, rgba(255, 255, 255, 0.75), transparent 46%),
+			var(--crackle) calc(var(--c) * -37px) calc(var(--r) * -53px) / 120px 120px,
 			linear-gradient(145deg, #fbf8f2, #ece4d6 58%, #d8ccbc);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.8),
+			inset 0 -2px 3px rgba(110, 92, 72, 0.18);
 	}
 
 	.cell.dark {
 		background:
+			radial-gradient(90% 70% at 50% 110%, rgba(196, 59, 74, calc(0.08 + var(--heat, 0) * 0.4)), transparent 70%),
+			radial-gradient(3px 3px at 30% 40%, rgba(255, 244, 230, 0.06), transparent),
 			linear-gradient(160deg, #3a342e, #2a2420 62%, #1c1814);
+		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
 	}
 
 	.cell.dark::before {
@@ -424,11 +463,15 @@
 	}
 
 	.cell.from {
-		box-shadow: inset 0 0 0 2px rgba(61, 107, 92, 0.45);
+		box-shadow:
+			inset 0 0 0 2px rgba(61, 107, 92, 0.45),
+			inset 0 0 18px rgba(61, 107, 92, 0.25);
 	}
 
 	.cell.onto {
-		box-shadow: inset 0 0 0 2px rgba(158, 27, 42, 0.55);
+		box-shadow:
+			inset 0 0 0 2px rgba(158, 27, 42, 0.55),
+			inset 0 0 22px rgba(196, 59, 74, 0.35);
 	}
 
 	.cell.scorch::after {
@@ -498,16 +541,19 @@
 		z-index: 1;
 	}
 
+	/* Moved by transform, not background-position, so the textured tiles beneath never repaint. */
 	.heat {
+		inset: 0 auto 0 -120%;
+		width: 340%;
 		background: linear-gradient(
 			115deg,
-			transparent 42%,
-			rgba(255, 252, 245, 0.14) 50%,
-			transparent 58%
+			transparent 44%,
+			rgba(255, 252, 245, 0.18) 50%,
+			transparent 56%
 		);
-		background-size: 240% 100%;
 		animation: sweep 8s ease-in-out infinite;
 		opacity: 0.7;
+		will-change: transform;
 	}
 
 	.dust i {
@@ -603,6 +649,68 @@
 		animation-delay: calc((var(--r) * 3 + var(--c)) * 70ms);
 	}
 
+	.stone i::before,
+	.stone i::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		pointer-events: none;
+	}
+
+	/* Wet glaze: a hard window highlight plus a soft rim light from below. */
+	.stone.ember i::before {
+		background:
+			radial-gradient(38% 22% at 36% 22%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 70%),
+			radial-gradient(60% 30% at 55% 92%, rgba(255, 170, 160, 0.35), transparent 70%);
+	}
+
+	.stone.ember i::after {
+		background: conic-gradient(
+			from 200deg,
+			transparent 0 20%,
+			rgba(255, 220, 220, 0.28) 28%,
+			transparent 36% 100%
+		);
+		animation: glaze-turn 7s linear infinite;
+		animation-delay: calc((var(--r) + var(--c)) * -0.6s);
+	}
+
+	/* Raku crackle on the cooled china. */
+	.stone.bone i::before {
+		background: var(--crackle) calc(var(--c) * -23px) calc(var(--r) * -41px) / 70% 70%;
+		opacity: 0.6;
+		mask-image: radial-gradient(circle, #000 60%, transparent 72%);
+	}
+
+	.stone.bone i::after {
+		background: radial-gradient(34% 20% at 34% 22%, rgba(255, 255, 255, 0.95), transparent 70%);
+	}
+
+	/* Kintsugi: kings wear a gold seam that catches the light as it turns. */
+	.stone.king::after {
+		content: '';
+		position: absolute;
+		width: 80%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: conic-gradient(
+			from 0deg,
+			#8a6420,
+			#f5d67a 12%,
+			#b8862c 25%,
+			#fff1b8 38%,
+			#a07224 52%,
+			#f0cc68 70%,
+			#8a6420 86%,
+			#f5d67a
+		);
+		mask: radial-gradient(circle, transparent calc(50% - 3px), #000 calc(50% - 2.5px) 50%, transparent calc(50% + 0.5px));
+		filter: drop-shadow(0 0 4px rgba(245, 214, 122, 0.7));
+		animation: glaze-turn 5s linear infinite;
+		pointer-events: none;
+	}
+
 	.stone b {
 		width: 28%;
 		height: 28%;
@@ -692,10 +800,105 @@
 			inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 	}
 
-	.stone.fall {
-		z-index: 4;
-		animation: cinderfall 640ms ease-in forwards;
-		transition: none;
+	.burst,
+	.shatter,
+	.ripple,
+	.crowning {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 12.5%;
+		aspect-ratio: 1;
+		height: auto;
+		display: grid;
+		place-items: center;
+		pointer-events: none;
+		container-type: size;
+		translate: calc(var(--c) * 100%) calc(var(--r) * 100%);
+	}
+
+	.shatter {
+		z-index: 5;
+	}
+
+	.shatter s {
+		position: absolute;
+		width: 30%;
+		height: 26%;
+		clip-path: polygon(10% 0, 100% 30%, 70% 100%, 0 70%);
+		animation: shard 700ms cubic-bezier(0.2, 0.7, 0.4, 1) forwards;
+		animation-delay: calc(var(--k) * 12ms);
+	}
+
+	.shatter s:nth-child(odd) {
+		clip-path: polygon(0 20%, 80% 0, 100% 80%, 30% 100%);
+		width: 24%;
+	}
+
+	.shatter.ember s {
+		background: linear-gradient(135deg, #f8d4d6, #c43b4a 40%, #6a141e);
+	}
+
+	.shatter.bone s {
+		background: linear-gradient(135deg, #ffffff, #efe8dc 50%, #b7c9be);
+	}
+
+	.shatter::before {
+		content: '';
+		position: absolute;
+		width: 80%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(120, 104, 92, 0.5), rgba(120, 104, 92, 0.18) 50%, transparent 70%);
+		animation: puff 900ms ease-out forwards;
+	}
+
+	.ripple {
+		z-index: 1;
+	}
+
+	.ripple::before,
+	.ripple::after {
+		content: '';
+		position: absolute;
+		width: 70%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		border: 2px solid rgba(196, 59, 74, 0.55);
+		animation: ripple 800ms ease-out forwards;
+	}
+
+	.ripple::after {
+		border-color: rgba(255, 244, 230, 0.5);
+		animation-delay: 120ms;
+	}
+
+	.crowning {
+		z-index: 7;
+	}
+
+	.crowning::before {
+		content: '';
+		position: absolute;
+		width: 90%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(255, 241, 184, 0.95), rgba(245, 214, 122, 0.45) 40%, transparent 70%);
+		animation: crown-flash 900ms ease-out forwards;
+	}
+
+	.crowning i {
+		position: absolute;
+		width: 6%;
+		height: 60%;
+		border-radius: 4px;
+		background: linear-gradient(0deg, transparent, #f5d67a 40%, #fff6d0);
+		left: 47%;
+		bottom: 50%;
+		transform-origin: 50% 100%;
+		rotate: var(--a);
+		animation: crown-ray 800ms ease-out forwards;
+		filter: drop-shadow(0 0 4px rgba(245, 214, 122, 0.9));
 	}
 
 	.burst {
@@ -712,14 +915,27 @@
 		translate: calc(var(--c) * 100%) calc(var(--r) * 100%);
 	}
 
+	.burst::before {
+		content: '';
+		position: absolute;
+		width: 100%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(255, 214, 160, 0.9), rgba(255, 110, 60, 0.45) 35%, transparent 68%);
+		animation: crown-flash 520ms ease-out forwards;
+	}
+
 	.burst i {
 		position: absolute;
-		width: 6px;
-		height: 6px;
+		width: 5px;
+		height: 5px;
 		border-radius: 50%;
-		background: #9e1b2a;
+		background: #ffd08a;
+		box-shadow:
+			0 0 6px 2px rgba(255, 120, 50, 0.85),
+			0 0 14px rgba(196, 59, 74, 0.6);
 		opacity: 0;
-		animation: spark 540ms ease-out forwards;
+		animation: spark 640ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
 		animation-delay: var(--delay);
 	}
 
@@ -840,12 +1056,85 @@
 		0% {
 			opacity: 1;
 			translate: 0 0;
-			scale: 1;
+			scale: 1.2;
 		}
 		100% {
 			opacity: 0;
-			translate: var(--dx) var(--dy);
-			scale: 0.25;
+			translate: calc(var(--dx) * 1cqw) calc(var(--dy) * 1cqh + 12cqh);
+			scale: 0.2;
+		}
+	}
+
+	@keyframes shard {
+		0% {
+			opacity: 1;
+			translate: 0 0;
+			rotate: 0deg;
+		}
+		60% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			translate: calc(var(--dx) * 1.4cqw) calc(var(--dy) * 1cqh + 70cqh);
+			rotate: var(--rot);
+		}
+	}
+
+	@keyframes puff {
+		0% {
+			opacity: 0.9;
+			scale: 0.5;
+		}
+		100% {
+			opacity: 0;
+			scale: 1.8;
+			translate: 0 -20cqh;
+		}
+	}
+
+	@keyframes ripple {
+		0% {
+			opacity: 1;
+			scale: 0.6;
+		}
+		100% {
+			opacity: 0;
+			scale: 1.5;
+		}
+	}
+
+	@keyframes crown-flash {
+		0% {
+			opacity: 0;
+			scale: 0.4;
+		}
+		25% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			scale: 1.9;
+		}
+	}
+
+	@keyframes crown-ray {
+		0% {
+			opacity: 0;
+			scale: 1 0.2;
+		}
+		30% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			scale: 1 1.6;
+		}
+	}
+
+	@keyframes glaze-turn {
+		to {
+			rotate: 360deg;
 		}
 	}
 
@@ -863,10 +1152,10 @@
 
 	@keyframes sweep {
 		from {
-			background-position: 120% 0;
+			translate: 35% 0;
 		}
 		to {
-			background-position: -40% 0;
+			translate: -35% 0;
 		}
 	}
 
@@ -925,21 +1214,6 @@
 		}
 	}
 
-	@keyframes cinderfall {
-		0% {
-			opacity: 1;
-			translate: calc(var(--c) * 100%) calc(var(--r) * 100%);
-			scale: 1;
-			rotate: 0deg;
-		}
-		100% {
-			opacity: 0;
-			translate: calc(var(--c) * 100%) calc(var(--r) * 100% + 48%);
-			scale: 0.38;
-			rotate: 32deg;
-		}
-	}
-
 	@keyframes vent {
 		0%,
 		100% {
@@ -968,8 +1242,9 @@
 			transition: none;
 		}
 
-		.stone.fall,
 		.stone.ember i,
+		.stone.ember i::after,
+		.stone.king::after,
 		.stone.ember b,
 		.stone.bone i,
 		.stone.bone b,
@@ -987,10 +1262,13 @@
 			animation: none;
 		}
 
-		.stone.fall,
 		.cell.scorch::after,
-		.burst i {
-			opacity: 0;
+		.burst i,
+		.burst::before,
+		.shatter,
+		.ripple,
+		.crowning {
+			display: none;
 		}
 	}
 

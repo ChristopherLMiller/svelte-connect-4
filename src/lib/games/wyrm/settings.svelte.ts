@@ -39,9 +39,23 @@ export function persistWyrmPlay() {
 }
 
 export function openWyrmSettings() {
+	wyrmGuide.open = false;
 	wyrmPanel.open = true;
 }
 
 export function closeWyrmSettings() {
 	wyrmPanel.open = false;
+}
+
+export const wyrmGuide = $state({
+	open: false
+});
+
+export function openWyrmGuide() {
+	wyrmPanel.open = false;
+	wyrmGuide.open = true;
+}
+
+export function closeWyrmGuide() {
+	wyrmGuide.open = false;
 }

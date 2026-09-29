@@ -4,9 +4,10 @@
 	import WyrmMenu from './components/WyrmMenu.svelte';
 	import WyrmNight from './components/WyrmNight.svelte';
 	import WyrmResult from './components/WyrmResult.svelte';
+	import WyrmGuide from './components/WyrmGuide.svelte';
 	import WyrmSettings from './components/WyrmSettings.svelte';
 	import { primeAudio } from '$lib/audio/prefs.svelte';
-	import { closeWyrmSettings, wyrmPanel } from './settings.svelte';
+	import { closeWyrmSettings, wyrmPanel, wyrmGuide, openWyrmGuide, closeWyrmGuide } from './settings.svelte';
 	import { WyrmSession } from './session.svelte';
 	import type { Dir } from './types';
 
@@ -24,11 +25,20 @@
 
 	function onKey(event: KeyboardEvent) {
 		primeAudio();
+		if (event.key === 'Escape' && wyrmGuide.open) {
+			closeWyrmGuide();
+			return;
+		}
 		if (event.key === 'Escape' && wyrmPanel.open) {
 			closeWyrmSettings();
 			return;
 		}
-		if (wyrmPanel.open) return;
+		if (wyrmGuide.open || wyrmPanel.open) return;
+
+		if (event.key === '?') {
+			openWyrmGuide();
+			return;
+		}
 
 		if (session.screen === 'menu') {
 			if (event.key === 'Enter') {
@@ -89,6 +99,7 @@
 				: session.status.type === 'dead'
 					? 'dim'
 					: 'play'}
+		pulse={session.eatPulse}
 	/>
 
 	{#if session.screen === 'menu'}
@@ -106,6 +117,7 @@
 
 	<WyrmResult {session} />
 	<WyrmSettings />
+	<WyrmGuide />
 </div>
 
 <style>

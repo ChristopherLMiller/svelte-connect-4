@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { fade, fly } from 'svelte/transition';
 	import ArcadeExit from '$lib/components/ArcadeExit.svelte';
+	import ArcadeTile from '$lib/components/ArcadeTile.svelte';
 	import TttIcon from './TttIcon.svelte';
 	import { playSelect } from '../audio';
 	import { peekSaved } from '../persist';
-	import { persistTttPlay, tttPlay, tttScores, openTttSettings } from '../settings.svelte';
+	import { persistTttPlay, tttPlay, tttScores, openTttSettings, openTttGuide } from '../settings.svelte';
 	import type { TttSession } from '../session.svelte';
 	import type { Difficulty, GameMode } from '../types';
 
@@ -85,9 +86,12 @@
 			<button class="ghost" onclick={resume}>Resume the last tide</button>
 		{/if}
 		<button class="go" onclick={launch}>Draw in the sand</button>
-		<button class="ghost" onclick={() => openTttSettings()}>Settings</button>
 	</div>
-	<ArcadeExit tone="shore" size="banner" />
+	<nav class="dock" aria-label="Shore">
+		<ArcadeTile tone="shore" size="tile" kicker="Rules" label="How to play" onclick={openTttGuide} />
+		<ArcadeTile tone="shore" size="tile" kicker="Tune" label="Settings" onclick={openTttSettings} />
+		<ArcadeExit tone="shore" size="tile" />
+	</nav>
 </section>
 
 <style>
@@ -276,6 +280,24 @@
 	@media (max-width: 640px) {
 		.modes {
 			grid-template-columns: 1fr;
+		}
+	}
+
+	.dock {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+		width: min(760px, 100%);
+		margin: 18px auto 0;
+	}
+
+	@media (max-width: 560px) {
+		.dock {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.dock > :global(.exit) {
+			grid-column: 1 / -1;
 		}
 	}
 </style>

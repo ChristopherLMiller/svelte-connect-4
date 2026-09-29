@@ -1,4 +1,7 @@
 <script lang="ts">
+	import AshEmbers from './AshEmbers.svelte';
+	import AshSky from './AshSky.svelte';
+
 	let {
 		mood = 'play',
 		heat = 0,
@@ -8,6 +11,9 @@
 		heat?: number;
 		kindle?: number;
 	} = $props();
+
+	let gpu = $state(false);
+	const warmth = $derived(Math.min(1, heat / 8));
 
 	const glints = Array.from({ length: 16 }, (_, i) => ({
 		i,
@@ -62,26 +68,30 @@
 	}
 </script>
 
-<div class={['yard', mood]} style:--heat={Math.min(1, heat / 8)} aria-hidden="true">
-	<div class="sky"></div>
-	<div class="clouds">
-		{#each clouds as cloud (cloud.id)}
-			<i
-				style:top="{cloud.y}%"
-				style:--s={cloud.s}
-				style:--d="{cloud.d}s"
-				style:--dur="{cloud.dur}s"
-			></i>
-		{/each}
-	</div>
-	<div class="sun">
-		<b></b>
-		<i></i>
-		<span class="ray r1"></span>
-		<span class="ray r2"></span>
-		<span class="ray r3"></span>
-	</div>
-	<div class="haze"></div>
+<div class={['yard', mood, gpu && 'gpu']} style:--heat={warmth} aria-hidden="true">
+	<AshSky {mood} heat={warmth} bind:live={gpu}>
+		{#snippet fallback()}
+			<div class="sky"></div>
+			<div class="clouds">
+				{#each clouds as cloud (cloud.id)}
+					<i
+						style:top="{cloud.y}%"
+						style:--s={cloud.s}
+						style:--d="{cloud.d}s"
+						style:--dur="{cloud.dur}s"
+					></i>
+				{/each}
+			</div>
+			<div class="sun">
+				<b></b>
+				<i></i>
+				<span class="ray r1"></span>
+				<span class="ray r2"></span>
+				<span class="ray r3"></span>
+			</div>
+			<div class="haze"></div>
+		{/snippet}
+	</AshSky>
 	<div class="birds">
 		{#each birds as bird (bird.id)}
 			<i style:top="{bird.y}%" style:--d="{bird.d}s" style:--dur="{bird.dur}s"></i>
@@ -150,6 +160,7 @@
 			></i>
 		{/each}
 	</div>
+	<AshEmbers {mood} heat={warmth} strikes={heat} {kindle} />
 </div>
 
 <style>
@@ -535,6 +546,11 @@
 	.won .smoke {
 		opacity: 0.95;
 		scale: 1.15;
+	}
+
+	.gpu .smoke,
+	.gpu .glints {
+		display: none;
 	}
 
 	.floor {

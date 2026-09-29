@@ -74,6 +74,16 @@
 		opacity: 0.88;
 	}
 
+	.mark:not(.ghost):not(.win) .trough {
+		animation:
+			scratch 0.46s ease-out forwards var(--wait),
+			dry 2.8s ease-out forwards var(--wait);
+	}
+
+	.loop:not(.ghost):not(.win) .trough {
+		animation-duration: 0.68s, 2.8s;
+	}
+
 	.aura {
 		stroke: rgba(255, 214, 140, 0.7);
 		stroke-width: calc(var(--stick) * 2.35);
@@ -119,6 +129,12 @@
 	@keyframes scratch {
 		to {
 			stroke-dashoffset: 0;
+		}
+	}
+
+	@keyframes dry {
+		from {
+			stroke: #3e2414;
 		}
 	}
 

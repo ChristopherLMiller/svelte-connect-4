@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { primeAudio, hydrateAudio } from '$lib/audio/prefs.svelte';
+	import FpsMeter from '$lib/components/FpsMeter.svelte';
 	import { jsonLdPayload, seoForPath, shareImageFor, SITE_NAME } from '$lib/seo';
 	import '../app.css';
 
@@ -53,3 +54,4 @@
 </svelte:head>
 
 {@render children()}
+<FpsMeter />

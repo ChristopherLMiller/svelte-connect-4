@@ -1,5 +1,7 @@
 <script lang="ts">
-	let { mood = 'menu' }: { mood?: 'menu' | 'play' | 'dim' | 'won' } = $props();
+	import WyrmSky from './WyrmSky.svelte';
+
+	let { mood = 'menu', pulse = 0 }: { mood?: 'menu' | 'play' | 'dim' | 'won'; pulse?: number } = $props();
 
 	const stars = Array.from({ length: 32 }, (_, i) => ({
 		id: i,
@@ -88,25 +90,45 @@
 
 <div class={['night', mood]} aria-hidden="true">
 	<div class="scene">
-	<div class="sky"></div>
-	<div class="stars">
-		{#each stars as star (star.id)}
-			<i
-				class="star"
-				style:left="{star.x}%"
-				style:top="{star.y}%"
-				style:--s={star.s}
-				style:--d="{star.d}s"
-			></i>
-		{/each}
-	</div>
-	<div class="moon">
-		<b></b>
-		<i></i>
-		<i class="crater a"></i>
-		<i class="crater b"></i>
-	</div>
-	<div class="haze"></div>
+	<WyrmSky {mood} {pulse}>
+		{#snippet fallback()}
+			<div class="sky"></div>
+			<div class="stars">
+				{#each stars as star (star.id)}
+					<i
+						class="star"
+						style:left="{star.x}%"
+						style:top="{star.y}%"
+						style:--s={star.s}
+						style:--d="{star.d}s"
+					></i>
+				{/each}
+			</div>
+			<div class="moon">
+				<b></b>
+				<i></i>
+				<i class="crater a"></i>
+				<i class="crater b"></i>
+			</div>
+			<div class="haze"></div>
+			<div class="grain"></div>
+			<div class="smoke">
+				<i></i>
+				<i></i>
+				<i></i>
+			</div>
+			<div class="motes">
+				{#each motes as mote (mote.id)}
+					<i
+						class="mote"
+						style:left="{mote.x}%"
+						style:--d="{mote.d}s"
+						style:--dur="{mote.dur}s"
+					></i>
+				{/each}
+			</div>
+		{/snippet}
+	</WyrmSky>
 	<div class="cord">
 		<svg viewBox="0 0 100 14" preserveAspectRatio="none">
 			<path d={CORD} fill="none" stroke="rgba(40, 24, 16, 0.55)" stroke-width="1.1" />
@@ -122,22 +144,6 @@
 				<em></em>
 				<b></b>
 			</span>
-		{/each}
-	</div>
-	<div class="grain"></div>
-	<div class="smoke">
-		<i></i>
-		<i></i>
-		<i></i>
-	</div>
-	<div class="motes">
-		{#each motes as mote (mote.id)}
-			<i
-				class="mote"
-				style:left="{mote.x}%"
-				style:--d="{mote.d}s"
-				style:--dur="{mote.dur}s"
-			></i>
 		{/each}
 	</div>
 	{#each skyLanterns as lamp (lamp.id)}

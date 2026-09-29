@@ -86,6 +86,7 @@
 			<span></span>
 			<span></span>
 		</div>
+		<i class="alarm" aria-hidden="true"></i>
 	</div>
 
 	<div class="board-score">
@@ -114,17 +115,22 @@
 
 <style>
 	.hud {
-		width: 100%;
+		/* Clip gutter: room for hover lifts and glows inside the overflow clip, cancelled by negative margins. */
+		--gutter: 6px;
+		--bar: calc(66px + 2 * var(--gutter));
+		box-sizing: border-box;
+		width: calc(100% + 2 * var(--gutter));
+		padding: var(--gutter);
+		margin: calc(-1 * var(--gutter)) calc(-1 * var(--gutter)) calc(6px - var(--gutter));
 		display: grid;
 		grid-template-columns: auto minmax(0, 1.4fr) auto auto;
 		gap: 10px;
 		align-items: stretch;
 		position: relative;
 		z-index: 2;
-		margin-bottom: 6px;
-		flex: 0 0 66px;
-		height: 66px;
-		min-height: 66px;
+		flex: 0 0 var(--bar);
+		height: var(--bar);
+		min-height: var(--bar);
 		overflow: hidden;
 	}
 
@@ -358,6 +364,20 @@
 			inset 0 1px 0 rgba(255, 255, 255, 0.08),
 			0 0 0 1px rgba(255, 51, 92, 0.28),
 			0 12px 36px rgba(255, 51, 92, 0.38);
+	}
+
+	.alarm {
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		pointer-events: none;
+		opacity: 0;
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 51, 92, 0.6),
+			inset 0 0 30px rgba(255, 51, 92, 0.45);
+	}
+
+	.turn.threat .alarm {
 		animation: alert 0.7s ease-in-out infinite;
 	}
 
@@ -446,6 +466,17 @@
 		padding: 6px 8px;
 		border: 1px solid rgba(92, 225, 230, 0.35);
 		border-radius: 999px;
+		position: relative;
+	}
+
+	.vs::after {
+		content: '';
+		position: absolute;
+		inset: -1px;
+		border-radius: inherit;
+		box-shadow: 0 0 16px rgba(92, 225, 230, 0.35);
+		opacity: 0;
+		pointer-events: none;
 		animation: vs 2.4s ease-in-out infinite;
 	}
 
@@ -519,7 +550,7 @@
 
 	@keyframes vs {
 		50% {
-			box-shadow: 0 0 16px rgba(92, 225, 230, 0.35);
+			opacity: 1;
 		}
 	}
 
@@ -534,10 +565,7 @@
 
 	@keyframes alert {
 		50% {
-			box-shadow:
-				inset 0 1px 0 rgba(255, 255, 255, 0.08),
-				0 0 0 1px rgba(255, 51, 92, 0.5),
-				0 12px 42px rgba(255, 51, 92, 0.55);
+			opacity: 1;
 		}
 	}
 
@@ -549,9 +577,9 @@
 		.disc::before,
 		.disc::after,
 		.meters span,
-		.vs,
+		.vs::after,
 		.turn.thinking::after,
-		.turn.threat {
+		.turn.threat .alarm {
 			animation: none;
 		}
 	}

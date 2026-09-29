@@ -4,19 +4,29 @@
 	import MenuScreen from './components/MenuScreen.svelte';
 	import ResultOverlay from './components/ResultOverlay.svelte';
 	import { GameSession } from './session.svelte';
-	import { panel, closeSettings, primeAudio } from './settings.svelte';
+	import { panel, closeSettings, guide, closeGuide, openGuide, primeAudio } from './settings.svelte';
 
 	const session = new GameSession();
 
 	function onKey(event: KeyboardEvent) {
 		primeAudio();
 
+		if (event.key === 'Escape' && guide.open) {
+			closeGuide();
+			return;
+		}
+
 		if (event.key === 'Escape' && panel.open) {
 			closeSettings();
 			return;
 		}
 
-		if (panel.open) return;
+		if (guide.open || panel.open) return;
+
+		if (event.key === '?') {
+			openGuide();
+			return;
+		}
 
 		if (session.screen === 'menu') {
 			if (event.key === 'Enter') {

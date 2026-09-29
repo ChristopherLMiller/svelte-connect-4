@@ -3,68 +3,29 @@
 	import AshHud from './components/AshHud.svelte';
 	import AshMenu from './components/AshMenu.svelte';
 	import AshResult from './components/AshResult.svelte';
+	import AshGuide from './components/AshGuide.svelte';
 	import AshSettings from './components/AshSettings.svelte';
 	import AshYard from './components/AshYard.svelte';
-	import { primeAudio } from '$lib/audio/prefs.svelte';
-	import { closeAshSettings, ashPanel } from './settings.svelte';
+	import { boardKeys } from '../kit/keys';
+	import { ashPanels } from './settings.svelte';
 	import { AshSession } from './session.svelte';
 
 	const session = new AshSession();
 	let quiet = $state(false);
 
-	function onKey(event: KeyboardEvent) {
-		primeAudio();
-		if (event.key === 'Escape' && ashPanel.open) {
-			closeAshSettings();
-			return;
-		}
-		if (ashPanel.open) return;
-
-		if (session.screen === 'menu') {
-			if (event.key === 'Enter') {
-				if (!session.resume()) session.start(session.mode, session.difficulty);
-			}
-			return;
-		}
-
-		if (event.key === 'Escape') {
-			session.backToMenu();
-			return;
-		}
-
-		if (session.status.type !== 'playing' && !session.animating && (event.key === 'Enter' || event.key === ' ')) {
-			event.preventDefault();
-			session.rematch();
-			return;
-		}
-
-		if (session.busy) return;
-
-		if (event.key === 'ArrowLeft' || event.key === 'a' || event.key === 'A') {
-			event.preventDefault();
-			session.nudge(0, -1);
-			return;
-		}
-		if (event.key === 'ArrowRight' || event.key === 'd' || event.key === 'D') {
-			event.preventDefault();
-			session.nudge(0, 1);
-			return;
-		}
-		if (event.key === 'ArrowUp' || event.key === 'w' || event.key === 'W') {
-			event.preventDefault();
-			session.nudge(-1, 0);
-			return;
-		}
-		if (event.key === 'ArrowDown' || event.key === 's' || event.key === 'S') {
-			event.preventDefault();
-			session.nudge(1, 0);
-			return;
-		}
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			void session.playCursor();
-		}
-	}
+	const onKey = boardKeys({
+		panels: ashPanels,
+		screen: () => session.screen,
+		startFromMenu: () => {
+			if (!session.resume()) session.start(session.mode, session.difficulty);
+		},
+		backToMenu: () => session.backToMenu(),
+		canRematch: () => session.status.type !== 'playing' && !session.animating,
+		rematch: () => session.rematch(),
+		busy: () => session.busy,
+		nudge: (dr, dc) => session.nudge(dr, dc),
+		play: () => void session.playCursor()
+	});
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -95,6 +56,7 @@
 
 	<AshResult {session} />
 	<AshSettings />
+	<AshGuide />
 </div>
 
 <style>

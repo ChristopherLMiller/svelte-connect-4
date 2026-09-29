@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { fade, fly } from 'svelte/transition';
 	import ArcadeExit from '$lib/components/ArcadeExit.svelte';
+	import ArcadeTile from '$lib/components/ArcadeTile.svelte';
 	import AshIcon from './AshIcon.svelte';
 	import { playSelect } from '../audio';
 	import { peekSaved } from '../persist';
-	import { persistAshPlay, ashPlay, ashScores, openAshSettings } from '../settings.svelte';
+	import { persistAshPlay, ashPlay, ashScores, openAshSettings, openAshGuide } from '../settings.svelte';
 	import type { AshSession } from '../session.svelte';
 	import type { Difficulty, GameMode } from '../types';
 
@@ -84,9 +85,12 @@
 			<button class="ghost" onclick={resume}>Resume the last court</button>
 		{/if}
 		<button class="go" onclick={launch}>Step onto the tiles</button>
-		<button class="ghost" onclick={() => openAshSettings()}>Settings</button>
 	</div>
-	<ArcadeExit tone="ash" size="banner" />
+	<nav class="dock" aria-label="Yard">
+		<ArcadeTile tone="ash" size="tile" kicker="Rules" label="How to play" onclick={openAshGuide} />
+		<ArcadeTile tone="ash" size="tile" kicker="Tune" label="Settings" onclick={openAshSettings} />
+		<ArcadeExit tone="ash" size="tile" />
+	</nav>
 </section>
 
 <style>
@@ -269,6 +273,24 @@
 	@media (max-width: 640px) {
 		.modes {
 			grid-template-columns: 1fr;
+		}
+	}
+
+	.dock {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 12px;
+		width: min(760px, 100%);
+		margin: 18px auto 0;
+	}
+
+	@media (max-width: 560px) {
+		.dock {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.dock > :global(.exit) {
+			grid-column: 1 / -1;
 		}
 	}
 </style>
