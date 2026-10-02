@@ -16,8 +16,40 @@ body {
 	-webkit-font-smoothing: antialiased;
 }
 
+html {
+	/* Android paints a grey box over every tapped control; the games draw their own press states. */
+	-webkit-tap-highlight-color: transparent;
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+}
+
 body {
 	overflow-x: hidden;
+}
+
+/* Inside a cabinet: no pull-to-refresh mid-swipe, no text selection or long-press menu on the board. */
+html.in-game,
+html.in-game body {
+	overscroll-behavior: none;
+}
+
+html.in-game body {
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+}
+
+html.in-game button,
+html.in-game a,
+html.in-game [role='grid'],
+html.in-game canvas {
+	touch-action: manipulation;
+}
+
+html.in-game input,
+html.in-game textarea {
+	-webkit-user-select: text;
+	user-select: text;
 }
 
 button,

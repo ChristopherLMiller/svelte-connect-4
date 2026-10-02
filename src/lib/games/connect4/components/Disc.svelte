@@ -24,7 +24,7 @@
 		scaleY?: number;
 	} = $props();
 
-	const protocol = $derived(lookSettings.skin === 'protocol');
+	const protocol = $derived(lookSettings.pieces === 'protocol');
 	const speed = $derived(Math.hypot(vx, vy));
 	const rising = $derived(vy < 0);
 	const trailLen = $derived(Math.min(1, (speed * (protocol ? 0.09 : 0.072)) / (size * 2.45)));
@@ -35,7 +35,7 @@
 </script>
 
 <div
-	class={['disc', `player-${player}`, lookSettings.skin, { ghost, winning, falling, rising }]}
+	class={['disc', `player-${player}`, lookSettings.pieces, { ghost, winning, falling, rising }]}
 	style="--size: {size}px;"
 >
 	{#if falling}

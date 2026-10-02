@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { createPacer } from '$lib/gl/pace';
 
 	let {
 		quiet = false,
@@ -383,9 +384,10 @@ void main() {
 			gl.drawArrays(gl.TRIANGLES, 0, 3);
 		};
 
+		const pace = createPacer();
 		const loop = (now: number) => {
 			raf = requestAnimationFrame(loop);
-			draw(now);
+			if (pace.due(now)) draw(now);
 		};
 
 		const sync = () => {

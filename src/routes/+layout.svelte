@@ -27,6 +27,13 @@
 		}
 		node.textContent = payload;
 	});
+
+	// The prerender stamp leaves its own theme-color tag behind, and Chrome reads the first one.
+	$effect(() => {
+		for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
+			meta.setAttribute('content', seo.theme);
+		}
+	});
 </script>
 
 <svelte:window onpointerdown={primeAudio} />

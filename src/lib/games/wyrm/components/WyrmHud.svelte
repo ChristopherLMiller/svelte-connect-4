@@ -213,10 +213,12 @@
 			color 160ms ease;
 	}
 
-	.ops button:hover {
-		border-color: rgba(240, 196, 92, 0.6);
-		background: rgba(20, 16, 40, 0.88);
-		color: #ffd97a;
+	@media (hover: hover) {
+		.ops button:hover {
+			border-color: rgba(240, 196, 92, 0.6);
+			background: rgba(20, 16, 40, 0.88);
+			color: #ffd97a;
+		}
 	}
 
 	.ops :global(.exit) {

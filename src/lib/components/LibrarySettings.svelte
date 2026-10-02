@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fade, scale } from 'svelte/transition';
 	import { APP_VERSION } from '$lib/version';
+	import { fpsMeter, setFpsMeter } from '$lib/fps.svelte';
 	import {
 		audioSettings,
 		closeLibrarySettings,
@@ -66,6 +67,18 @@
 					disabled={!audioSettings.musicOn}
 					oninput={(event) => setLibraryMusicVolume(Number(event.currentTarget.value))}
 				/>
+			</label>
+
+			<label class="row">
+				<input
+					type="checkbox"
+					checked={fpsMeter.visible}
+					onchange={(event) => setFpsMeter(event.currentTarget.checked)}
+				/>
+				<span>
+					<strong>Performance meter</strong>
+					<small>Frame rate in the corner of every cabinet · ` toggles it on a keyboard</small>
+				</span>
 			</label>
 
 			<button class="done" onclick={closeLibrarySettings}>Done</button>

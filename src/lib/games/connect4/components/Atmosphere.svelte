@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { createPacer } from '$lib/gl/pace';
 	import {
 		createSighting,
 		createStarfield,
@@ -132,8 +133,13 @@
 				if (changed) publishEggs();
 			};
 
+			const pace = createPacer();
 			const frame = (now: number) => {
 				raf = 0;
+				if (!calm && !pace.due(now)) {
+					if (!document.hidden) raf = requestAnimationFrame(frame);
+					return;
+				}
 				const t = calm ? 0 : (now - start) / 1000;
 				const travel = VOYAGE_TRAVEL_PX_PER_S * t;
 				if (!calm) recycle(t, travel);

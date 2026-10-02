@@ -138,10 +138,16 @@
 		transition: transform 220ms ease;
 	}
 
-	.cab.hot,
-	.cab:hover {
+	.cab.hot {
 		transform: translate3d(0, -10px, 0) scale(1.015);
 		z-index: 2;
+	}
+
+	@media (hover: hover) {
+		.cab:hover {
+			transform: translate3d(0, -10px, 0) scale(1.015);
+			z-index: 2;
+		}
 	}
 
 	.cab.nested {
@@ -151,10 +157,16 @@
 	}
 
 	.cab.nested,
-	.cab.nested.hot,
-	.cab.nested:hover {
+	.cab.nested.hot {
 		transform: none;
 		z-index: auto;
+	}
+
+	@media (hover: hover) {
+		.cab.nested:hover {
+			transform: none;
+			z-index: auto;
+		}
 	}
 
 	.cab.compact .vents {
@@ -170,9 +182,14 @@
 		padding: 16px 12px 8px;
 	}
 
-	.cab.hot .front,
-	.cab:hover .front {
+	.cab.hot .front {
 		box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 35%, transparent);
+	}
+
+	@media (hover: hover) {
+		.cab:hover .front {
+			box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 35%, transparent);
+		}
 	}
 
 	.side {
@@ -361,13 +378,22 @@
 	}
 
 	.cab.hot .glass,
-	.front:hover .glass,
 	.front:focus-visible .glass {
 		box-shadow:
 			0 0 0 2px #1c1424,
 			inset 0 0 0 1px rgba(255, 255, 255, 0.08),
 			inset 0 0 16px 5px rgba(0, 0, 0, 0.35),
 			0 0 26px color-mix(in srgb, var(--accent) 42%, transparent);
+	}
+
+	@media (hover: hover) {
+		.front:hover .glass {
+			box-shadow:
+				0 0 0 2px #1c1424,
+				inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+				inset 0 0 16px 5px rgba(0, 0, 0, 0.35),
+				0 0 26px color-mix(in srgb, var(--accent) 42%, transparent);
+		}
 	}
 
 	.live {
@@ -576,9 +602,14 @@
 		box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
 	}
 
-	.cab.hot .stick b,
-	.front:hover .stick b {
+	.cab.hot .stick b {
 		animation-duration: 0.7s;
+	}
+
+	@media (hover: hover) {
+		.front:hover .stick b {
+			animation-duration: 0.7s;
+		}
 	}
 
 	.pads {
@@ -690,10 +721,16 @@
 		transform: translateZ(0);
 	}
 
-	.cab.hot .shadow,
-	.cab:hover .shadow {
+	.cab.hot .shadow {
 		transform: translateZ(0) scale(1.06);
 		opacity: 0.9;
+	}
+
+	@media (hover: hover) {
+		.cab:hover .shadow {
+			transform: translateZ(0) scale(1.06);
+			opacity: 0.9;
+		}
 	}
 
 	@keyframes chase {

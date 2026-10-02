@@ -1,0 +1,17 @@
+{
+	"id": "reversi",
+	"title": "Eclipse",
+	"genre": "Orrery reversi",
+	"players": "1–2",
+	"tagline": "Silver moons against golden suns.",
+	"blurb": "A brass observatory at twilight. Trap a line of suns and watch the shadow sweep across them.",
+	"description": "Reversi on an enamel star chart inside a brass orrery. Silver moons and golden suns flip as an eclipse sweeps down every captured line. Corners chime, the sky tilts toward whoever is winning. Hotseat, or play the orrery at three strengths.",
+	"keywords": ["Eclipse", "reversi", "othello", "orrery", "moon", "sun", "hotseat", "strategy"],
+	"theme": "#0d1020",
+	"favicon": "/eclipse-favicon.svg",
+	"href": "/reversi",
+	"accent": "#e8b85a",
+	"glow": "#9fb8e8",
+	"cabinet": "#1a1530",
+	"order": 5
+}

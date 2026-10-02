@@ -1,20 +1,18 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { fpsMeter, hydrateFpsMeter, setFpsMeter } from '$lib/fps.svelte';
 
-	const STORAGE_KEY = 'arcade:fps-meter';
 	const HISTORY = 120;
-	let visible = $state(true);
 
 	$effect(() => {
-		visible = localStorage.getItem(STORAGE_KEY) !== 'off';
+		hydrateFpsMeter();
 	});
 
 	function toggle(event: KeyboardEvent) {
 		if (event.key !== '`' || event.metaKey || event.ctrlKey || event.altKey) return;
 		const target = event.target as HTMLElement | null;
 		if (target?.closest('input, textarea, [contenteditable="true"]')) return;
-		visible = !visible;
-		localStorage.setItem(STORAGE_KEY, visible ? 'on' : 'off');
+		setFpsMeter(!fpsMeter.visible);
 	}
 
 	function meter(node: HTMLDivElement) {
@@ -114,7 +112,7 @@
 
 <svelte:window onkeydown={toggle} />
 
-{#if visible}
+{#if fpsMeter.visible}
 	<div class="fps" data-grade="good" aria-hidden="true" {@attach meter}>
 		<div class="row">
 			<span class="big" data-fps>--</span><span class="unit">FPS</span>

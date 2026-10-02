@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { createFullscreenPass } from '$lib/gl/fullscreen';
+	import { createPacer } from '$lib/gl/pace';
 	import TttTide from './TttTide.svelte';
 
 	let { surge = false, receding = false }: { surge?: boolean; receding?: boolean } = $props();
@@ -281,9 +282,10 @@ void main() {
 			return moving;
 		};
 
+		const pace = createPacer();
 		const loop = (now: number) => {
 			raf = 0;
-			const moving = draw(now);
+			const moving = pace.due(now) ? draw(now) : true;
 			if (document.hidden) return;
 			if (!calm || moving) raf = requestAnimationFrame(loop);
 		};

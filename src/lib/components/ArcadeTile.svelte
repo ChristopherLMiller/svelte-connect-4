@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash';
+	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery';
 
 	let {
 		tone,
@@ -60,8 +60,10 @@
 			border-color 160ms ease;
 	}
 
-	.arcade:hover {
-		transform: translateY(-1px);
+	@media (hover: hover) {
+		.arcade:hover {
+			transform: translateY(-1px);
+		}
 	}
 
 	.glyph {
@@ -142,12 +144,14 @@
 		font-family: var(--font-display, Orbitron, sans-serif);
 	}
 
-	.space:hover {
-		border-color: #5ce1e6;
-		box-shadow:
-			0 0 0 1px rgba(92, 225, 230, 0.35),
-			0 12px 32px rgba(0, 0, 0, 0.4),
-			0 0 28px rgba(92, 225, 230, 0.32);
+	@media (hover: hover) {
+		.space:hover {
+			border-color: #5ce1e6;
+			box-shadow:
+				0 0 0 1px rgba(92, 225, 230, 0.35),
+				0 12px 32px rgba(0, 0, 0, 0.4),
+				0 0 28px rgba(92, 225, 230, 0.32);
+		}
 	}
 
 	.space .glyph {
@@ -169,9 +173,11 @@
 		font-family: Nunito, ui-sans-serif, system-ui, sans-serif;
 	}
 
-	.shore:hover {
-		background: #fffaf1;
-		border-color: #15586c;
+	@media (hover: hover) {
+		.shore:hover {
+			background: #fffaf1;
+			border-color: #15586c;
+		}
 	}
 
 	.shore .glyph {
@@ -196,12 +202,14 @@
 		font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
 	}
 
-	.night:hover {
-		border-color: #f0c45c;
-		box-shadow:
-			0 0 0 1px rgba(240, 196, 92, 0.32),
-			0 12px 32px rgba(0, 0, 0, 0.4),
-			0 0 28px rgba(240, 196, 92, 0.28);
+	@media (hover: hover) {
+		.night:hover {
+			border-color: #f0c45c;
+			box-shadow:
+				0 0 0 1px rgba(240, 196, 92, 0.32),
+				0 12px 32px rgba(0, 0, 0, 0.4),
+				0 0 28px rgba(240, 196, 92, 0.28);
+		}
 	}
 
 	.night .glyph {
@@ -226,11 +234,13 @@
 		font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
 	}
 
-	.ash:hover {
-		border-color: #9e1b2a;
-		box-shadow:
-			0 0 0 1px rgba(158, 27, 42, 0.18),
-			0 12px 32px rgba(70, 50, 30, 0.2);
+	@media (hover: hover) {
+		.ash:hover {
+			border-color: #9e1b2a;
+			box-shadow:
+				0 0 0 1px rgba(158, 27, 42, 0.18),
+				0 12px 32px rgba(70, 50, 30, 0.2);
+		}
 	}
 
 	.ash .glyph {
@@ -240,6 +250,38 @@
 
 	.ash .copy small {
 		color: #9e1b2a;
+		opacity: 1;
+	}
+
+	.orrery {
+		--ink: #f4d58a;
+		--accent: #9fb8e8;
+		border: 1px solid rgba(232, 184, 90, 0.5);
+		background: linear-gradient(180deg, rgba(36, 34, 66, 0.86), rgba(14, 14, 32, 0.9));
+		color: #f1e6cf;
+		box-shadow:
+			inset 0 1px 0 rgba(244, 213, 138, 0.18),
+			0 10px 28px rgba(0, 0, 0, 0.38);
+		font-family: Jost, ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.orrery:hover {
+			border-color: #e8b85a;
+			box-shadow:
+				inset 0 1px 0 rgba(244, 213, 138, 0.3),
+				0 12px 32px rgba(0, 0, 0, 0.42),
+				0 0 24px rgba(232, 184, 90, 0.22);
+		}
+	}
+
+	.orrery .glyph {
+		background: radial-gradient(circle at 50% 50%, #1a1838, #0b0b1c);
+		box-shadow: inset 0 0 0 1px rgba(232, 184, 90, 0.5);
+	}
+
+	.orrery .copy small {
+		color: #e8b85a;
 		opacity: 1;
 	}
 

@@ -498,9 +498,11 @@
 		font-family: var(--font-display);
 	}
 
-	.ops button:hover {
-		border-color: rgba(92, 225, 230, 0.5);
-		color: var(--cyan);
+	@media (hover: hover) {
+		.ops button:hover {
+			border-color: rgba(92, 225, 230, 0.5);
+			color: var(--cyan);
+		}
 	}
 
 	@keyframes blink {

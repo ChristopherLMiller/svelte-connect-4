@@ -163,10 +163,12 @@
 			color 160ms ease;
 	}
 
-	.ops button:hover:not(:disabled) {
-		border-color: rgba(29, 109, 134, 0.5);
-		background: rgba(255, 248, 236, 0.88);
-		color: #15586c;
+	@media (hover: hover) {
+		.ops button:hover:not(:disabled) {
+			border-color: rgba(29, 109, 134, 0.5);
+			background: rgba(255, 248, 236, 0.88);
+			color: #15586c;
+		}
 	}
 
 	.ops button:disabled {

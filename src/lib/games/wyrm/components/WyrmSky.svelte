@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack, type Snippet } from 'svelte';
 	import { createFullscreenPass } from '$lib/gl/fullscreen';
+	import { createPacer } from '$lib/gl/pace';
 	import { Fireworks, PALETTE, SHELL_KINDS, type ShellSpec } from '../fireworks';
 
 	type Mood = 'menu' | 'play' | 'dim' | 'won';
@@ -243,9 +244,10 @@ void main() {
 			}
 		};
 
+		const pace = createPacer();
 		const loop = (ms: number) => {
 			raf = 0;
-			draw(ms);
+			if (pace.due(ms)) draw(ms);
 			if (!calm && !document.hidden) raf = requestAnimationFrame(loop);
 		};
 

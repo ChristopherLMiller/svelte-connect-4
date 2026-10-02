@@ -22,6 +22,7 @@ export const panel = $state({
 
 export const lookSettings = $state({
 	skin: boot.skin,
+	pieces: boot.pieces,
 	threatAlerts: boot.threatAlerts
 });
 
@@ -58,6 +59,7 @@ function snapshotPrefs() {
 		sfxVolume: audioSettings.sfxVolume,
 		musicVolume: audioSettings.musicVolume,
 		skin: lookSettings.skin,
+		pieces: lookSettings.pieces,
 		threatAlerts: lookSettings.threatAlerts,
 		mode: playSettings.mode,
 		difficulty: playSettings.difficulty
@@ -71,6 +73,11 @@ export function persistSettings(extra: Parameters<typeof writePrefs>[0] = {}) {
 
 export function setBoardSkin(skin: BoardSkin) {
 	lookSettings.skin = skin;
+	persistSettings();
+}
+
+export function setPieceStyle(pieces: BoardSkin) {
+	lookSettings.pieces = pieces;
 	persistSettings();
 }
 
@@ -111,6 +118,7 @@ let lifecycleBound = false;
 export async function hydrateSettings() {
 	const prefs = await hydratePrefs();
 	lookSettings.skin = prefs.skin;
+	lookSettings.pieces = prefs.pieces;
 	lookSettings.threatAlerts = prefs.threatAlerts;
 	playSettings.mode = prefs.mode;
 	playSettings.difficulty = prefs.difficulty;

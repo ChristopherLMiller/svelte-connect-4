@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { createFullscreenPass } from '$lib/gl/fullscreen';
+	import { createPacer } from '$lib/gl/pace';
 
 	let {
 		won = false,
@@ -240,9 +241,10 @@ void main() {
 			pass.draw();
 		};
 
+		const pace = createPacer();
 		const loop = (ms: number) => {
 			raf = 0;
-			draw(ms);
+			if (pace.due(ms)) draw(ms);
 			if (!calm && !document.hidden) raf = requestAnimationFrame(loop);
 		};
 

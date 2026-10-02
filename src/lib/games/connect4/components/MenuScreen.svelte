@@ -308,13 +308,22 @@
 		position: relative;
 	}
 
-	.card:hover,
 	.card.on {
 		transform: translateY(-4px);
 		border-color: rgba(92, 225, 230, 0.5);
 		box-shadow:
 			var(--shadow),
 			0 0 0 1px rgba(92, 225, 230, 0.15);
+	}
+
+	@media (hover: hover) {
+		.card:hover {
+			transform: translateY(-4px);
+			border-color: rgba(92, 225, 230, 0.5);
+			box-shadow:
+				var(--shadow),
+				0 0 0 1px rgba(92, 225, 230, 0.15);
+		}
 	}
 
 	.card.on {
@@ -406,9 +415,11 @@
 		color: var(--cyan);
 	}
 
-	.go:hover,
-	.gear:hover {
-		transform: translateY(-2px);
+	@media (hover: hover) {
+		.go:hover,
+		.gear:hover {
+			transform: translateY(-2px);
+		}
 	}
 
 	@keyframes titlefloat {

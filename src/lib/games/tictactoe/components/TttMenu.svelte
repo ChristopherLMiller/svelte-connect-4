@@ -265,9 +265,11 @@
 		background: rgba(255, 248, 236, 0.42);
 	}
 
-	.go:hover,
-	.ghost:hover {
-		transform: translateY(-2px);
+	@media (hover: hover) {
+		.go:hover,
+		.ghost:hover {
+			transform: translateY(-2px);
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {

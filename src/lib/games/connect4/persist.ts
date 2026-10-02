@@ -18,6 +18,8 @@ export type Prefs = {
 	sfxVolume: number;
 	musicVolume: number;
 	skin: Skin;
+	/** Disc look, chosen separately from the grid. */
+	pieces: Skin;
 	threatAlerts: boolean;
 	musicTrack: number;
 	mode: GameMode;
@@ -46,6 +48,7 @@ export const DEFAULT_PREFS: Prefs = {
 	sfxVolume: 0.78,
 	musicVolume: 0.42,
 	skin: 'protocol',
+	pieces: 'protocol',
 	threatAlerts: true,
 	musicTrack: 0,
 	mode: 'local',
@@ -120,12 +123,14 @@ export function normalizeSavedGame(raw: unknown): SavedGame | null {
 export function normalizePrefs(raw: unknown): Prefs {
 	const src = raw && typeof raw === 'object' ? (raw as Partial<Prefs>) : {};
 	const scores = src.scores ?? DEFAULT_PREFS.scores;
+	const skin: Skin = src.skin === 'classic' ? 'classic' : 'protocol';
 	return {
 		sfxOn: src.sfxOn !== false,
 		musicOn: src.musicOn !== false,
 		sfxVolume: clamp(src.sfxVolume ?? DEFAULT_PREFS.sfxVolume),
 		musicVolume: clamp(src.musicVolume ?? DEFAULT_PREFS.musicVolume),
-		skin: src.skin === 'classic' ? 'classic' : 'protocol',
+		skin,
+		pieces: src.pieces === 'classic' || src.pieces === 'protocol' ? src.pieces : skin,
 		threatAlerts: src.threatAlerts !== false,
 		musicTrack: Math.max(0, Math.floor(src.musicTrack ?? 0)),
 		mode: src.mode === 'ai' ? 'ai' : 'local',

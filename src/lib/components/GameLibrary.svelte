@@ -796,9 +796,11 @@
 		font-size: 0.78rem;
 	}
 
-	.gear:hover {
-		border-color: #00f0ff;
-		box-shadow: 0 0 18px rgba(0, 240, 255, 0.25);
+	@media (hover: hover) {
+		.gear:hover {
+			border-color: #00f0ff;
+			box-shadow: 0 0 18px rgba(0, 240, 255, 0.25);
+		}
 	}
 
 	.floor {
@@ -884,7 +886,6 @@
 		grid-column: 3;
 	}
 
-	.nudge:hover,
 	.nudge:focus-visible {
 		border-color: #ffe14a;
 		color: #ffe14a;
@@ -892,23 +893,47 @@
 		outline: none;
 	}
 
-	.nudge:hover::before,
+	@media (hover: hover) {
+		.nudge:hover {
+			border-color: #ffe14a;
+			color: #ffe14a;
+			transform: scale(1.1);
+			outline: none;
+		}
+	}
+
 	.nudge:focus-visible::before {
 		opacity: 1;
 		animation: nudge-spin 1.8s linear infinite;
 	}
 
-	.nudge:hover::after,
+	@media (hover: hover) {
+		.nudge:hover::before {
+			opacity: 1;
+			animation: nudge-spin 1.8s linear infinite;
+		}
+	}
+
 	.nudge:focus-visible::after {
 		opacity: 1;
 	}
 
-	.nudge.prev:hover svg {
-		animation: nudge-left 0.9s ease-in-out infinite;
+	@media (hover: hover) {
+		.nudge:hover::after {
+			opacity: 1;
+		}
 	}
 
-	.nudge.next:hover svg {
-		animation: nudge-right 0.9s ease-in-out infinite;
+	@media (hover: hover) {
+		.nudge.prev:hover svg {
+			animation: nudge-left 0.9s ease-in-out infinite;
+		}
+	}
+
+	@media (hover: hover) {
+		.nudge.next:hover svg {
+			animation: nudge-right 0.9s ease-in-out infinite;
+		}
 	}
 
 	.nudge:active {

@@ -386,10 +386,12 @@
 		background: rgba(12, 10, 28, 0.48);
 	}
 
-	.go:hover,
-	.ghost:hover,
-	.card:hover {
-		transform: translateY(-2px);
+	@media (hover: hover) {
+		.go:hover,
+		.ghost:hover,
+		.card:hover {
+			transform: translateY(-2px);
+		}
 	}
 
 	@keyframes drift {
