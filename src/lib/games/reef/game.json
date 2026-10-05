@@ -1,0 +1,17 @@
+{
+	"id": "reef",
+	"title": "Lumen Reef",
+	"genre": "Deep-sea block stacker",
+	"players": "1",
+	"tagline": "Stack the light. Sink deeper.",
+	"blurb": "A falling-block puzzle in the midnight zone. Stack glowing coral and every full line rises as a plankton bloom.",
+	"description": "A falling-block puzzle a thousand metres down. Seven species of bioluminescent coral drift into the well; fill whole rows and they dissolve into plankton blooms that rise out of the dark. Clear four at once and a whale glides past. Every ten lines takes you 250 metres deeper, where the water darkens, the coral glows brighter and the sonar pulse quickens. Modern rules (seven-piece bags, hold, ghost, wall kicks, lock delay and T-spins) with an endless marathon and a 40-line sprint.",
+	"keywords": ["Lumen Reef", "falling blocks", "block stacker", "tetromino", "puzzle", "deep sea", "bioluminescent", "arcade"],
+	"theme": "#02060f",
+	"favicon": "/reef-favicon.svg",
+	"href": "/reef",
+	"accent": "#3fe9ff",
+	"glow": "#ff4fd8",
+	"cabinet": "#06121f",
+	"order": 7
+}

@@ -1,0 +1,177 @@
+{
+	"chapter": "The Lady Chapel",
+	"blurb": "Blue glass and quiet light, kept for the Virgin.",
+	"windows": [
+		{
+			"name": "The Pale Moth",
+			"map": [
+				"....bb.bb....",
+				"...bbb.bbb...",
+				"..oooo.oooo..",
+				"bboobb.bboobb",
+				"bboobb.bboobb",
+				"bboobb.bboobb",
+				"..oooo.oooo..",
+				"...bbb.bbb...",
+				"....bb.bb...."
+			]
+		},
+		{
+			"name": "The Vesper Trellis",
+			"map": [
+				"obbvvvvvvvbbo",
+				".b.v.o.o.v.b.",
+				"b.v.o.b.o.v.b",
+				".v.o.b.b.o.v.",
+				"vvobbvvvbbovv",
+				".v.o.b.b.o.v.",
+				"b.v.o.b.o.v.b",
+				".b.v.o.o.v.b.",
+				"obbvvvvvvvbbo"
+			]
+		},
+		{
+			"name": "The Ashen Brothers",
+			"map": [
+				"...b.....b...",
+				"..oob...boo..",
+				".oooob.boooo.",
+				".ooooo.ooooo.",
+				".bbbbb.bbbbb.",
+				".bbbbb.bbbbb.",
+				".bbbbo.obbbb.",
+				".bbboo.oobbb.",
+				".bboob.boobb."
+			]
+		},
+		{
+			"name": "The Ivy Pair",
+			"map": [
+				"...o.....o...",
+				"..ovv...vvo..",
+				".ovvbb.bbvvo.",
+				".vvbbo.obbvv.",
+				".vbboo.oobbv.",
+				".bboov.voobb.",
+				".boovv.vvoob.",
+				".oovvb.bvvoo.",
+				".ovvbb.bbvvo."
+			]
+		},
+		{
+			"name": "The Owl Grail",
+			"map": [
+				"vVvbbOOObbvVv",
+				".vvvbbobbvvv.",
+				"..vvbbobbvv..",
+				"...vvbobvv...",
+				"....vvovv....",
+				"......v......",
+				"......v......",
+				".....bvb.....",
+				"..oobbvbboo..",
+				"..ObbVvVbbO.."
+			]
+		},
+		{
+			"name": "The Raven Border",
+			"map": [
+				"bvbovooovobvb",
+				"vbbovbbbvobbv",
+				"ooo.......ooo",
+				"vvo..obo..ovv",
+				"obv..bvb..vbo",
+				"oov..bvb..voo",
+				"obo.......obo",
+				"bbbbvvvvvbbbb",
+				"vvobobvbobovv"
+			]
+		},
+		{
+			"name": "The Western Coronet",
+			"map": [
+				"b..b..b..b..b",
+				"o..o..o..o..o",
+				"o.vv.#b#.vv.o",
+				"bo#booboob#ob",
+				"ooovobbbovooo",
+				"oovvooooovvoo",
+				"ovvvbo#obvvvo",
+				"ovobbbobbbovo",
+				"vovvvobovvvov"
+			]
+		},
+		{
+			"name": "Abbot's Vigil",
+			"map": [
+				"boovvbbbvvoob",
+				"vvbboovoobbvv",
+				"..vbbooobbv..",
+				"...ovvbvvo...",
+				"....ovvvo....",
+				"....bbobb....",
+				"...vvbbbvv...",
+				"..bboovoobb..",
+				"ovvbbooobbvvo",
+				"bboovvbvvoobb"
+			]
+		},
+		{
+			"name": "Pilgrim's Field",
+			"map": [
+				"vbbbooooobbbv",
+				"bbooovvvooobb",
+				"boovvvbvvvoob",
+				"oovvvbbbvvvoo",
+				"oovvvbbbvvvoo",
+				"boovvvbvvvoob",
+				"bbooovvvooobb",
+				"vbbbooooobbbv"
+			]
+		},
+		{
+			"name": "The Mended Gate",
+			"map": [
+				"......o......",
+				"....vvovv....",
+				"..obbvvvbbo..",
+				".voobbvbboov.",
+				"bvvoobbboovvb",
+				"bbvvooboovvbb",
+				"obbvvooovvbbo",
+				"oobbvvovvbboo",
+				"voobbvvvbboov",
+				"vvoobbvbboovv"
+			]
+		},
+		{
+			"name": "The Northern Coronet",
+			"map": [
+				"o..v..o..v..o",
+				"o..v..o..v..o",
+				"o.bv.ooo.vb.o",
+				"obbvvoOovvbbo",
+				"obbvvOOOvvbbo",
+				"obbvvooovvbbo",
+				"obbvvOoOvvbbo",
+				"obbvvOOOvvbbo",
+				"obbvvooovvbbo"
+			]
+		},
+		{
+			"name": "Bellringer's Tapestry",
+			"map": [
+				"vvvoovvvoovvv",
+				"vvvvoovoovvvv",
+				"vvvvoovoovvvv",
+				"vvvvvovovvvvv",
+				"vvvvvvvvvvvvv",
+				"ooooooooooooo",
+				"ooooovovooooo",
+				"oooovvovvoooo",
+				"oooovvovvoooo",
+				"ooovvooovvooo"
+			]
+		}
+	]
+}

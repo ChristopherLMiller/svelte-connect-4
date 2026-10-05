@@ -1,0 +1,198 @@
+{
+	"chapter": "The Bell Tower",
+	"blurb": "High and narrow, blue as the hour bell.",
+	"windows": [
+		{
+			"name": "The Bright Chalice",
+			"map": [
+				"vvbbvvbvvbbvv",
+				".bbvvbbbvvbb.",
+				"..vvbbvbbvv..",
+				"...bbvvvbb...",
+				"....vvbvv....",
+				"......b......",
+				"......v......",
+				"......v......",
+				"..bbvvbvvbb..",
+				"..bvvbbbvvb..",
+				"..vvbbvbbvv.."
+			]
+		},
+		{
+			"name": "The Gloaming Net",
+			"map": [
+				"booovvvvvooob",
+				".o.v.b.b.v.o.",
+				"#.v.b.#.b.v.#",
+				".#.b.#.#.b.#.",
+				"vv#o#VVV#o#vv",
+				".v.o.V.V.o.v.",
+				"v.#.#.V.#.#.v",
+				".#.b.#.#.b.#.",
+				"#vvbbb#bbbvv#",
+				".o.v.b.b.v.o.",
+				"b.o.v.v.v.o.b"
+			]
+		},
+		{
+			"name": "The Evensong Twin Lights",
+			"map": [
+				"...b.....b...",
+				"..bbb...bbb..",
+				".#bbbb.bbbb#.",
+				".O#OO#.#OO#O.",
+				".OO##O.O##OO.",
+				".OO##O.O##OO.",
+				".b#bb#.#bb#b.",
+				".#bbbb.bbbb#.",
+				".bbbbb.bbbbb.",
+				".ooooo.ooooo."
+			]
+		},
+		{
+			"name": "The Eastern Doorway",
+			"map": [
+				"......o......",
+				"....ooooo....",
+				"..ooooooooo..",
+				".vvvvvvvvvvv.",
+				"vvvvvvvvvvvvv",
+				"vvvvvvvvvvvvv",
+				"bbbbbbbbbbbbb",
+				"bbbbbbbbbbbbb",
+				"bbbbbbbbbbbbb",
+				"ooooooooooooo"
+			]
+		},
+		{
+			"name": "The Sapphire Tent",
+			"map": [
+				".....OoO.....",
+				"....oo#oo....",
+				"....ov#vo....",
+				"...o#vVv#o...",
+				"...vv###vv...",
+				"..v#vv#vv#v..",
+				"..#V#vVv#V#..",
+				".oovv###vvoo.",
+				".ooovv#vvooo.",
+				"OOoOovVvoOoOO",
+				"oooooovoooooo",
+				"bbooooooooobb"
+			]
+		},
+		{
+			"name": "The Burning Sun",
+			"map": [
+				"....vvvvv....",
+				"..vvvooovvv..",
+				".vvooooooovv.",
+				"vvooVVVVVoovv",
+				"vvovVOOOVvovv",
+				"vvovVOOOVvovv",
+				"vvooVVVVVoovv",
+				".vvooooooovv.",
+				"..vvvooovvv..",
+				"....vvvvv...."
+			]
+		},
+		{
+			"name": "The Ashen Wall",
+			"map": [
+				"vovovovovovov",
+				"ovovovovovovo",
+				"vovovovovovov",
+				"ovovovovovovo",
+				"vovovovovovov",
+				"ovovovovovovo",
+				"vovovovovovov",
+				"ovovovovovovo",
+				"vovovovovovov",
+				"ovovovovovovo"
+			]
+		},
+		{
+			"name": "The Hallow Dove",
+			"map": [
+				"....VO.OV....",
+				"...vvo.ovv...",
+				"..bvvo.ovvb..",
+				".BBVVO.OVVBB.",
+				"obbvvo.ovvbbo",
+				"obbvvo.ovvbbo",
+				"#B##V#.#V##B#",
+				"obbvvo.ovvbbo",
+				".bbvvo.ovvbb.",
+				"..BVVO.OVVB..",
+				"...vvo.ovv...",
+				"....vo.ov...."
+			]
+		},
+		{
+			"name": "The Scarlet Mandorla",
+			"map": [
+				"......b......",
+				".....bBb.....",
+				"...bbbBbbb...",
+				"..bbBBBBBbb..",
+				".vVVVVvVVVVv.",
+				"VVVVvvVvvVVVV",
+				"VvvVvvVvvVvvV",
+				".VVvVVvVVvVV.",
+				"..bbbbBbbbb..",
+				"...BbbBbbB...",
+				".....bBb.....",
+				"......b......"
+			]
+		},
+		{
+			"name": "The Lily Twin Lights",
+			"map": [
+				"...O.....O...",
+				"..OoO...OoO..",
+				".OoooO.OoooO.",
+				".VvvvV.VvvvV.",
+				".VvvvV.VvvvV.",
+				".VvvvV.VvvvV.",
+				".BbbbB.BbbbB.",
+				".BbbbB.BbbbB.",
+				".BbbbB.BbbbB.",
+				".OOOOO.OOOOO."
+			]
+		},
+		{
+			"name": "Saint Oswald's Gable",
+			"map": [
+				".....OOO.....",
+				"....vvbvv....",
+				"....ovvvo....",
+				"...VBBOBBV...",
+				"...vvbbbvv...",
+				"..bboovoobb..",
+				"..VBBOOOBBV..",
+				".boovvbvvoob.",
+				".bboovvvoobb.",
+				"OOVVBBOBBVVOO",
+				"boovvbbbvvoob",
+				"vvbboovoobbvv"
+			]
+		},
+		{
+			"name": "The Lily Cloister",
+			"map": [
+				"BBBBvVVVvBBBB",
+				"BBVVVVVVVVVBB",
+				"#VV.......VV#",
+				"B#V.......V#B",
+				"VV#.......#VV",
+				"VVo..BbB..oVV",
+				"vVO..BbB..OVv",
+				"Vv#.......#vV",
+				"B#v.......v#B",
+				"#VV.......VV#",
+				"bbVVVvVvVVVbb",
+				"BBbbVVvVVbbBB"
+			]
+		}
+	]
+}

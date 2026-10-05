@@ -1,0 +1,179 @@
+{
+	"chapter": "The Chapter House",
+	"blurb": "Where the brothers met: amber, green and argument.",
+	"windows": [
+		{
+			"name": "The Iron Grail",
+			"map": [
+				"rrrrrrrrrrrrr",
+				".rrrrrrrrrrr.",
+				"..rrrrrrrrr..",
+				"...rrrrrrr...",
+				"......r......",
+				"......a......",
+				".....aaa.....",
+				"..aaaaaaaaa..",
+				"..aaaaaaaaa.."
+			]
+		},
+		{
+			"name": "Pilgrim's Chalice",
+			"map": [
+				"arraarrraarra",
+				".raarrarraar.",
+				"..raarrraar..",
+				"...#rrarr#...",
+				"....ar#ra....",
+				"......a......",
+				"......r......",
+				".....#a#.....",
+				"..raa#r#aar..",
+				"..aarrarraa.."
+			]
+		},
+		{
+			"name": "The Morning Seal",
+			"map": [
+				"......r......",
+				"....grrrg....",
+				"...grrarrg...",
+				"..grraaarrg..",
+				".grraagaarrg.",
+				"grraagggaarrg",
+				".raaggrggaar.",
+				"..aggrrrgga..",
+				"...grrarrg...",
+				"....raaar....",
+				"......g......"
+			]
+		},
+		{
+			"name": "The Starlit Spire",
+			"map": [
+				"grrrrrrrrrrrg",
+				"rrrrraaarrrrr",
+				"rrrraaaaarrrr",
+				".raaaaaaaaar.",
+				"..aaaaaaaaa..",
+				"...aaaaaaa...",
+				"...raaaaar...",
+				"....raaar....",
+				".....rrr....."
+			]
+		},
+		{
+			"name": "Weaver's Crown",
+			"map": [
+				"r..g..g..g..r",
+				"a..g..r..g..a",
+				"g.rr.aaa.rr.g",
+				"ggraagggaargg",
+				"ggraagggaargg",
+				"ggrraaaaarrgg",
+				"agggrrrrrggga",
+				"raagggggggaar"
+			]
+		},
+		{
+			"name": "The Weeping Spire",
+			"map": [
+				"raaggrrrggaar",
+				"ggrraagaarrgg",
+				"aggrraaarrgga",
+				".raaggrggaar.",
+				"..raagggaar..",
+				"..ggrrarrgg..",
+				"...ggrrrgg...",
+				"....aagaa....",
+				"....raaar....",
+				".....grg....."
+			]
+		},
+		{
+			"name": "The Bramble Doorway",
+			"map": [
+				"......r......",
+				"....grrrg....",
+				"..rrrgggrrr..",
+				".gggrgrgrggg.",
+				"rrrrgrrrgrrrr",
+				"rrgrrrrrrrgrr",
+				"grrrrgrgrrrrg",
+				"rgrrrrgrrrrgr",
+				"rgrrrgggrrrgr"
+			]
+		},
+		{
+			"name": "Saint Aidan's Arch",
+			"map": [
+				"......r......",
+				"....ggagg....",
+				"..arrgggrra..",
+				".rggaaraaggr.",
+				"arrggaaaggrra",
+				"ggaarrgrraagg",
+				"rggaarrraaggr",
+				"aarrggaggrraa",
+				"gaarrgggrraag"
+			]
+		},
+		{
+			"name": "The Hawthorn Coronet",
+			"map": [
+				"a..r..a..r..a",
+				"r..a..r..a..r",
+				"a.ar.rar.ra.a",
+				"rarararararar",
+				"arararararara",
+				"rarararararar",
+				"arararararara",
+				"rarararararar",
+				"arararararara"
+			]
+		},
+		{
+			"name": "The Burning Oculus",
+			"map": [
+				"....rg#gr....",
+				"..ggrr#rrgg..",
+				".gggrr#rrggg.",
+				"gggggrgrggggg",
+				"gggggg#gggggg",
+				"rrrrrr#rrrrrr",
+				"rrrrrg#grrrrr",
+				".rrrggrggrrr.",
+				"..rrgg#ggrr..",
+				"....gr#rg...."
+			]
+		},
+		{
+			"name": "Saint Mungo's Cloister",
+			"map": [
+				"rrrrgGgGgrrrr",
+				"rrgggggggggrr",
+				"rgg.......ggr",
+				"Ggg.......ggG",
+				"ggg..aaa..ggg",
+				"ggg..aaa..ggg",
+				"gGG.......GGg",
+				"rgg.......ggr",
+				"rrgggggggggrr",
+				"rrrRgggggRrrr"
+			]
+		},
+		{
+			"name": "The Raven Brothers",
+			"map": [
+				"...r.....r...",
+				"..rrR...Rrr..",
+				".rrrrr.rrrrr.",
+				".AaAaa.aaAaA.",
+				".aAaAa.aAaAa.",
+				".AAaAa.aAaAA.",
+				".gGGgG.GgGGg.",
+				".ggGgg.ggGgg.",
+				".Ggggg.ggggG."
+			]
+		}
+	]
+}

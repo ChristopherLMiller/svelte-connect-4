@@ -1,0 +1,17 @@
+{
+	"id": "breakout",
+	"title": "Chapel Glass",
+	"genre": "Cathedral breakout",
+	"players": "1",
+	"tagline": "Break the glass. Keep the light.",
+	"blurb": "A ruined cathedral at nightfall. Knock out the stones bricking up its windows and let the coloured light back in.",
+	"description": "Breakout in a ruined cathedral. Keep a mote of candlelight aloft with an oak beam and unbrick more than a hundred stained-glass windows across eleven chapters of the cathedral, from the nave to the great west front. Every painted stone you knock out uncovers the glass behind it, and its light falls across the old stone wall and flagstones until the dark nave glows. Relics, chains, gilded stones and stone tracery; three canonical hours of difficulty.",
+	"keywords": ["Chapel Glass", "breakout", "arkanoid", "brick breaker", "stained glass", "cathedral", "arcade"],
+	"theme": "#0c0c12",
+	"favicon": "/chapel-favicon.svg",
+	"href": "/breakout",
+	"accent": "#f2c46b",
+	"glow": "#cba3ff",
+	"cabinet": "#17161d",
+	"order": 6
+}

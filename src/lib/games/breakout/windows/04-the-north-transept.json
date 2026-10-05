@@ -1,0 +1,190 @@
+{
+	"chapter": "The North Transept",
+	"blurb": "The cold side of the church, cobalt and frost.",
+	"windows": [
+		{
+			"name": "The Advent Rood",
+			"map": [
+				".....ggg.....",
+				".....gog.....",
+				"bbgggooogggbb",
+				"bggoooboooggb",
+				"ggooobbbooogg",
+				".....bbb.....",
+				".....bbb.....",
+				".....obo.....",
+				".....ooo.....",
+				".....gog.....",
+				".....ggg....."
+			]
+		},
+		{
+			"name": "The Lost Tent",
+			"map": [
+				".....obo.....",
+				"....gbobg....",
+				"...gobobog...",
+				"...oogggoo...",
+				"..gbgogogbg..",
+				".booogogooob.",
+				"oooobbbbboooo",
+				"ogbgbbgbbgbgo",
+				"bgogobobogogb"
+			]
+		},
+		{
+			"name": "Weaver's Lattice",
+			"map": [
+				"ooooooooooooo",
+				".o.o.o.o.o.o.",
+				"o.o.o.o.o.o.o",
+				".o.o.o.o.o.o.",
+				"ooooooooooooo",
+				".g.g.g.g.g.g.",
+				"g.g.g.g.g.g.g",
+				".g.g.g.g.g.g.",
+				"ggggggggggggg",
+				".g.g.g.g.g.g."
+			]
+		},
+		{
+			"name": "The Sapphire Three Lights",
+			"map": [
+				"..g...b...g..",
+				".ggo.bbb.ogg.",
+				".goo.bgb.oog.",
+				".oob.ggg.boo.",
+				".obb.gog.bbo.",
+				".bbg.ooo.gbb.",
+				".bgg.obo.ggb.",
+				".ggo.bbb.ogg.",
+				".goo.bgb.oog.",
+				".oob.ggg.boo."
+			]
+		},
+		{
+			"name": "The Snow Three Lights",
+			"map": [
+				"..g...o...g..",
+				".gg#.ooo.#gg.",
+				".gg#.ooo.#gg.",
+				".ggb.ooo.bgg.",
+				".gg#.ooo.#gg.",
+				".gg#.ooo.#gg.",
+				".ggb.ooo.bgg.",
+				".gg#.ooo.#gg.",
+				".gg#.ooo.#gg.",
+				".ggb.ooo.bgg.",
+				".gg#.ooo.#gg."
+			]
+		},
+		{
+			"name": "The Raven Steeple",
+			"map": [
+				"oooobbbbboooo",
+				"oobbbbbbbbboo",
+				"obbbooooobbbo",
+				".bbooobooobb.",
+				"..oobbbbboo..",
+				"..oobbbbboo..",
+				"...ooobooo...",
+				"....ooooo....",
+				"....bbbbb....",
+				".....bbb....."
+			]
+		},
+		{
+			"name": "Saint Oswald's Tent",
+			"map": [
+				".....bbb.....",
+				"....bbbbb....",
+				"....bbbbb....",
+				"...ggggggg...",
+				"...ggggggg...",
+				"..ggggggggg..",
+				".ooooooooooo.",
+				".ooooooooooo.",
+				"ooooooooooooo",
+				"bbbbbbbbbbbbb",
+				"bbbbbbbbbbbbb"
+			]
+		},
+		{
+			"name": "Saint Cuthbert's Crown",
+			"map": [
+				"o..b..o..b..o",
+				"b..b..o..b..b",
+				"b.oo.obo.oo.b",
+				"booobbbbbooob",
+				"ooobbbbbbbooo",
+				"booobbbbbooob",
+				"bbooooboooobb",
+				"bbbbooooobbbb",
+				"obbbbooobbbbo"
+			]
+		},
+		{
+			"name": "Glazier's Hourglass",
+			"map": [
+				"boobbooobboob",
+				"boobbooobboob",
+				".oobbooobboo.",
+				"...bbooobb...",
+				"....booob....",
+				".....ooo.....",
+				"....booob....",
+				"...bbooobb...",
+				".oobbooobboo.",
+				"boobbooobboob",
+				"boobbooobboob"
+			]
+		},
+		{
+			"name": "The Burning Gate",
+			"map": [
+				"......o......",
+				"....obbbo....",
+				"..obbbbbbbo..",
+				".obbooooobbo.",
+				"ooboobbbooboo",
+				"ooboobbbooboo",
+				"oobbooooobboo",
+				"boobbbbbbboob",
+				"bbooobbbooobb",
+				"obbbooooobbbo"
+			]
+		},
+		{
+			"name": "The Morning Trellis",
+			"map": [
+				"bbGbgggggbGbb",
+				".b.B.G.G.B.b.",
+				"b.B.B.b.B.B.b",
+				".B.g.b.b.g.B.",
+				"BgbgggbgggbgB",
+				".G.G.G.G.G.G.",
+				"g.g.g.G.g.g.g",
+				".b.g.G.G.g.b.",
+				"BgbggbgbggbgB",
+				".g.B.B.B.B.g.",
+				"G.g.g.g.g.g.G"
+			]
+		},
+		{
+			"name": "The Moonlit Garth",
+			"map": [
+				"BbggGoOoGggbB",
+				"GggGOOoOOGggG",
+				"Ggg.......ggG",
+				"ggo.......ogg",
+				"ooo..bBb..ooo",
+				"Ooo..bbb..ooO",
+				"ooo..bbb..ooo",
+				"ggo.......ogg",
+				"ggG.......Ggg",
+				"GggGoooooGggG",
+				"BBggGoOoGggBB"
+			]
+		}
+	]
+}

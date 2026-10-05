@@ -1,0 +1,181 @@
+{
+	"chapter": "The Choir",
+	"blurb": "Above the stalls, windows that sing in violet and gold.",
+	"windows": [
+		{
+			"name": "The Stag Rood",
+			"map": [
+				".....aaa.....",
+				".....aaa.....",
+				"ooaaaavaaaaoo",
+				"oaaaVvVvVaaao",
+				"aaavvVvVvvaaa",
+				".....vVv.....",
+				".....ava.....",
+				".....aaa.....",
+				".....aaa....."
+			]
+		},
+		{
+			"name": "The Starlit Chalice",
+			"map": [
+				"aaaaaaaaaaaaa",
+				".aaaaaaaaaaa.",
+				"..V##V#V##V..",
+				"...VoooooV...",
+				"......o......",
+				"......o......",
+				".....#V#.....",
+				"..aaaaaaaaa..",
+				"..aaaaaaaaa.."
+			]
+		},
+		{
+			"name": "The Verdant Cup",
+			"map": [
+				"aaaaaaaaaaaaa",
+				".aaaaaaaaaaa.",
+				"..aaaaaaaaa..",
+				"...ooooooo...",
+				"....ooooo....",
+				"......o......",
+				"......v......",
+				".....vvv.....",
+				"..vvvvvvvvv..",
+				"..aaaaaaaaa.."
+			]
+		},
+		{
+			"name": "The Twelfth Trellis",
+			"map": [
+				"ooaoao#oaoaoo",
+				".a.a.a.a.a.a.",
+				"a.a.o.#.o.a.a",
+				".o.a.a.a.a.o.",
+				"aoaooo#oooaoa",
+				".a.a.a.a.a.a.",
+				"o.a.a.#.a.a.o",
+				".a.a.a.a.a.a.",
+				"oaaooa#aooaao"
+			]
+		},
+		{
+			"name": "The Easter Tent",
+			"map": [
+				".....vvv.....",
+				"....aavaa....",
+				"...vvavavv...",
+				"...vvvvvvv...",
+				"..#aaa#aaa#..",
+				".aaaaaaaaaaa.",
+				"aaa#av#va#aaa",
+				"aaa#vvavv#aaa",
+				"aaav#aaa#vaaa"
+			]
+		},
+		{
+			"name": "The Lammas Brothers",
+			"map": [
+				"...a.....a...",
+				"..ava...ava..",
+				".avava.avava.",
+				".vavav.vavav.",
+				".avava.avava.",
+				".vavav.vavav.",
+				".avava.avava.",
+				".vavav.vavav.",
+				".avava.avava.",
+				".vavav.vavav."
+			]
+		},
+		{
+			"name": "Saint Oswald's Arrow",
+			"map": [
+				"aoooaaaaaoooa",
+				"oooaaOoOaaooo",
+				"oaaaoooooaaao",
+				".aOOoaaaoOOa.",
+				"..OoaaaaaoO..",
+				"...ooaaaoo...",
+				"...aooOooa...",
+				"....aoooa....",
+				".....aaa....."
+			]
+		},
+		{
+			"name": "The Ashen Coronet",
+			"map": [
+				"v..a..o..a..v",
+				"v..v..o..v..v",
+				"v.vv.aoa.vv.v",
+				"vvvvvvovvvvvv",
+				"ooooooooooooo",
+				"oooooovoooooo",
+				"oooooavaooooo",
+				"ooooaavaaoooo",
+				"oooaavvvaaooo"
+			]
+		},
+		{
+			"name": "The Morning Tent",
+			"map": [
+				".....ooo.....",
+				"....ooooo....",
+				"....ooaoo....",
+				"...ooaaaoo...",
+				"...oaaaaao...",
+				"..oaaaaaaao..",
+				".oooaaaaaooo.",
+				".voooaaaooov.",
+				"vvvoooaooovvv",
+				"vvvvooooovvvv",
+				"aavvvooovvvaa"
+			]
+		},
+		{
+			"name": "The Harvest Steeple",
+			"map": [
+				"aooaaoooaaooa",
+				"ooaaooaooaaoo",
+				"aooaaoooaaooa",
+				".oaaooaooaao.",
+				".ooaaoooaaoo.",
+				"..aaooaooaa..",
+				"...aaoooaa...",
+				"...aooaooa...",
+				"....aoooa....",
+				"....ooaoo....",
+				".....ooo....."
+			]
+		},
+		{
+			"name": "The Seventh Terraces",
+			"map": [
+				"ooooooooooooo",
+				"ooaaaaaaaaaoo",
+				".............",
+				"ooavvvvvvvaoo",
+				"ooavvooovvaoo",
+				".............",
+				"ooavvooovvaoo",
+				"ooavvvvvvvaoo",
+				".............",
+				"ooaaaaaaaaaoo",
+				"ooooooooooooo"
+			]
+		},
+		{
+			"name": "The Midsummer Terraces",
+			"map": [
+				"AVvOOa#aOOvVA",
+				"oOAavV#VvaAOo",
+				".............",
+				"AAvVOoAoOVvAA",
+				"oaavVO#OVvaao",
+				".............",
+				"AVVOoa#aoOVVA",
+				"ooAaVvovVaAoo"
+			]
+		}
+	]
+}

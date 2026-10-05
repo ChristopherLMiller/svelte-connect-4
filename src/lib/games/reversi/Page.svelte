@@ -77,7 +77,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 10px 10px 12px;
+		padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
 		box-sizing: border-box;
 	}
 

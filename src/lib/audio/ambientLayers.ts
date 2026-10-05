@@ -3,7 +3,7 @@ import { jitter, loadTone, peekTone, type Tone } from './tone';
 
 /**
  * Synth layers for the slow generative scores (Eclipse, Lantern Wyrm, Tide & Cross,
- * Ashcourt). Each game's score calls `note` and `bass` as it plays; the layers answer,
+ * Ashcourt, Chapel Glass, Lumen Reef). Each game's score calls `note` and `bass` as it plays; the layers answer,
  * drone, and ornament around those calls without changing the score itself.
  */
 
@@ -44,6 +44,20 @@ const ARRANGEMENTS: Record<string, Arrangement> = {
 		answer: { voice: 'glass', ratio: 1.5, delay: 0.5, every: 2, volume: -23, decay: 2 },
 		drone: { osc: 'fatsawtooth', ratios: [2, 3], cutoff: 420, volume: -18, attack: 2, holdSteps: 4 },
 		glints: { voice: 'bell', octave: 1, chance: 0.15, volume: -25 }
+	},
+	/** Ruined cathedral: glass answers an octave up, a reed-organ drone, high bell glints. */
+	breakout: {
+		echo: { steps: 0.375, feedback: 0.36, level: 0.3, cutoff: 3600 },
+		answer: { voice: 'glass', ratio: 2, delay: 0.5, every: 1, volume: -24, decay: 2.2 },
+		drone: { osc: 'fatsawtooth', ratios: [1, 1.5, 2], cutoff: 760, volume: -24, attack: 1.2, holdSteps: 1 },
+		glints: { voice: 'bell', octave: 1, chance: 0.3, volume: -28 }
+	},
+	/** Midnight zone: keys answer a fifth up through long echoes, a low swell, rare glass glints. */
+	reef: {
+		echo: { steps: 0.75, feedback: 0.42, level: 0.34, cutoff: 2400 },
+		answer: { voice: 'keys', ratio: 1.5, delay: 0.75, every: 2, volume: -24, decay: 2 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 520, volume: -21, attack: 3, holdSteps: 2 },
+		glints: { voice: 'glass', octave: 2, chance: 0.2, volume: -27 }
 	}
 };
 

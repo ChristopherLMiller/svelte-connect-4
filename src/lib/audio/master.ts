@@ -38,9 +38,33 @@ const AMBIENT: Profile = {
 	brightness: 6500
 };
 
+/** Stone vault: a long, dark tail for organ and choir; effects stay drier so play reads. */
+const CATHEDRAL: Profile = {
+	musicSpace: 0.36,
+	sfxSpace: 0.14,
+	chorus: 0.08,
+	drift: 2.5,
+	rt60: 3.4,
+	seconds: 3.8,
+	brightness: 5600
+};
+
+/** Open water: an enormous soft tail, dark and slow-moving, so pings carry and fade. */
+const ABYSS: Profile = {
+	musicSpace: 0.42,
+	sfxSpace: 0.12,
+	chorus: 0.2,
+	drift: 3.5,
+	rt60: 4.2,
+	seconds: 4.6,
+	brightness: 4200
+};
+
 const PROFILES: Record<string, Profile> = {
 	library: ARCADE,
-	connect4: ARCADE
+	connect4: ARCADE,
+	breakout: CATHEDRAL,
+	reef: ABYSS
 };
 
 export type Master = {

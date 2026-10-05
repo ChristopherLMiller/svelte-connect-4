@@ -1,0 +1,202 @@
+{
+	"chapter": "The Great West Front",
+	"blurb": "The last and greatest wall of glass.",
+	"windows": [
+		{
+			"name": "The Crowned Dove",
+			"map": [
+				"....rr.rr....",
+				"...rrr.rrr...",
+				"..bbbb.bbbb..",
+				".rbbbb.bbbbr.",
+				"rrbbvv.vvbbrr",
+				"#r##v#.#v##r#",
+				"rrbbvv.vvbbrr",
+				".rbbbb.bbbbr.",
+				"..bbbb.bbbb..",
+				"...rrr.rrr...",
+				"....rr.rr...."
+			]
+		},
+		{
+			"name": "Saint Aidan's Hourglass",
+			"map": [
+				"bbbbbbbbbbbbb",
+				"bbbbbbbbbbbbb",
+				".bbbbbbbbbbb.",
+				"...bbbbbbb...",
+				"....ggggg....",
+				".....###.....",
+				"....ggggg....",
+				"...ggggggg...",
+				".vvvvvvvvvvv.",
+				"vvvvvvvvvvvvv",
+				"vvvvvvvvvvvvv"
+			]
+		},
+		{
+			"name": "The Southern Rood",
+			"map": [
+				".....O#O.....",
+				".....o#o.....",
+				"ggGGBB#BBGGgg",
+				"GGGGgBOBgGGGG",
+				"GGGGGG#GGGGGG",
+				".....V#V.....",
+				".....V#V.....",
+				".....obo.....",
+				".....O#O.....",
+				".....B#B.....",
+				".....B#B....."
+			]
+		},
+		{
+			"name": "The Stag Pair",
+			"map": [
+				"...b.....b...",
+				"..vbb...bbv..",
+				".vvvbb.bbvvv.",
+				".vvVVB.BVVvv.",
+				".vvVVV.VVVvv.",
+				".ggGGG.GGGgg.",
+				".ggGGG.GGGgg.",
+				".ggGGO.OGGgg.",
+				".gggoo.ooggg.",
+				".ggoob.boogg.",
+				".gooob.booog."
+			]
+		},
+		{
+			"name": "The Ashen Trellis",
+			"map": [
+				"#g#rraaarr#g#",
+				".o.#.r.r.#.o.",
+				"a.o.g.r.g.o.a",
+				".a.O.G.G.O.a.",
+				"#aaO#GGG#Oaa#",
+				".r.A.O.O.A.r.",
+				"#.r.A.#.A.r.#",
+				".g.R.A.A.R.g.",
+				"oggRRAAARRggo",
+				".o.G.R.R.G.o.",
+				"a.o.g.r.g.o.a",
+				".a.o.g.g.o.a.",
+				"raaoogggooaar"
+			]
+		},
+		{
+			"name": "The Matins Wings",
+			"map": [
+				"....AA.AA....",
+				"...rrr.rrr...",
+				"..rarr.rrar..",
+				".RAAAR.RAAAR.",
+				"araarr.rraara",
+				"rrrrra.arrrrr",
+				"ARARRR.RRRARA",
+				"arraar.raarra",
+				".ararr.rrara.",
+				"..AAAR.RAAA..",
+				"...rra.arr...",
+				"....ar.ra...."
+			]
+		},
+		{
+			"name": "The Quiet Stair",
+			"map": [
+				"RRGGOOOOOGGRR",
+				"gggooo#oooggg",
+				".............",
+				"GOOO##B##OOOG",
+				"ooo#brrrb#ooo",
+				".............",
+				"OO#BRRRRRB#OO",
+				"ooo#brrrb#ooo",
+				".............",
+				"GGOOO#B#OOOGG",
+				"gggooo#oooggg"
+			]
+		},
+		{
+			"name": "Saint Columba's Sun",
+			"map": [
+				"....VAVAV....",
+				"..AVavavaVA..",
+				".AvavavavavA.",
+				".VavavavavaV.",
+				"VavavavavavaV",
+				"AvavavavavavA",
+				"VavavavavavaV",
+				"AvavavavavavA",
+				".AvavavavavA.",
+				".VavavavavaV.",
+				"..VAvavavAV..",
+				"....AVAVA...."
+			]
+		},
+		{
+			"name": "The Broken Mountain",
+			"map": [
+				".....OOO.....",
+				"....OOOOO....",
+				"....OOOOO....",
+				"...aaaaaaa...",
+				"...a#aaa#a...",
+				"..OaaaaaaaO..",
+				".OOa#aaa#aOO.",
+				".OOaaaaaaaOO.",
+				"#OOOOOOOOOOO#",
+				"OOOOOOOOOOOOO",
+				"OOOOOOOOOOOOO"
+			]
+		},
+		{
+			"name": "The Lenten Field",
+			"map": [
+				"GGRRRAAARRRGG",
+				"gggr#aaa#rggg",
+				"ggggr#a#rgggg",
+				"GGGGGRARGGGGG",
+				"ggggggagggggg",
+				"oooooo#oooooo",
+				"OOOO#ORO#OOOO",
+				"oo#ooaraoo#oo",
+				"oo#oa#r#ao#oo",
+				"OOO#ARRRA#OOO",
+				"ooaaarrraaaoo"
+			]
+		},
+		{
+			"name": "The Ivy Coronet",
+			"map": [
+				"V..r..v..r..V",
+				"R..v..R..v..R",
+				"R.VR.RRR.RV.R",
+				"VVRrVVvVVrRVV",
+				"VvRVVRrRVVRvV",
+				"#V##V###V##V#",
+				"VVrVVRRRVVrVV",
+				"VvrrvVVVvrrvV",
+				"rvVRRRRRRRVvr",
+				"RRVVvrRrvVVRR",
+				"VRRrvvvvvrRRV"
+			]
+		},
+		{
+			"name": "Saint Bede's Crown",
+			"map": [
+				"O..G..#..G..O",
+				"o..V..#..V..o",
+				"B.OV.g#g.VO.B",
+				"BbOOVVGVVOObB",
+				"GBBoOv#vOoBBG",
+				"gGbBOO#OOBbGg",
+				"vggbBO#OBbggv",
+				"VVGgBBOBBgGVV",
+				"OVVgGB#BGgVVO",
+				"OOVVGg#gGVVOO",
+				"BOovVG#GVvoOB"
+			]
+		}
+	]
+}

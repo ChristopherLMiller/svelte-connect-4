@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery';
+	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef';
 
 	let {
 		tone,
@@ -282,6 +282,70 @@
 
 	.orrery .copy small {
 		color: #e8b85a;
+		opacity: 1;
+	}
+
+	.chapel {
+		--ink: #f2c46b;
+		--accent: #ff8c9c;
+		border: 1px solid rgba(242, 196, 107, 0.4);
+		background: linear-gradient(180deg, rgba(52, 50, 62, 0.88), rgba(20, 19, 26, 0.92));
+		color: #f4e8d0;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 236, 200, 0.14),
+			0 10px 28px rgba(0, 0, 0, 0.42);
+		font-family: 'Alegreya Sans', ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.chapel:hover {
+			border-color: #f2c46b;
+			box-shadow:
+				inset 0 1px 0 rgba(255, 236, 200, 0.24),
+				0 12px 32px rgba(0, 0, 0, 0.46),
+				0 0 24px rgba(203, 163, 255, 0.22);
+		}
+	}
+
+	.chapel .glyph {
+		background: linear-gradient(180deg, #2c2a36, #121118);
+		box-shadow: inset 0 0 0 1px rgba(242, 196, 107, 0.45);
+	}
+
+	.chapel .copy small {
+		color: #f2c46b;
+		opacity: 1;
+	}
+
+	.reef {
+		--ink: #3fe9ff;
+		--accent: #ff4fd8;
+		border: 1px solid rgba(63, 233, 255, 0.34);
+		background: linear-gradient(180deg, rgba(8, 28, 48, 0.86), rgba(2, 8, 20, 0.92));
+		color: #d8f4ff;
+		box-shadow:
+			inset 0 1px 0 rgba(160, 240, 255, 0.12),
+			0 10px 28px rgba(0, 0, 0, 0.45);
+		font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.reef:hover {
+			border-color: #3fe9ff;
+			box-shadow:
+				inset 0 1px 0 rgba(160, 240, 255, 0.22),
+				0 12px 32px rgba(0, 0, 0, 0.5),
+				0 0 24px rgba(63, 233, 255, 0.24);
+		}
+	}
+
+	.reef .glyph {
+		background: radial-gradient(circle at 50% 30%, #0c2c48, #020814);
+		box-shadow: inset 0 0 0 1px rgba(63, 233, 255, 0.45);
+	}
+
+	.reef .copy small {
+		color: #3fe9ff;
 		opacity: 1;
 	}
 

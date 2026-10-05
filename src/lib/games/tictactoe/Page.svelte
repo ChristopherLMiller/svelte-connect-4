@@ -150,7 +150,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 14px 12px 11vh;
+		padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(11vh, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
 		box-sizing: border-box;
 		pointer-events: none;
 	}

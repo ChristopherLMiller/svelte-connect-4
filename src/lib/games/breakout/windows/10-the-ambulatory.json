@@ -1,0 +1,196 @@
+{
+	"chapter": "The Ambulatory",
+	"blurb": "The walk behind the altar, every colour in procession.",
+	"windows": [
+		{
+			"name": "The Lammas Lozenge",
+			"map": [
+				"......B......",
+				"....BgggB....",
+				"...ggggggg...",
+				"..ggvvvvvgg..",
+				"BBgvvbbbvvgBB",
+				"#B##v###v##B#",
+				"..ggvvvvvgg..",
+				"...ggggggg...",
+				"....BgggB....",
+				"......B......"
+			]
+		},
+		{
+			"name": "Saint Aidan's Three Lights",
+			"map": [
+				"..a...#...a..",
+				".aaa.o#o.aaa.",
+				".aao.o#o.oaa.",
+				".aoo.ggg.ooa.",
+				".ooo.g#g.ooo.",
+				".oog.g#g.goo.",
+				".ooo.g#g.ooo.",
+				".aoo.ggg.ooa.",
+				".aao.o#o.oaa.",
+				".aaa.o#o.aaa.",
+				".gaa.o#o.aag."
+			]
+		},
+		{
+			"name": "The Hidden Brothers",
+			"map": [
+				"...o.....o...",
+				"..oo#...#oo..",
+				".##vb#.#bv##.",
+				".vobvo.ovbov.",
+				".vbvvo.ovvbv.",
+				".obooo.ooobo.",
+				".bbbo#.#obbb.",
+				".v#boo.oob#v.",
+				".ob#ob.bo#bo.",
+				".oobob.boboo.",
+				".o#bbb.bbb#o."
+			]
+		},
+		{
+			"name": "The Moonlit Lozenge",
+			"map": [
+				"......b......",
+				"....VbbbV....",
+				"...vvBbBvv...",
+				"..oVvbBbvVo..",
+				"rOOvvBbBvvOOr",
+				"ROoVVBbBVVoOR",
+				"..oVVbbbVVo..",
+				"...VVbbbVV...",
+				"....vbBbv....",
+				"......B......"
+			]
+		},
+		{
+			"name": "The Bright Arch",
+			"map": [
+				"......#......",
+				"....aa#aa....",
+				"..gbba#abbg..",
+				".vggBBABBggv.",
+				"avvgGB#BGgvva",
+				"aavvGG#GGvvaa",
+				"baavVG#GVvaab",
+				"bbaavvgvvaabb",
+				"gbbaav#vaabbg",
+				"ggbbaa#aabbgg"
+			]
+		},
+		{
+			"name": "Saint Oswald's Rose",
+			"map": [
+				"....obbbo....",
+				"..vvrrorrvv..",
+				".bbvvr#rvvbb.",
+				"r#ooB#V#Boo#r",
+				"vr#o#BBB#o#rv",
+				"bbv#RRORR#vbb",
+				"ob#v#RRR#v#bo",
+				"r#ooB#V#Boo#r",
+				".rroobvboorr.",
+				"..vvrrorrvv..",
+				"....vrrrv...."
+			]
+		},
+		{
+			"name": "The Twelfth Mountain",
+			"map": [
+				".....bbb.....",
+				"....vvvvv....",
+				"....bbvbb....",
+				"...bVBVBVb...",
+				"...vVBBBVv...",
+				"..vbVVBVVbv..",
+				".vvvVVVVVvvv.",
+				".bbvBBVBBvbb.",
+				"vbvvbbbbbvvbv",
+				"vbbbbvbvbbbbv",
+				"bvbbbbbbbbbvb"
+			]
+		},
+		{
+			"name": "Glazier's Wings",
+			"map": [
+				"....GG.GG....",
+				"...GGv.vGG...",
+				"..vvvv.vvvv..",
+				".vvv#v.v#vvv.",
+				"GGGv#G.G#vGGG",
+				"vvG#v#.#v#Gvv",
+				"vvvvvv.vvvvvv",
+				"vv#vGv.vGv#vv",
+				".vvGvv.vvGvv.",
+				"..#vGv.vGv#..",
+				"...vGG.GGv...",
+				"....#v.v#...."
+			]
+		},
+		{
+			"name": "The Thistle Pair",
+			"map": [
+				"...#.....#...",
+				"..#r#...#r#..",
+				".rrrrr.rrrrr.",
+				".RRRRR.RRRRR.",
+				".ooooo.ooooo.",
+				".ooooo.ooooo.",
+				".OOOOO.OOOOO.",
+				".ooooo.ooooo.",
+				".ggggg.ggggg.",
+				".GGGGG.GGGGG.",
+				".ggggg.ggggg."
+			]
+		},
+		{
+			"name": "The Ashen Arch",
+			"map": [
+				"......B......",
+				"....BBbBB....",
+				"...BbbbbbB...",
+				".BBbbbbbbbBB.",
+				"RrrrrrrrrrrrR",
+				"RrrrrrrrrrrrR",
+				"RrrrrrrrrrrrR",
+				"RrrrrrrrrrrrR",
+				"GgggggggggggG",
+				"GgggggggggggG",
+				"GGGGGGGGGGGGG"
+			]
+		},
+		{
+			"name": "The Weeping Tapestry",
+			"map": [
+				"oBBOoBbBoOBBo",
+				"OBBOobBboOBBO",
+				"oBBOObBbOOBBo",
+				"OBBoOBbBOoBBO",
+				"obBooBBBooBbo",
+				"obBOobbboOBbo",
+				"OBBooBBBooBBO",
+				"ObBOOBBBOOBbO",
+				"ObBOOBBBOOBbO",
+				"OBBOOBBBOOBBO",
+				"OBBOoBBBoOBBO"
+			]
+		},
+		{
+			"name": "The Burning Wall",
+			"map": [
+				"BBBBBBBBBBBBB",
+				"BBBBBBBBBBBBB",
+				"BBBBBBBBBBBBB",
+				"BBBoooooooBBB",
+				"BBBoooooooBBB",
+				"BBBoooooooBBB",
+				"BBBoooooooBBB",
+				"BBBoooooooBBB",
+				"BBBBBBBBBBBBB",
+				"BBBBBBBBBBBBB",
+				"BBBBBBBBBBBBB"
+			]
+		}
+	]
+}

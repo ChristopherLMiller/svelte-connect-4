@@ -62,7 +62,7 @@
 		position: relative;
 		display: grid;
 		place-items: center;
-		padding: 16px 20px 28px;
+		padding: max(16px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
 		background: var(--void);
 		color: var(--text);
 		font-family: var(--font-body);

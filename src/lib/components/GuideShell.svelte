@@ -12,7 +12,7 @@
 	}: {
 		open: boolean;
 		onclose: () => void;
-		tone: 'shore' | 'night' | 'ash' | 'orrery';
+		tone: 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef';
 		kicker: string;
 		title?: string;
 		children: Snippet;
@@ -103,6 +103,34 @@
 		--g-done: linear-gradient(180deg, #f4d58a, #c8903a);
 		--g-done-ink: #1a1224;
 		--g-kbd: rgba(232, 184, 90, 0.08);
+	}
+
+	.chapel {
+		--g-bg: linear-gradient(180deg, rgba(36, 34, 44, 0.98), rgba(18, 17, 24, 0.98));
+		--g-text: #f4e8d0;
+		--g-muted: #bdb2a0;
+		--g-accent: #f2c46b;
+		--g-line: rgba(242, 196, 107, 0.26);
+		--g-scrim: rgba(4, 4, 8, 0.62);
+		--g-head: 'IM Fell English SC', Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #f6d48a, #c8243c);
+		--g-done-ink: #1a0c10;
+		--g-kbd: rgba(242, 196, 107, 0.08);
+	}
+
+	.reef {
+		--g-bg: linear-gradient(180deg, rgba(8, 26, 46, 0.97), rgba(2, 8, 20, 0.98));
+		--g-text: #d8f4ff;
+		--g-muted: #8fb4c8;
+		--g-accent: #3fe9ff;
+		--g-line: rgba(63, 233, 255, 0.24);
+		--g-scrim: rgba(0, 3, 10, 0.66);
+		--g-head: Syne, ui-sans-serif, system-ui, sans-serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #7ff3ff, #2a8fd8);
+		--g-done-ink: #021020;
+		--g-kbd: rgba(63, 233, 255, 0.08);
 	}
 
 	.scrim {

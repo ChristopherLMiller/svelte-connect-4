@@ -533,7 +533,7 @@
 		gap: clamp(16px, 3vh, 32px);
 		/* Top band is reserved for the neon pipes drawn by the backdrop. */
 		--pipes: 44px;
-		padding: max(var(--pipes), clamp(16px, 3vw, 36px)) var(--gutter) 0;
+		padding: max(var(--pipes), clamp(16px, 3vw, 36px), env(safe-area-inset-top)) max(var(--gutter), env(safe-area-inset-right)) env(safe-area-inset-bottom) max(var(--gutter), env(safe-area-inset-left));
 		overflow: hidden;
 		background: #070014;
 		color: var(--ink);

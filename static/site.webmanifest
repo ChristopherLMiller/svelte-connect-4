@@ -4,10 +4,13 @@
 	"description": "AI Arcade. Live cabinets. Each title is its own world, and the house thinks back.",
 	"id": "/",
 	"start_url": "/",
-	"display": "standalone",
+	"scope": "/",
+	"display": "fullscreen",
+	"display_override": ["fullscreen", "standalone"],
 	"background_color": "#070014",
 	"theme_color": "#070014",
 	"lang": "en",
+	"categories": ["games", "entertainment"],
 	"icons": [
 		{
 			"src": "/favicon.svg",
@@ -16,10 +19,28 @@
 			"purpose": "any"
 		},
 		{
-			"src": "/apple-touch-icon.png",
+			"src": "/icon-192.png",
 			"type": "image/png",
-			"sizes": "1024x1024",
+			"sizes": "192x192",
 			"purpose": "any"
+		},
+		{
+			"src": "/icon-512.png",
+			"type": "image/png",
+			"sizes": "512x512",
+			"purpose": "any"
+		},
+		{
+			"src": "/icon-maskable-192.png",
+			"type": "image/png",
+			"sizes": "192x192",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/icon-maskable-512.png",
+			"type": "image/png",
+			"sizes": "512x512",
+			"purpose": "maskable"
 		}
 	]
 }

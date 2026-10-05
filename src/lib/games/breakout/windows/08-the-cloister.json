@@ -1,0 +1,198 @@
+{
+	"chapter": "The Cloister",
+	"blurb": "Green garth, pale stone, glass like leaves.",
+	"windows": [
+		{
+			"name": "The Hawthorn Wings",
+			"map": [
+				"....go.og....",
+				"...agg.gga...",
+				"..aagg.ggaa..",
+				".aaaag.gaaaa.",
+				"aaaaaa.aaaaaa",
+				"oooooo.oooooo",
+				".oooog.goooo.",
+				"..oogg.ggoo..",
+				"...ogg.ggo...",
+				"....ga.ag...."
+			]
+		},
+		{
+			"name": "The Hawthorn Mountain",
+			"map": [
+				".....ooo.....",
+				"....ooooo....",
+				"....oogoo....",
+				"...oogggoo...",
+				"..ogggggggo..",
+				"..ogggggggo..",
+				".oooogggoooo.",
+				"aaoooogooooaa",
+				"aaaaoooooaaaa",
+				"gaaaaoooaaaag"
+			]
+		},
+		{
+			"name": "The Lion Sisters",
+			"map": [
+				"..g...g...g..",
+				".ggg.ggg.ggg.",
+				".goo.ooo.oog.",
+				".goa.aaa.aog.",
+				".goa.aaa.aog.",
+				".goa.ggg.aog.",
+				".goa.ggg.aog.",
+				".goa.aaa.aog.",
+				".goa.aaa.aog.",
+				".goo.ooo.oog.",
+				".ggg.ggg.ggg.",
+				".ggg.ggg.ggg."
+			]
+		},
+		{
+			"name": "Saint Brigid's Arrow",
+			"map": [
+				"aaaaoooooaaaa",
+				"aaoooooooooaa",
+				"aooogggggoooa",
+				".oogggggggoo.",
+				".ogggaaagggo.",
+				"..ggaaaaagg..",
+				"..ggaaaaagg..",
+				"...ggaaagg...",
+				"...ggggggg...",
+				"....ggggg....",
+				"....ooooo....",
+				".....ooo....."
+			]
+		},
+		{
+			"name": "The Advent Chalice",
+			"map": [
+				"AAAAAAAAAAAAA",
+				".aaaaaaaaaaa.",
+				"..aaaaaaaaa..",
+				"...AAAAAAA...",
+				"....aaaaa....",
+				"......a......",
+				"......G......",
+				"......g......",
+				"..ggggggggg..",
+				"..GGGGGGGGG..",
+				"..ggggggggg.."
+			]
+		},
+		{
+			"name": "The Southern Gate",
+			"map": [
+				"......a......",
+				"....aaaaa....",
+				"...aaaaaaa...",
+				".##O##o##O##.",
+				"#O#oO###Oo#O#",
+				"#oO#oO#Oo#Oo#",
+				"aaaaaaaaaaaaa",
+				"aaaaaaaaaaaaa",
+				"aaaaaaaaaaaaa",
+				"ooooooooooooo",
+				"ooooooooooooo"
+			]
+		},
+		{
+			"name": "The Starlit Coronet",
+			"map": [
+				"#..#..#..#..#",
+				"#..o..#..o..#",
+				"g.ao.ggg.oa.g",
+				"ggaaoogooaagg",
+				"oggaaoooaaggo",
+				"ooggaaoaaggoo",
+				"aooggaaaggooa",
+				"aaooggaggooaa",
+				"gaaoogggooaag",
+				"ggaaoogooaagg",
+				"oggaaoooaaggo"
+			]
+		},
+		{
+			"name": "The Rain Tapestry",
+			"map": [
+				"gaaoogggooaag",
+				"ooggaaoaaggoo",
+				"aooggaaaggooa",
+				"ggaaoogooaagg",
+				"oggaaoooaaggo",
+				"aaooggaggooaa",
+				"gaaoogggooaag",
+				"ooggaaoaaggoo",
+				"aooggaaaggooa",
+				"ggaaoogooaagg"
+			]
+		},
+		{
+			"name": "Bellringer's Wheel",
+			"map": [
+				"....ogggo....",
+				"..aOogggoOa..",
+				".aaoogggooaa.",
+				"gaaoogggooaag",
+				"GaaoogggooaaG",
+				"gaaoogggooaag",
+				"gaaoogggooaag",
+				"gaaoogggooaag",
+				".AaoogggooaA.",
+				"..aOogggoOa..",
+				"....OGGGO...."
+			]
+		},
+		{
+			"name": "The Copper Gable",
+			"map": [
+				".....AAA.....",
+				"....oaaao....",
+				"....oaaao....",
+				"...OOAAAOO...",
+				"...ooaaaoo...",
+				"..gooaaaoog..",
+				".GGOOAAAOOGG.",
+				".ggooaaaoogg.",
+				"#ggooaaaoogg#",
+				"AGGOOAAAOOGGA",
+				"#ggooaaaoogg#"
+			]
+		},
+		{
+			"name": "Saint Kevin's Hourglass",
+			"map": [
+				"#############",
+				"#o#a#G#G#a#o#",
+				".ooaaGGGaaoo.",
+				"..oaaGGGaao..",
+				"...aaGGGaa...",
+				".....GGG.....",
+				".....GGG.....",
+				"...aaGGGaa...",
+				"..oaaGGGaao..",
+				".ooaaGGGaaoo.",
+				"gooaaGGGaaoog",
+				"gooaaGGGaaoog"
+			]
+		},
+		{
+			"name": "Saint Kevin's Gate",
+			"map": [
+				"......o......",
+				"....ooooo....",
+				"...oooaooo...",
+				".gooOAAAOoog.",
+				"ooooAAAAAoooo",
+				"oooaAAAAAaooo",
+				"ooooAAAAAoooo",
+				"ggooOAAAOoogg",
+				"gggoooaoooggg",
+				"ggggooooogggg",
+				"aagggooogggaa"
+			]
+		}
+	]
+}

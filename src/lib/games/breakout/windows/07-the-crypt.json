@@ -1,0 +1,185 @@
+{
+	"chapter": "The Crypt",
+	"blurb": "Iron and ember under the floor. Mind the tracery.",
+	"windows": [
+		{
+			"name": "The Hawthorn Sisters",
+			"map": [
+				"..a...#...a..",
+				".aar.v#v.raa.",
+				".arr.v#v.rra.",
+				".rrv.aaa.vrr.",
+				".rvv.a#a.vvr.",
+				".vva.r#r.avv.",
+				".vaa.r#r.aav.",
+				".aar.vvv.raa.",
+				".arr.v#v.rra."
+			]
+		},
+		{
+			"name": "The First Brothers",
+			"map": [
+				"...v.....v...",
+				"..oor...roo..",
+				".a#oor.roo#a.",
+				".rv#A#.#A#vr.",
+				".rrv#a.a#vrr.",
+				".ao#R#.#R#oa.",
+				".a#oor.roo#a.",
+				".#vvaa.aavv#.",
+				".rrvva.avvrr."
+			]
+		},
+		{
+			"name": "The Compline Chalice",
+			"map": [
+				"vvvvvvvvvvvvv",
+				".vvvvvvvvvvv.",
+				"..aaaaaaaaa..",
+				"...aaaaaaa...",
+				"....rrrrr....",
+				"......#......",
+				"......r......",
+				"......a......",
+				"..aaaaaaaaa..",
+				"..vvvvvvvvv..",
+				"..vvvvvvvvv.."
+			]
+		},
+		{
+			"name": "The Ashlar Tide",
+			"map": [
+				"rvvvaaaaavvvr",
+				"#vvaaaraaavv#",
+				"..aarr#rraa..",
+				"...rr#v#rr...",
+				"....#vvv#....",
+				"....#vvv#....",
+				"...rr#v#rr...",
+				"..aarrvrraa..",
+				"#vvaaaraaavv#",
+				"rvvvaaaaavvvr"
+			]
+		},
+		{
+			"name": "The Morning Oculus",
+			"map": [
+				"....rarar....",
+				"..arararara..",
+				".#rara#arar#.",
+				"ar#ra#a#ar#ra",
+				"rar##ara##rar",
+				"ara##rar##ara",
+				"ra#ar#r#ra#ar",
+				".#ararrrara#.",
+				"..rarararar..",
+				"....arara...."
+			]
+		},
+		{
+			"name": "The Morning Vigil",
+			"map": [
+				"aaavv#r#vvaaa",
+				"aaaavvrvvaaaa",
+				"..aavv#vvaa..",
+				"...aavrvaa...",
+				"....aa#aa....",
+				"....rrarr....",
+				"...rrvavrr...",
+				"..rrvvavvrr..",
+				"rrrrvvavvrrrr",
+				"rrrvvaaavvrrr"
+			]
+		},
+		{
+			"name": "The Drowned Grail",
+			"map": [
+				"rvVvaa#aavVvr",
+				".vaaAr#rAaav.",
+				"..Arrr#rrrA..",
+				"...RVvVvVR...",
+				"....Va#aV....",
+				"......#......",
+				"......#......",
+				".....RRR.....",
+				"..AaAr#rAaA..",
+				"..VvaA#AavV.."
+			]
+		},
+		{
+			"name": "The Hawthorn Sun",
+			"map": [
+				"....rr#rr....",
+				"..vrra#arrv..",
+				".vrraa#aarrv.",
+				"vrraavvvaarrv",
+				"rraavv#vvaarr",
+				"raavvr#rvvaar",
+				"aavvrr#rrvvaa",
+				".vvrraaarrvv.",
+				"..rraa#aarr..",
+				"....av#va...."
+			]
+		},
+		{
+			"name": "The Moonlit Pair",
+			"map": [
+				"...R.....R...",
+				"..ArR...RrA..",
+				".Aarrv.vrraA.",
+				".#arr#.#rra#.",
+				".A#r#V.V#r#A.",
+				".Aa#rv.vr#aA.",
+				".A#r#v.v#r#A.",
+				".#arr#.#rra#.",
+				".aarrV.Vrraa.",
+				".AarrV.VrraA.",
+				".AArrv.vrrAA."
+			]
+		},
+		{
+			"name": "Saint David's Ladder",
+			"map": [
+				"RVvOOoOoOOvVR",
+				"vvooaaaaaoovv",
+				".............",
+				"OOaArRVRrAaOO",
+				"ooarrvVvrraoo",
+				".............",
+				"VoOAARrRAAOoV",
+				"vvOOaAaAaOOvv"
+			]
+		},
+		{
+			"name": "The Lily Wall",
+			"map": [
+				"aaaaVvVvVaaaa",
+				"aavvvvvvvvvaa",
+				"avVvVVvVVvVva",
+				"VvvVrrrrrVvvV",
+				"VVVrrrrrrrVVV",
+				"#v##r###r##v#",
+				"vVvVrrrrrVvVv",
+				"avvVvVvVvVvva",
+				"aavVvVVVvVvaa",
+				"aaaavVVVvaaaa"
+			]
+		},
+		{
+			"name": "The Snow Gate",
+			"map": [
+				"......V......",
+				"....rVvVr....",
+				"...rVVrVVr...",
+				".rRvVrrrVvRr.",
+				"rRvVRRVRRVvRr",
+				"rvVRRvVvRRVvr",
+				"VVRrvVrVvrRVV",
+				"vrRvvrrrvvRrv",
+				"rRvvRrvrRvvRr",
+				"RVvRrvVvrRvVR",
+				"vvRrVVrVVrRvv"
+			]
+		}
+	]
+}

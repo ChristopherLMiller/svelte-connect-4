@@ -1,0 +1,184 @@
+{
+	"chapter": "The South Transept",
+	"blurb": "Facing the sun: ruby, gold and violet.",
+	"windows": [
+		{
+			"name": "The Matins Cup",
+			"map": [
+				"vvvvvvvvvvvvv",
+				".vvvvvvvvvvv.",
+				"..rrrrrrrrr..",
+				"...raaaaar...",
+				"....aaaaa....",
+				"......a......",
+				"......a......",
+				".....rrr.....",
+				"..vvvvvvvvv..",
+				"..vvvvvvvvv.."
+			]
+		},
+		{
+			"name": "Abbot's Crossing",
+			"map": [
+				".....###.....",
+				".....V#V.....",
+				"AvvAAvvvAAvvA",
+				"AavvaavaavvaA",
+				"vAAvVaaaVvAAv",
+				".....VaV.....",
+				".....vvv.....",
+				".....ava.....",
+				".....AAA....."
+			]
+		},
+		{
+			"name": "Abbot's Sisters",
+			"map": [
+				"..a...a...a..",
+				".aaa.aaa.aaa.",
+				".avv.vvv.vva.",
+				".avv.RRR.vva.",
+				".avv.RrR.vva.",
+				".avv.rRr.vva.",
+				".avv.vvv.vva.",
+				".aaa.aaa.aaa.",
+				".aaa.aaa.aaa."
+			]
+		},
+		{
+			"name": "The Morning Gable",
+			"map": [
+				".....rrr.....",
+				"....aaraa....",
+				"...RrararR...",
+				"...rrrrrrr...",
+				"..aaaaaaaaa..",
+				".aaaaaaaaaaa.",
+				"aaaaararaaaaa",
+				"aaaarrarraaaa",
+				"aaarraaarraaa"
+			]
+		},
+		{
+			"name": "The Sapphire Diamond",
+			"map": [
+				"......v......",
+				"....vvvvv....",
+				"...vvvvvvv...",
+				"..vaaAaAaav..",
+				"vvvAaaaaaAvvv",
+				"vvvAaAaAaAvvv",
+				"..vAAAAAAAv..",
+				"...vvvvvvv...",
+				"....vvvvv....",
+				"......v......"
+			]
+		},
+		{
+			"name": "The Western Moth",
+			"map": [
+				"....##.##....",
+				"...a#a.a#a...",
+				"..aaaa.aaaa..",
+				".aaarr.rraaa.",
+				"aaarrr.rrraaa",
+				"aaarrr.rrraaa",
+				"aaarrr.rrraaa",
+				".aaarr.rraaa.",
+				"..aaaa.aaaa..",
+				"...aaa.aaa...",
+				"....aa.aa...."
+			]
+		},
+		{
+			"name": "The Hallow Vigil",
+			"map": [
+				"vvVVvVVVvVVvv",
+				"vvrrrrrrrrrvv",
+				"..rvvvvvvvr..",
+				"....VRRRV....",
+				".....rrr.....",
+				"....vrrrv....",
+				"..rvvvvvvvr..",
+				"vvrrrrrrrrrvv",
+				"vvvvvvvvvvvvv"
+			]
+		},
+		{
+			"name": "Saint Ninian's Stair",
+			"map": [
+				"orrrrvvvrrrro",
+				"rRrrvvvvvrrRr",
+				".............",
+				"RvvVaaaaaVvvR",
+				"VvvaaaAaaavvV",
+				".............",
+				"RRvvVvavVvvRR",
+				"RrRrvvvvvrRrR"
+			]
+		},
+		{
+			"name": "The Western Crown",
+			"map": [
+				"a..a..v..a..a",
+				"a..v..v..v..a",
+				"a.vv.vvv.vv.a",
+				"vvvvrrrrrvvvv",
+				"vvvrrRrRrrvvv",
+				"vvvrrrrrrrvvv",
+				"vvvrrRrRrrvvv",
+				"vvvvrrrrrvvvv",
+				"avvvvvvvvvvva",
+				"aavvvvvvvvvaa",
+				"aaaavvvvvaaaa"
+			]
+		},
+		{
+			"name": "Mason's Lattice",
+			"map": [
+				"aAvvVrrrVvvAa",
+				".v.v.R.R.v.v.",
+				"v.v.r.A.r.v.v",
+				".V.r.A.A.r.V.",
+				"RrrRaAaAaRrrR",
+				".r.a.A.A.a.r.",
+				"r.R.A.a.A.R.r",
+				".V.R.a.a.R.V.",
+				"vvvrrrArrrvvv",
+				".V.V.r.r.V.V.",
+				"a.V.v.r.v.V.a"
+			]
+		},
+		{
+			"name": "The Stag Wall",
+			"map": [
+				"aooorrrrroooa",
+				"ooorrrvrrrooo",
+				"oorrrvvvrrroo",
+				"orrvvvavvvrro",
+				"rrvvvaaavvvrr",
+				"rvvvaaaaavvvr",
+				"rrvvvaaavvvrr",
+				"orrvvvavvvrro",
+				"oorrrvvvrrroo",
+				"ooorrrvrrrooo",
+				"aooorrrrroooa"
+			]
+		},
+		{
+			"name": "The Vesper Wheel",
+			"map": [
+				"....OaAaO....",
+				"..AAoaaaoAA..",
+				".aAoaOaOaoAa.",
+				"AAoARoaoRAoAA",
+				"aRrOORoROOrRa",
+				"ArAraAaAarArA",
+				"RoAaARaRAaAoR",
+				".AaaOoaoOaaA.",
+				"..RAarAraAR..",
+				"....OAoAO...."
+			]
+		}
+	]
+}

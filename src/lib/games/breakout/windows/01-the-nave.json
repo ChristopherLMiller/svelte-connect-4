@@ -1,0 +1,135 @@
+{
+	"chapter": "The Nave",
+	"blurb": "Where every pilgrim starts. Eight windows drawn by hand.",
+	"windows": [
+		{
+			"name": "The Three Lancets",
+			"map": [
+				"..a...a...a..",
+				".aaa.aaa.aaa.",
+				".rbr.bgb.rbr.",
+				".rbr.bgb.rbr.",
+				".bab.gag.bab.",
+				".rbr.bgb.rbr.",
+				".rbr.bgb.rbr.",
+				".ooo.ooo.ooo."
+			]
+		},
+		{
+			"name": "The Rose",
+			"map": [
+				"....vvvvv....",
+				"..vvrrrrrvv..",
+				".vrrabbbarrv.",
+				".vrabgggbarv.",
+				"vrabgooogbarv",
+				"vrabgoOogbarv",
+				"vrabgooogbarv",
+				".vrabgggbarv.",
+				".vrrabbbarrv.",
+				"..vvrrrrrvv..",
+				"....vvvvv...."
+			]
+		},
+		{
+			"name": "The Trefoil",
+			"map": [
+				".....ggg.....",
+				"....gGGGg....",
+				"....gGoGg....",
+				"....gGGGg....",
+				".....ggg.....",
+				".vvv..#..vvv.",
+				"vVVVv.#.vVVVv",
+				"vVoVv###vVoVv",
+				"vVVVv.#.vVVVv",
+				".vvv..#..vvv.",
+				".....aaa.....",
+				"....aaaaa...."
+			]
+		},
+		{
+			"name": "The Fleur-de-lis",
+			"map": [
+				"bbbbbbabbbbbb",
+				"bbbbbaaabbbbb",
+				"bbbbbaAabbbbb",
+				"bbabbaAabbabb",
+				"baaabaAabaaab",
+				"aabaaaAaaabaa",
+				"abbbaaAaabbba",
+				"bbbbbaAabbbbb",
+				"..rrrrrrrrr..",
+				"..RRRRRRRRR..",
+				".....oOo.....",
+				"....oo.oo...."
+			]
+		},
+		{
+			"name": "The Chalice",
+			"map": [
+				"v.ooooooooo.v",
+				"vvoaaaaaaaovv",
+				"vv.oaaaaao.vv",
+				"vvv.oaaao.vvv",
+				"Vvvv.oAo.vvvV",
+				"VVvvv.A.vvvVV",
+				"#VVvv.A.vvVV#",
+				"##...aAa...##",
+				"...rrrrrrr...",
+				"..RRRRRRRRR.."
+			]
+		},
+		{
+			"name": "The Star Vault",
+			"map": [
+				"#bbbbbObbbbb#",
+				"b#bbbvOvbbb#b",
+				"bb#bvvOvvb#bb",
+				"bbb#vvOvv#bbb",
+				"aaaa#rOr#aaaa",
+				"OOOOOOOOOOOOO",
+				"aaaa#rOr#aaaa",
+				"bbb#vvOvv#bbb",
+				"bb#bvvOvvb#bb",
+				"b#bbbvOvbbb#b",
+				"#bbbbbObbbbb#"
+			]
+		},
+		{
+			"name": "The Leaded Rose",
+			"map": [
+				"....vvvvv....",
+				"..vvrr#rrvv..",
+				".vrr.a#a.rrv.",
+				".v#raa#aar#v.",
+				"vr.#bb#bb#.rv",
+				"vraab#O#baarv",
+				"###.##O##.###",
+				"vraab#O#baarv",
+				"vr.#bbbbb#.rv",
+				".v#raa#aar#v.",
+				".vrr.a#a.rrv.",
+				"..vvrr#rrvv..",
+				"....vvvvv...."
+			]
+		},
+		{
+			"name": "The Great West Window",
+			"map": [
+				"..#ooooooo#..",
+				".#ovvvvvvvo#.",
+				"#ovRRRRRRRvo#",
+				"#vRaaa#aaaRv#",
+				"#vRaGa#aGaRv#",
+				"#vRaaa#aaaRv#",
+				"#bbbbb#bbbbb#",
+				"#bGgGb#bGgGb#",
+				"#bgggb#bgggb#",
+				"#BBBBB#BBBBB#",
+				"#r.r.r#r.r.r#",
+				"#.r.r.#.r.r.#"
+			]
+		}
+	]
+}
