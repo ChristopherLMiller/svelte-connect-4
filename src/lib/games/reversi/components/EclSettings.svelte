@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { fade, scale } from 'svelte/transition';
 	import { APP_VERSION } from '$lib/version';
-	import { audioSettings, persistAudio, primeAudio, syncAudio } from '$lib/audio/prefs.svelte';
+	import { audioSettings, persistAudio, primeAudio, setLayersVolume, syncAudio } from '$lib/audio/prefs.svelte';
 	import { closeEclSettings, eclPanel, eclView, setEclHints, setEclPieces } from '../settings.svelte';
 
 	const sfxPct = $derived(Math.round(audioSettings.sfxVolume * 100));
 	const musicPct = $derived(Math.round(audioSettings.musicVolume * 100));
+	const layersPct = $derived(Math.round(audioSettings.layersVolume * 100));
 
 	function setSfx(value: number) {
 		audioSettings.sfxVolume = value;
@@ -34,96 +35,128 @@
 			<h2 id="ecl-settings-title">Settings</h2>
 			<p class="lede">Volumes are global. Eclipse keeps its own twilight song.</p>
 
-			<div class="pieces" role="radiogroup" aria-label="Piece style">
-				<button
-					type="button"
-					role="radio"
-					aria-checked={eclView.pieces === 'celestial'}
-					class:on={eclView.pieces === 'celestial'}
-					onclick={() => setEclPieces('celestial')}
-				>
-					<span class="pair"><i class="moon"></i><i class="sun"></i></span>
-					<strong>Celestial</strong>
-					<small>Silver moons, gilded suns</small>
-				</button>
-				<button
-					type="button"
-					role="radio"
-					aria-checked={eclView.pieces === 'classic'}
-					class:on={eclView.pieces === 'classic'}
-					onclick={() => setEclPieces('classic')}
-				>
-					<span class="pair"><i class="black"></i><i class="white"></i></span>
-					<strong>Classic</strong>
-					<small>Black for Moon, white for Sun</small>
-				</button>
+			<div class="cols">
+				<section class="col" aria-label="Board">
+					<div class="pieces" role="radiogroup" aria-label="Piece style">
+						<button
+							type="button"
+							role="radio"
+							aria-checked={eclView.pieces === 'celestial'}
+							class:on={eclView.pieces === 'celestial'}
+							onclick={() => setEclPieces('celestial')}
+						>
+							<span class="pair"><i class="moon"></i><i class="sun"></i></span>
+							<strong>Celestial</strong>
+							<small>Silver moons, gilded suns</small>
+						</button>
+						<button
+							type="button"
+							role="radio"
+							aria-checked={eclView.pieces === 'classic'}
+							class:on={eclView.pieces === 'classic'}
+							onclick={() => setEclPieces('classic')}
+						>
+							<span class="pair"><i class="black"></i><i class="white"></i></span>
+							<strong>Classic</strong>
+							<small>Black for Moon, white for Sun</small>
+						</button>
+					</div>
+
+					<label class="row">
+						<input
+							type="checkbox"
+							checked={eclView.hints}
+							onchange={(event) => setEclHints(event.currentTarget.checked)}
+						/>
+						<span>
+							<strong>Show legal moves</strong>
+							<small>Faint brass rings mark every square you can play</small>
+						</span>
+					</label>
+				</section>
+
+				<section class="col" aria-label="Sound">
+					<label class="row">
+						<input
+							type="checkbox"
+							bind:checked={audioSettings.sfxOn}
+							onchange={() => {
+								primeAudio();
+								syncAudio();
+							}}
+						/>
+						<span>
+							<strong>Sound</strong>
+							<small>Brass clicks, flip bells, and the corner chime</small>
+						</span>
+					</label>
+					<label class="slider">
+						<span>SFX · {sfxPct}</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioSettings.sfxVolume}
+							disabled={!audioSettings.sfxOn}
+							oninput={(event) => setSfx(Number(event.currentTarget.value))}
+						/>
+					</label>
+
+					<label class="row">
+						<input
+							type="checkbox"
+							bind:checked={audioSettings.musicOn}
+							onchange={() => {
+								primeAudio();
+								syncAudio();
+							}}
+						/>
+						<span>
+							<strong>Music</strong>
+							<small>Celesta over a slow lydian night</small>
+						</span>
+					</label>
+					<label class="slider">
+						<span>Music · {musicPct}</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioSettings.musicVolume}
+							disabled={!audioSettings.musicOn}
+							oninput={(event) => setMusic(Number(event.currentTarget.value))}
+						/>
+					</label>
+					<label class="row">
+						<input
+							type="checkbox"
+							bind:checked={audioSettings.layersOn}
+							onchange={() => {
+								primeAudio();
+								syncAudio();
+							}}
+						/>
+						<span>
+							<strong>Synth layers</strong>
+							<small>Bell answers, a soft choir and stray star glints · with or without the music</small>
+						</span>
+					</label>
+					<label class="slider">
+						<span>Layers · {layersPct}</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioSettings.layersVolume}
+							disabled={!audioSettings.layersOn}
+							oninput={(event) => setLayersVolume(Number(event.currentTarget.value))}
+						/>
+					</label>
+				</section>
 			</div>
-
-			<label class="row">
-				<input
-					type="checkbox"
-					checked={eclView.hints}
-					onchange={(event) => setEclHints(event.currentTarget.checked)}
-				/>
-				<span>
-					<strong>Show legal moves</strong>
-					<small>Faint brass rings mark every square you can play</small>
-				</span>
-			</label>
-
-			<label class="row">
-				<input
-					type="checkbox"
-					bind:checked={audioSettings.sfxOn}
-					onchange={() => {
-						primeAudio();
-						syncAudio();
-					}}
-				/>
-				<span>
-					<strong>Sound</strong>
-					<small>Brass clicks, flip bells, and the corner chime</small>
-				</span>
-			</label>
-			<label class="slider">
-				<span>SFX · {sfxPct}</span>
-				<input
-					type="range"
-					min="0"
-					max="1"
-					step="0.01"
-					value={audioSettings.sfxVolume}
-					disabled={!audioSettings.sfxOn}
-					oninput={(event) => setSfx(Number(event.currentTarget.value))}
-				/>
-			</label>
-
-			<label class="row">
-				<input
-					type="checkbox"
-					bind:checked={audioSettings.musicOn}
-					onchange={() => {
-						primeAudio();
-						syncAudio();
-					}}
-				/>
-				<span>
-					<strong>Music</strong>
-					<small>Celesta over a slow lydian night</small>
-				</span>
-			</label>
-			<label class="slider">
-				<span>Music · {musicPct}</span>
-				<input
-					type="range"
-					min="0"
-					max="1"
-					step="0.01"
-					value={audioSettings.musicVolume}
-					disabled={!audioSettings.musicOn}
-					oninput={(event) => setMusic(Number(event.currentTarget.value))}
-				/>
-			</label>
 
 			<button
 				class="done"
@@ -160,6 +193,9 @@
 	.panel {
 		position: relative;
 		width: min(420px, 100%);
+		max-height: calc(100dvh - 40px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		border-radius: 24px;
 		padding: 22px 22px 18px;
 		background: linear-gradient(180deg, #1e1c3c, #11112a);
@@ -190,6 +226,31 @@
 		margin: 8px 0 18px;
 		color: #b8b2c8;
 		line-height: 1.45;
+	}
+
+	.col > :last-child {
+		margin-bottom: 0;
+	}
+
+	.col + .col {
+		margin-top: 14px;
+	}
+
+	@media (min-width: 760px) {
+		.panel {
+			width: min(780px, 100%);
+		}
+
+		.cols {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 28px;
+			margin-bottom: 14px;
+		}
+
+		.col + .col {
+			margin-top: 0;
+		}
 	}
 
 	.pieces {

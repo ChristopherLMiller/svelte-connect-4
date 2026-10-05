@@ -1,4 +1,13 @@
-import { getAudioContext, getMusicBus, isMusicOn } from '$lib/audio/core';
+import {
+	getAudioContext,
+	getLayersBus,
+	getMusicBus,
+	isLayeredScoreOn,
+	isLayersOn,
+	watchLayers
+} from '$lib/audio/core';
+import { loadTone, peekTone } from '$lib/audio/tone';
+import { buildHallRig, type HallRig } from './toneLayer';
 
 let running = false;
 let timer: number | null = null;
@@ -12,6 +21,9 @@ let graph: AudioNode[] = [];
 let step = 0;
 let nextAt = 0;
 let noiseCache: AudioBuffer | null = null;
+let rig: HallRig | null = null;
+let rigBus: GainNode | null = null;
+let session = 0;
 
 const BPM = 150;
 const SIXTEENTH = 60 / BPM / 4;
@@ -85,6 +97,7 @@ function playKick(audio: AudioContext, t: number) {
 	osc.start(t);
 	osc.stop(t + 0.2);
 	live.push(osc);
+	rig?.kick(t);
 
 	const click = burst(audio, t, 0.04);
 	const hp = audio.createBiquadFilter();
@@ -231,7 +244,7 @@ function playLead(audio: AudioContext, freq: number, t: number) {
 function schedule() {
 	if (!running) return;
 	const audio = getAudioContext();
-	if (!audio || !isMusicOn()) {
+	if (!audio || !isLayeredScoreOn()) {
 		timer = window.setTimeout(schedule, 80);
 		return;
 	}
@@ -243,10 +256,17 @@ function schedule() {
 		if (hit(HAT, at) && !hit(OPEN, at)) playHat(audio, nextAt, false);
 		if (hit(OPEN, at)) playHat(audio, nextAt, true);
 		if (at === 0 || at === 64) playCrash(audio, nextAt);
-		if (at % 16 === 0) playStab(audio, CHORDS[bar], nextAt);
+		if (at % 16 === 0) {
+			playStab(audio, CHORDS[bar], nextAt);
+			rig?.chord(CHORDS[bar], nextAt, SIXTEENTH * 14);
+		}
 		if (at % 2 === 0) playBass(audio, BASS[(at / 2) % BASS.length], nextAt);
 		if (at < 64 && at % 2 === 0) playArp(audio, CHORDS[bar][(at / 2) % 3] * 2, nextAt);
-		if (at >= 64) playLead(audio, LEAD[at - 64], nextAt);
+		if (at >= 64) {
+			playLead(audio, LEAD[at - 64], nextAt);
+			if (LEAD[at - 64] > 0) rig?.lead(LEAD[at - 64], nextAt + SIXTEENTH, SIXTEENTH * 1.6);
+			if (at % 2 === 0) rig?.arp(CHORDS[bar][(at / 2) % 3] * 2, nextAt, at);
+		}
 		nextAt += SIXTEENTH;
 		step += 1;
 		if (live.length > 240) live = live.slice(-120);
@@ -255,7 +275,7 @@ function schedule() {
 }
 
 export function startLibraryScore() {
-	if (running || !isMusicOn()) return;
+	if (running || !isLayeredScoreOn()) return;
 	const audio = getAudioContext();
 	const bus = getMusicBus();
 	if (!audio || !bus) return;
@@ -289,14 +309,43 @@ export function startLibraryScore() {
 	leadBus.connect(delay);
 	delay.connect(wet).connect(stem);
 	delay.connect(feedback).connect(delay);
-	graph.push(delay, feedback, wet, drums, bassBus, arpBus, leadBus);
+	rigBus = audio.createGain();
+	rigBus.gain.setValueAtTime(0.0001, audio.currentTime);
+	rigBus.gain.exponentialRampToValueAtTime(1, audio.currentTime + 0.45);
+	const layers = getLayersBus();
+	if (layers) rigBus.connect(layers);
+	graph.push(delay, feedback, wet, drums, bassBus, arpBus, leadBus, rigBus);
+	session += 1;
+	attachRig(audio);
 
 	nextAt = audio.currentTime + 0.08;
 	schedule();
 }
 
+function attachRig(audio: AudioContext) {
+	if (!isLayersOn() || rig || !rigBus) return;
+	const tone = peekTone();
+	if (tone) {
+		rig = buildHallRig(tone, rigBus);
+		return;
+	}
+	const expected = session;
+	void loadTone(audio).then((loaded) => {
+		if (loaded && expected === session && running) attachRig(audio);
+	});
+}
+
+watchLayers((on) => {
+	if (!running) return;
+	const audio = getAudioContext();
+	if (!audio) return;
+	if (rig) rig.setActive(on, audio.currentTime);
+	else if (on) attachRig(audio);
+});
+
 export function stopLibraryScore() {
 	running = false;
+	session += 1;
 	if (timer != null) {
 		clearTimeout(timer);
 		timer = null;
@@ -305,8 +354,12 @@ export function stopLibraryScore() {
 	const dying = live.slice();
 	const oldGraph = graph.slice();
 	const old = stem;
+	const oldRig = rig;
+	if (audio) rigBus?.gain.setTargetAtTime(0.0001, audio.currentTime, 0.08);
 	live = [];
 	graph = [];
+	rig = null;
+	rigBus = null;
 	stem = null;
 	drums = null;
 	bassBus = null;
@@ -315,6 +368,7 @@ export function stopLibraryScore() {
 	if (old && audio) {
 		old.gain.setTargetAtTime(0.0001, audio.currentTime, 0.08);
 		window.setTimeout(() => {
+			oldRig?.dispose();
 			for (const node of dying) {
 				try {
 					node.stop();

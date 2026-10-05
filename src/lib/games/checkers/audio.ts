@@ -1,4 +1,5 @@
-import { connectSfx, getAudioContext, getMusicBus, isMusicOn, sfxContext } from '$lib/audio/core';
+import { connectSfx, getAudioContext, getMusicBus, isLayeredScoreOn, sfxContext } from '$lib/audio/core';
+import { createAmbientLayers } from '$lib/audio/ambientLayers';
 import type { Player } from './types';
 
 let running = false;
@@ -11,6 +12,8 @@ let nextAt = 0;
 const PAD = [110, 146.83, 164.81, 196];
 const PLUCK = [220, 246.94, 293.66, 329.63, 392, 329.63, 277.18, 246.94];
 const BASS = [55, 73.42, 82.41, 61.74];
+
+const layers = createAmbientLayers('checkers', 1.78, PLUCK);
 
 function env(audio: AudioContext, start: number, peak: number, attack: number, release: number) {
 	const gain = audio.createGain();
@@ -78,13 +81,17 @@ function playBass(audio: AudioContext, freq: number, t: number) {
 function schedule() {
 	if (!running) return;
 	const audio = getAudioContext();
-	if (!audio || !isMusicOn()) {
+	if (!audio || !isLayeredScoreOn()) {
 		timer = window.setTimeout(schedule, 120);
 		return;
 	}
 	while (nextAt < audio.currentTime + 0.28) {
 		playGlass(audio, PLUCK[step % PLUCK.length], nextAt);
-		if (step % 4 === 0) playBass(audio, BASS[(step / 4) % BASS.length], nextAt);
+		layers.note(PLUCK[step % PLUCK.length], nextAt, step);
+		if (step % 4 === 0) {
+			playBass(audio, BASS[(step / 4) % BASS.length], nextAt);
+			layers.bass(BASS[(step / 4) % BASS.length], nextAt);
+		}
 		nextAt += 1.78;
 		step += 1;
 	}
@@ -92,7 +99,7 @@ function schedule() {
 }
 
 export function startAshcourtMusic() {
-	if (running || !isMusicOn()) return;
+	if (running || !isLayeredScoreOn()) return;
 	const audio = getAudioContext();
 	const bus = getMusicBus();
 	if (!audio || !bus) return;
@@ -103,6 +110,7 @@ export function startAshcourtMusic() {
 	stem.gain.setValueAtTime(0.0001, audio.currentTime);
 	stem.gain.exponentialRampToValueAtTime(1, audio.currentTime + 1.8);
 	stem.connect(bus);
+	layers.start(audio, 1.8);
 
 	const padGain = audio.createGain();
 	padGain.gain.value = 0.16;
@@ -159,6 +167,7 @@ export function stopAshcourtMusic() {
 		timer = null;
 	}
 	const audio = getAudioContext();
+	layers.stop(audio, 0.9);
 	const dying = live.slice();
 	const old = stem;
 	live = [];

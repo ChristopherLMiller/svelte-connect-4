@@ -10,9 +10,11 @@
 		setLibrarySfxVolume,
 		syncAudio
 	} from '$lib/library/settings.svelte';
+	import { setLayersVolume } from '$lib/audio/prefs.svelte';
 
 	const sfxPct = $derived(Math.round(audioSettings.sfxVolume * 100));
 	const musicPct = $derived(Math.round(audioSettings.musicVolume * 100));
+	const layersPct = $derived(Math.round(audioSettings.layersVolume * 100));
 </script>
 
 {#if libraryPanel.open}
@@ -72,6 +74,30 @@
 			<label class="row">
 				<input
 					type="checkbox"
+					bind:checked={audioSettings.layersOn}
+					onchange={() => syncAudio()}
+				/>
+				<span>
+					<strong>Synth layers</strong>
+					<small>Pads, arpeggios and echoes over soundtracks that have them · play with or without the music</small>
+				</span>
+			</label>
+			<label class="slider">
+				<span>Layers volume · {layersPct}</span>
+				<input
+					type="range"
+					min="0"
+					max="1"
+					step="0.01"
+					value={audioSettings.layersVolume}
+					disabled={!audioSettings.layersOn}
+					oninput={(event) => setLayersVolume(Number(event.currentTarget.value))}
+				/>
+			</label>
+
+			<label class="row">
+				<input
+					type="checkbox"
 					checked={fpsMeter.visible}
 					onchange={(event) => setFpsMeter(event.currentTarget.checked)}
 				/>
@@ -108,6 +134,9 @@
 	.panel {
 		position: relative;
 		width: min(400px, 100%);
+		max-height: calc(100dvh - 40px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		padding: 28px 24px 20px;
 		border-radius: 22px;
 		background: #140022;

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { fade, scale } from 'svelte/transition';
 	import { APP_VERSION } from '$lib/version';
-	import { audioSettings, persistAudio, primeAudio, syncAudio } from '$lib/audio/prefs.svelte';
+	import { audioSettings, persistAudio, primeAudio, setLayersVolume, syncAudio } from '$lib/audio/prefs.svelte';
 	import { closeAshSettings, ashPanel } from '../settings.svelte';
 
 	const sfxPct = $derived(Math.round(audioSettings.sfxVolume * 100));
 	const musicPct = $derived(Math.round(audioSettings.musicVolume * 100));
+	const layersPct = $derived(Math.round(audioSettings.layersVolume * 100));
 
 	function setSfx(value: number) {
 		audioSettings.sfxVolume = value;
@@ -87,6 +88,32 @@
 					oninput={(event) => setMusic(Number(event.currentTarget.value))}
 				/>
 			</label>
+			<label class="row">
+				<input
+					type="checkbox"
+					bind:checked={audioSettings.layersOn}
+					onchange={() => {
+						primeAudio();
+						syncAudio();
+					}}
+				/>
+				<span>
+					<strong>Synth layers</strong>
+					<small>Glass fifths, a cello drone and low embers · with or without the music</small>
+				</span>
+			</label>
+			<label class="slider">
+				<span>Layers · {layersPct}</span>
+				<input
+					type="range"
+					min="0"
+					max="1"
+					step="0.01"
+					value={audioSettings.layersVolume}
+					disabled={!audioSettings.layersOn}
+					oninput={(event) => setLayersVolume(Number(event.currentTarget.value))}
+				/>
+			</label>
 
 			<button
 				class="done"
@@ -123,6 +150,9 @@
 	.panel {
 		position: relative;
 		width: min(420px, 100%);
+		max-height: calc(100dvh - 40px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		border-radius: 24px;
 		padding: 22px 22px 18px;
 		background: #fffaf2;

@@ -13,10 +13,12 @@
 		setThreatAlerts,
 		syncAudio
 	} from '../settings.svelte';
+	import { setLayersVolume } from '$lib/audio/prefs.svelte';
 	import { APP_VERSION } from '$lib/version';
 
 	const sfxPct = $derived(Math.round(audioSettings.sfxVolume * 100));
 	const musicPct = $derived(Math.round(audioSettings.musicVolume * 100));
+	const layersPct = $derived(Math.round(audioSettings.layersVolume * 100));
 	let trackName = $state(getMusicTrackName());
 	const minis = Array.from({ length: 15 }, (_, i) => i);
 
@@ -52,132 +54,165 @@
 			<p class="kicker">This match</p>
 			<h2 id="settings-title">Settings</h2>
 			<p class="lede">Volumes are global. The grid, pieces and score below belong to Connect 4.</p>
-			<p class="kicker sub">Grid skin</p>
-			<div class="skins grids" role="radiogroup" aria-label="Board look">
-				<button
-					type="button"
-					role="radio"
-					class:on={lookSettings.skin === 'protocol'}
-					aria-checked={lookSettings.skin === 'protocol'}
-					onclick={() => setBoardSkin('protocol')}
-				>
-					<span class="mini protocol" aria-hidden="true">
-						{#each minis as i (i)}<i></i>{/each}
-					</span>
-					<strong>Protocol</strong>
-					<small>Hololith hull with lit sockets</small>
-				</button>
-				<button
-					type="button"
-					role="radio"
-					class:on={lookSettings.skin === 'classic'}
-					aria-checked={lookSettings.skin === 'classic'}
-					onclick={() => setBoardSkin('classic')}
-				>
-					<span class="mini classic" aria-hidden="true">
-						{#each minis as i (i)}<i></i>{/each}
-					</span>
-					<strong>Arcade</strong>
-					<small>Original blue plastic board</small>
-				</button>
+			<div class="cols">
+				<section class="col" aria-label="Look and play">
+					<p class="kicker sub">Grid skin</p>
+					<div class="skins grids" role="radiogroup" aria-label="Board look">
+						<button
+							type="button"
+							role="radio"
+							class:on={lookSettings.skin === 'protocol'}
+							aria-checked={lookSettings.skin === 'protocol'}
+							onclick={() => setBoardSkin('protocol')}
+						>
+							<span class="mini protocol" aria-hidden="true">
+								{#each minis as i (i)}<i></i>{/each}
+							</span>
+							<strong>Protocol</strong>
+							<small>Hololith hull with lit sockets</small>
+						</button>
+						<button
+							type="button"
+							role="radio"
+							class:on={lookSettings.skin === 'classic'}
+							aria-checked={lookSettings.skin === 'classic'}
+							onclick={() => setBoardSkin('classic')}
+						>
+							<span class="mini classic" aria-hidden="true">
+								{#each minis as i (i)}<i></i>{/each}
+							</span>
+							<strong>Arcade</strong>
+							<small>Original blue plastic board</small>
+						</button>
+					</div>
+
+					<p class="kicker sub">Pieces</p>
+					<div class="skins pieces" role="radiogroup" aria-label="Piece look">
+						<button
+							type="button"
+							role="radio"
+							class:on={lookSettings.pieces === 'protocol'}
+							aria-checked={lookSettings.pieces === 'protocol'}
+							onclick={() => setPieceStyle('protocol')}
+						>
+							<span class="pair protocol" aria-hidden="true"><i class="p1"></i><i class="p2"></i></span>
+							<strong>Energy cells</strong>
+							<small>Ringed cores with a hex iris</small>
+						</button>
+						<button
+							type="button"
+							role="radio"
+							class:on={lookSettings.pieces === 'classic'}
+							aria-checked={lookSettings.pieces === 'classic'}
+							onclick={() => setPieceStyle('classic')}
+						>
+							<span class="pair classic" aria-hidden="true"><i class="p1"></i><i class="p2"></i></span>
+							<strong>Arcade</strong>
+							<small>Glossy red and yellow plastic</small>
+						</button>
+					</div>
+
+					<label class="row">
+						<input
+							type="checkbox"
+							checked={lookSettings.threatAlerts}
+							onchange={(event) => setThreatAlerts(event.currentTarget.checked)}
+						/>
+						<span>
+							<strong>Threat detection</strong>
+							<small>Warn when a four is open or you're about to be finished</small>
+						</span>
+					</label>
+
+				</section>
+
+				<section class="col" aria-label="Sound">
+					<p class="kicker sub">Sound</p>
+					<label class="row">
+						<input
+							type="checkbox"
+							bind:checked={audioSettings.sfxOn}
+							onchange={() => syncAudio()}
+						/>
+						<span>
+							<strong>Sound effects</strong>
+							<small>Drops, bounces, blocks — volume is shared with the library</small>
+						</span>
+					</label>
+					<label class="slider">
+						<span>SFX volume · {sfxPct}</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioSettings.sfxVolume}
+							disabled={!audioSettings.sfxOn}
+							oninput={(event) => setSfxVolume(Number(event.currentTarget.value))}
+						/>
+					</label>
+
+					<label class="row">
+						<input
+							type="checkbox"
+							bind:checked={audioSettings.musicOn}
+							onchange={() => syncAudio()}
+						/>
+						<span>
+							<strong>Background score</strong>
+							<small>This game's transmissions · {trackName}</small>
+						</span>
+					</label>
+					<label class="slider">
+						<span>Music volume · {musicPct}</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioSettings.musicVolume}
+							disabled={!audioSettings.musicOn}
+							oninput={(event) => setMusicVolume(Number(event.currentTarget.value))}
+						/>
+					</label>
+					<button
+						type="button"
+						class="next-tx"
+						disabled={!audioSettings.musicOn && !audioSettings.layersOn}
+						onclick={() => {
+							trackName = cycleMusicTrack();
+							persistSettings({ musicTrack: getMusicTrackIndex() });
+						}}
+					>
+						Next transmission
+					</button>
+
+					<label class="row">
+						<input
+							type="checkbox"
+							bind:checked={audioSettings.layersOn}
+							onchange={() => syncAudio()}
+						/>
+						<span>
+							<strong>Synth layers</strong>
+							<small>Pads, arpeggios and echoes arranged for each transmission · play with or without the music</small>
+						</span>
+					</label>
+					<label class="slider">
+						<span>Layers volume · {layersPct}</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioSettings.layersVolume}
+							disabled={!audioSettings.layersOn}
+							oninput={(event) => setLayersVolume(Number(event.currentTarget.value))}
+						/>
+					</label>
+
+				</section>
 			</div>
-
-			<p class="kicker sub">Pieces</p>
-			<div class="skins pieces" role="radiogroup" aria-label="Piece look">
-				<button
-					type="button"
-					role="radio"
-					class:on={lookSettings.pieces === 'protocol'}
-					aria-checked={lookSettings.pieces === 'protocol'}
-					onclick={() => setPieceStyle('protocol')}
-				>
-					<span class="pair protocol" aria-hidden="true"><i class="p1"></i><i class="p2"></i></span>
-					<strong>Energy cells</strong>
-					<small>Ringed cores with a hex iris</small>
-				</button>
-				<button
-					type="button"
-					role="radio"
-					class:on={lookSettings.pieces === 'classic'}
-					aria-checked={lookSettings.pieces === 'classic'}
-					onclick={() => setPieceStyle('classic')}
-				>
-					<span class="pair classic" aria-hidden="true"><i class="p1"></i><i class="p2"></i></span>
-					<strong>Arcade</strong>
-					<small>Glossy red and yellow plastic</small>
-				</button>
-			</div>
-
-			<label class="row">
-				<input
-					type="checkbox"
-					checked={lookSettings.threatAlerts}
-					onchange={(event) => setThreatAlerts(event.currentTarget.checked)}
-				/>
-				<span>
-					<strong>Threat detection</strong>
-					<small>Warn when a four is open or you're about to be finished</small>
-				</span>
-			</label>
-
-			<label class="row">
-				<input
-					type="checkbox"
-					bind:checked={audioSettings.sfxOn}
-					onchange={() => syncAudio()}
-				/>
-				<span>
-					<strong>Sound effects</strong>
-					<small>Drops, bounces, blocks — volume is shared with the library</small>
-				</span>
-			</label>
-			<label class="slider">
-				<span>SFX volume · {sfxPct}</span>
-				<input
-					type="range"
-					min="0"
-					max="1"
-					step="0.01"
-					value={audioSettings.sfxVolume}
-					disabled={!audioSettings.sfxOn}
-					oninput={(event) => setSfxVolume(Number(event.currentTarget.value))}
-				/>
-			</label>
-
-			<label class="row">
-				<input
-					type="checkbox"
-					bind:checked={audioSettings.musicOn}
-					onchange={() => syncAudio()}
-				/>
-				<span>
-					<strong>Background score</strong>
-					<small>This game's transmissions · {trackName}</small>
-				</span>
-			</label>
-			<label class="slider">
-				<span>Music volume · {musicPct}</span>
-				<input
-					type="range"
-					min="0"
-					max="1"
-					step="0.01"
-					value={audioSettings.musicVolume}
-					disabled={!audioSettings.musicOn}
-					oninput={(event) => setMusicVolume(Number(event.currentTarget.value))}
-				/>
-			</label>
-			<button
-				type="button"
-				class="next-tx"
-				disabled={!audioSettings.musicOn}
-				onclick={() => {
-					trackName = cycleMusicTrack();
-					persistSettings({ musicTrack: getMusicTrackIndex() });
-				}}
-			>
-				Next transmission
-			</button>
 
 			<button class="done" onclick={closeSettings}>Close</button>
 			<p class="build">Connect 4 · v{APP_VERSION}</p>
@@ -206,12 +241,39 @@
 	.panel {
 		position: relative;
 		width: min(420px, 100%);
+		max-height: calc(100dvh - 40px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		padding: 28px 24px 22px;
 		border-radius: 24px;
 		background: rgba(14, 12, 24, 0.96);
 		border: 1px solid var(--line);
 		box-shadow: var(--shadow);
 		text-align: left;
+	}
+
+	.col > :last-child {
+		margin-bottom: 0;
+	}
+
+	.col + .col {
+		margin-top: 18px;
+	}
+
+	@media (min-width: 760px) {
+		.panel {
+			width: min(820px, 100%);
+		}
+
+		.cols {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 32px;
+		}
+
+		.col + .col {
+			margin-top: 0;
+		}
 	}
 
 	.kicker {
@@ -489,7 +551,7 @@
 	}
 
 	.done {
-		margin-top: 10px;
+		margin-top: 18px;
 		width: 100%;
 		border: 0;
 		border-radius: 999px;

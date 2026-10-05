@@ -1,4 +1,5 @@
-import { connectSfx, getAudioContext, getMusicBus, isMusicOn, sfxContext } from '$lib/audio/core';
+import { connectSfx, getAudioContext, getMusicBus, isLayeredScoreOn, sfxContext } from '$lib/audio/core';
+import { createAmbientLayers } from '$lib/audio/ambientLayers';
 
 let running = false;
 let timer: number | null = null;
@@ -10,6 +11,8 @@ let nextAt = 0;
 const PAD = [164.81, 196, 246.94, 293.66];
 const PLUCK = [392, 440, 493.88, 587.33, 659.25, 587.33, 493.88, 440];
 const BASS = [82.41, 98, 110, 98];
+
+const layers = createAmbientLayers('wyrm', 0.92, PLUCK);
 
 function env(audio: AudioContext, start: number, peak: number, attack: number, release: number) {
 	const gain = audio.createGain();
@@ -113,14 +116,18 @@ function playBass(audio: AudioContext, freq: number, t: number) {
 function schedule() {
 	if (!running) return;
 	const audio = getAudioContext();
-	if (!audio || !isMusicOn()) {
+	if (!audio || !isLayeredScoreOn()) {
 		timer = window.setTimeout(schedule, 120);
 		return;
 	}
 	while (nextAt < audio.currentTime + 0.28) {
 		playPluck(audio, PLUCK[step % PLUCK.length], nextAt);
+		layers.note(PLUCK[step % PLUCK.length], nextAt, step);
 		if (step % 2 === 1) playWood(audio, nextAt + 0.18);
-		if (step % 4 === 0) playBass(audio, BASS[(step / 4) % BASS.length], nextAt);
+		if (step % 4 === 0) {
+			playBass(audio, BASS[(step / 4) % BASS.length], nextAt);
+			layers.bass(BASS[(step / 4) % BASS.length], nextAt);
+		}
 		if (step % 16 === 0) playGong(audio, nextAt);
 		nextAt += 0.92;
 		step += 1;
@@ -129,7 +136,7 @@ function schedule() {
 }
 
 export function startMusic() {
-	if (running || !isMusicOn()) return;
+	if (running || !isLayeredScoreOn()) return;
 	const audio = getAudioContext();
 	const bus = getMusicBus();
 	if (!audio || !bus) return;
@@ -140,6 +147,7 @@ export function startMusic() {
 	stem.gain.setValueAtTime(0.0001, audio.currentTime);
 	stem.gain.exponentialRampToValueAtTime(1, audio.currentTime + 1.4);
 	stem.connect(bus);
+	layers.start(audio, 1.4);
 
 	const padGain = audio.createGain();
 	padGain.gain.value = 0.2;
@@ -195,6 +203,7 @@ export function stopMusic() {
 		timer = null;
 	}
 	const audio = getAudioContext();
+	layers.stop(audio, 0.9);
 	const dying = live.slice();
 	const old = stem;
 	live = [];

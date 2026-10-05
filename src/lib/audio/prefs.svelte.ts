@@ -5,6 +5,8 @@ export type AudioState = {
 	musicOn: boolean;
 	sfxVolume: number;
 	musicVolume: number;
+	layersOn: boolean;
+	layersVolume: number;
 };
 
 const KEY = 'ai-arcade-audio';
@@ -15,7 +17,9 @@ function defaults(): AudioState {
 		sfxOn: true,
 		musicOn: true,
 		sfxVolume: 0.78,
-		musicVolume: 0.42
+		musicVolume: 0.42,
+		layersOn: true,
+		layersVolume: 0.7
 	};
 }
 
@@ -29,7 +33,9 @@ function normalize(raw: unknown): AudioState {
 		sfxOn: src.sfxOn !== false,
 		musicOn: src.musicOn !== false,
 		sfxVolume: clamp(src.sfxVolume ?? 0.78),
-		musicVolume: clamp(src.musicVolume ?? 0.42)
+		musicVolume: clamp(src.musicVolume ?? 0.42),
+		layersOn: src.layersOn !== false,
+		layersVolume: clamp(src.layersVolume ?? 0.7)
 	};
 }
 
@@ -52,48 +58,44 @@ function readStored(): AudioState {
 
 export const audioSettings = $state<AudioState>(readStored());
 
+function snapshot(): AudioState {
+	return {
+		sfxOn: audioSettings.sfxOn,
+		musicOn: audioSettings.musicOn,
+		sfxVolume: audioSettings.sfxVolume,
+		musicVolume: audioSettings.musicVolume,
+		layersOn: audioSettings.layersOn,
+		layersVolume: audioSettings.layersVolume
+	};
+}
+
 export function persistAudio() {
 	if (typeof localStorage === 'undefined') return;
 	try {
-		localStorage.setItem(
-			KEY,
-			JSON.stringify({
-				sfxOn: audioSettings.sfxOn,
-				musicOn: audioSettings.musicOn,
-				sfxVolume: audioSettings.sfxVolume,
-				musicVolume: audioSettings.musicVolume
-			})
-		);
+		localStorage.setItem(KEY, JSON.stringify(snapshot()));
 	} catch {
 		/* quota / private mode */
 	}
 }
 
 export function syncAudio() {
-	applyAudioPrefs({
-		sfxOn: audioSettings.sfxOn,
-		musicOn: audioSettings.musicOn,
-		sfxVolume: audioSettings.sfxVolume,
-		musicVolume: audioSettings.musicVolume
-	});
+	applyAudioPrefs(snapshot());
 	persistAudio();
+}
+
+export function setLayersVolume(value: number) {
+	audioSettings.layersVolume = value;
+	if (value > 0) audioSettings.layersOn = true;
+	syncAudio();
 }
 
 export function primeAudio() {
 	unlockAudio();
-	applyAudioPrefs({
-		sfxOn: audioSettings.sfxOn,
-		musicOn: audioSettings.musicOn,
-		sfxVolume: audioSettings.sfxVolume,
-		musicVolume: audioSettings.musicVolume
-	});
+	applyAudioPrefs(snapshot());
 }
 
 export function hydrateAudio() {
 	const next = readStored();
-	audioSettings.sfxOn = next.sfxOn;
-	audioSettings.musicOn = next.musicOn;
-	audioSettings.sfxVolume = next.sfxVolume;
-	audioSettings.musicVolume = next.musicVolume;
+	Object.assign(audioSettings, next);
 	applyAudioPrefs(next);
 }

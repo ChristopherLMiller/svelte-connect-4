@@ -1,4 +1,4 @@
-import { bindMusicEngine, isMusicOn } from '$lib/audio/core';
+import { bindMusicEngine, isLayeredScoreOn, setEnhanceStation } from '$lib/audio/core';
 
 export type MusicStation = 'none' | 'library' | string;
 
@@ -40,7 +40,12 @@ function stopAll() {
 }
 
 async function startActive(expected: number) {
-	if (!isMusicOn() || expected !== token) return;
+	if (expected !== token) return;
+	// Every score carries synth layers, so it keeps running while either is on.
+	if (!isLayeredScoreOn()) {
+		stopAll();
+		return;
+	}
 	if (station === 'library') {
 		library ??= await import('$lib/library/score');
 		if (expected !== token) return;
@@ -67,6 +72,7 @@ function ensureBound() {
 
 export function setMusicStation(next: MusicStation) {
 	ensureBound();
+	setEnhanceStation(next);
 	if (station === next) {
 		const expected = ++token;
 		void startActive(expected);

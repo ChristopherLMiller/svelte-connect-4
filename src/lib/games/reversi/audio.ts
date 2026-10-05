@@ -1,4 +1,5 @@
-import { connectSfx, getAudioContext, getMusicBus, isMusicOn, sfxContext } from '$lib/audio/core';
+import { connectSfx, getAudioContext, getMusicBus, isLayeredScoreOn, sfxContext } from '$lib/audio/core';
+import { createAmbientLayers } from '$lib/audio/ambientLayers';
 import { MOON, type Player } from './types';
 
 let running = false;
@@ -14,6 +15,8 @@ const CELESTA = [587.33, 659.25, 830.61, 880, 739.99, 659.25, 587.33, 493.88, 55
 const BASS = [36.71, 41.2, 36.71, 30.87];
 // Pentatonic ladder the flip chimes climb, one rung per disc.
 const LADDER = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2, 9 / 4, 5 / 2, 3, 10 / 3, 4];
+
+const layers = createAmbientLayers('reversi', 1.15, CELESTA);
 
 function env(audio: AudioContext, start: number, peak: number, attack: number, release: number) {
 	const gain = audio.createGain();
@@ -61,13 +64,17 @@ function bell(audio: AudioContext, out: AudioNode, freq: number, t: number, peak
 function schedule() {
 	if (!running) return;
 	const audio = getAudioContext();
-	if (!audio || !isMusicOn() || !stem) {
+	if (!audio || !isLayeredScoreOn() || !stem) {
 		timer = window.setTimeout(schedule, 120);
 		return;
 	}
 	while (nextAt < audio.currentTime + 0.3) {
-		if (step % 3 !== 2) live.push(...bell(audio, stem, CELESTA[step % CELESTA.length], nextAt, 0.035, 2.6, false));
+		if (step % 3 !== 2) {
+			live.push(...bell(audio, stem, CELESTA[step % CELESTA.length], nextAt, 0.035, 2.6, false));
+			layers.note(CELESTA[step % CELESTA.length], nextAt, step);
+		}
 		if (step % 6 === 0) {
+			layers.bass(BASS[(step / 6) % BASS.length], nextAt);
 			const osc = audio.createOscillator();
 			osc.type = 'sine';
 			osc.frequency.setValueAtTime(BASS[(step / 6) % BASS.length], nextAt);
@@ -85,7 +92,7 @@ function schedule() {
 }
 
 export function startEclipseMusic() {
-	if (running || !isMusicOn()) return;
+	if (running || !isLayeredScoreOn()) return;
 	const audio = getAudioContext();
 	const bus = getMusicBus();
 	if (!audio || !bus) return;
@@ -96,6 +103,7 @@ export function startEclipseMusic() {
 	stem.gain.setValueAtTime(0.0001, audio.currentTime);
 	stem.gain.exponentialRampToValueAtTime(1, audio.currentTime + 2.4);
 	stem.connect(bus);
+	layers.start(audio, 2.4);
 
 	const padGain = audio.createGain();
 	padGain.gain.value = 0.13;
@@ -151,6 +159,7 @@ export function stopEclipseMusic() {
 		timer = null;
 	}
 	const audio = getAudioContext();
+	layers.stop(audio, 1);
 	const dying = live.slice();
 	const old = stem;
 	live = [];

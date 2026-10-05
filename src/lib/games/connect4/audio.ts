@@ -1,12 +1,19 @@
 import {
 	connectSfx,
 	getAudioContext,
+	getLayersBus,
 	getMusicBus,
-	isMusicOn,
-	sfxContext
+	isLayeredScoreOn,
+	isLayersOn,
+	sfxContext,
+	watchLayers
 } from '$lib/audio/core';
+import { buildRig, loadTone, peekTone, type ToneRig } from './toneLayer';
 
 let musicStarted = false;
+let rig: ToneRig | null = null;
+let rigBus: GainNode | null = null;
+let graphId = 0;
 let schedulerId: number | null = null;
 let nextStepTime = 0;
 let stepIndex = 0;
@@ -417,12 +424,20 @@ function noteDur(pat: number[], i: number, sixteenth: number) {
 function teardownStem(when: number) {
 	const old = stem;
 	const dying = liveSources.slice();
+	const oldRig = rig;
+	const oldRigBus = rigBus;
 	liveSources = [];
 	drumOut = bassOut = leadOut = chordOut = null;
 	stem = null;
+	rig = null;
+	rigBus = null;
+	graphId += 1;
+	oldRigBus?.gain.setTargetAtTime(0.0001, when, 0.06);
 	if (old) {
 		old.gain.setTargetAtTime(0.0001, when, 0.06);
 		window.setTimeout(() => {
+			oldRig?.dispose();
+			oldRigBus?.disconnect();
 			for (const node of dying) {
 				try {
 					node.stop();
@@ -515,9 +530,36 @@ function bootGraph(audio: AudioContext) {
 	leadOut.connect(delay);
 	chordOut.connect(comp);
 	chordOut.connect(delay);
+	rigBus = audio.createGain();
+	rigBus.gain.setValueAtTime(0.0001, t);
+	rigBus.gain.exponentialRampToValueAtTime(1, t + 0.05);
+	const layers = getLayersBus();
+	if (layers) rigBus.connect(layers);
 	comp.connect(stem);
 	stem.connect(bus);
+	attachRig(audio);
 }
+
+function attachRig(audio: AudioContext) {
+	if (!isLayersOn() || rig || !leadOut || !rigBus) return;
+	const tone = peekTone();
+	if (tone) {
+		rig = buildRig(tone, leadOut, rigBus, TRACKS[trackIndex]);
+		return;
+	}
+	const expected = graphId;
+	void loadTone(audio).then((loaded) => {
+		if (loaded && expected === graphId && musicStarted) attachRig(audio);
+	});
+}
+
+watchLayers((on) => {
+	if (!musicStarted) return;
+	const audio = getAudioContext();
+	if (!audio) return;
+	if (rig) rig.setActive(on, audio.currentTime);
+	else if (on) attachRig(audio);
+});
 
 function scheduleStep(audio: AudioContext, step: number, t: number) {
 	if (!drumOut || !bassOut || !leadOut || !chordOut) return;
@@ -533,6 +575,7 @@ function scheduleStep(audio: AudioContext, step: number, t: number) {
 	if (section.drop) {
 		if (hit(phrase.kit.kick, i) || (fill && i % 2 === 0)) {
 			startKick(audio, t, drumOut);
+			rig?.kick(t);
 			bassOut.gain.cancelScheduledValues(t);
 			bassOut.gain.setValueAtTime(0.42, t);
 			bassOut.gain.exponentialRampToValueAtTime(1, t + 0.09);
@@ -560,31 +603,26 @@ function scheduleStep(audio: AudioContext, step: number, t: number) {
 
 	const leadDeg = phrase.lead[leadI];
 	if (leadDeg >= 0) {
-		startLead(
-			audio,
-			degreeHz(track, leadDeg, section.lift ? 2 : 1),
-			t,
-			noteDur(phrase.lead, leadI, sixteenth),
-			leadOut,
-			section.lift ? 1 : 0
-		);
+		const freq = degreeHz(track, leadDeg, section.lift ? 2 : 1);
+		const dur = noteDur(phrase.lead, leadI, sixteenth);
+		startLead(audio, freq, t, dur, leadOut, section.lift ? 1 : 0);
+		rig?.lead(freq, t, dur, section.lift);
 	}
 
 	for (const [when, degrees] of phrase.chords) {
 		if (when === i && (bar % 2 === 0 || section.lift)) {
-			startChord(
-				audio,
-				degrees.map((deg) => degreeHz(track, deg, 1)),
-				t,
-				chordOut
-			);
+			const freqs = degrees.map((deg) => degreeHz(track, deg, 1));
+			startChord(audio, freqs, t, chordOut);
+			rig?.chord(freqs, t, sixteenth * 6, section.lift);
 		}
 	}
+
+	rig?.arp(step, t, section.lift, section.drop);
 }
 
 function scheduler() {
 	const audio = getAudioContext();
-	if (!audio || !musicStarted || !isMusicOn()) {
+	if (!audio || !musicStarted || !isLayeredScoreOn()) {
 		schedulerId = null;
 		return;
 	}
@@ -610,7 +648,7 @@ function scheduler() {
 
 export function startMusic() {
 	const audio = getAudioContext();
-	if (!audio || !getMusicBus() || musicStarted || !isMusicOn()) return;
+	if (!audio || !getMusicBus() || musicStarted || !isLayeredScoreOn()) return;
 	musicStarted = true;
 	sectionIndex = 0;
 	stepIndex = 0;
