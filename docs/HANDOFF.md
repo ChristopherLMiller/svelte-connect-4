@@ -20,6 +20,8 @@ deploys (static build via `@sveltejs/adapter-static`, everything prerendered).
 | `checkers` | Ashcourt | Checkers | Raku kiln yard at noon, oxblood glaze vs bone china |
 | `reversi` | Eclipse | Reversi / Othello | Brass observatory, sun and moon discs, orrery backdrop |
 | `breakout` | Chapel Glass | Breakout | Ruined cathedral, stained-glass panes (see below) |
+| `reef` | Lumen Reef | Tetris | Bioluminescent coral in the midnight zone (see below) |
+| `frost` | Frostline | Minesweeper | Frozen lake at dawn, crack numerals, fishing flags (see below) |
 
 ## Commands
 
@@ -65,7 +67,7 @@ Games are discovered by globs; there is no central registry to edit.
   one page per manifest. SEO, sitemap and the hall ticker all read the manifests.
 - Shared UI with a per-game `tone` union that must be extended for a new game:
   `ArcadeTile.svelte`, `ArcadeExit.svelte`, `GuideShell.svelte` (tones: space, shore, night,
-  ash, orrery, chapel).
+  ash, orrery, chapel, reef, frost).
 
 Typical game folder: `types.ts`, `engine.ts` (pure rules), `persist.ts` (localStorage,
 normalise everything read back), `settings.svelte.ts` (reactive prefs, panel/guide open
@@ -90,7 +92,7 @@ with best scores per difficulty.
 - `master.ts` — shared finishing chain: procedural convolver room, music chorus, analog
   oscillator drift (patches `createOscillator` to add random detune), glue compressor and a
   tanh soft clip. Per-station profiles: ARCADE (library, connect4), AMBIENT (default),
-  CATHEDRAL (breakout).
+  CATHEDRAL (breakout), ABYSS (reef), FROZEN (frost).
 - `station.ts` — `setMusicStation(id)` switches scores and master profile.
 - `prefs.svelte.ts` — reactive `audioSettings`, `primeAudio()` (unlock on first gesture),
   `syncAudio()`, `persistAudio()`, `setLayersVolume()`.
@@ -124,11 +126,7 @@ sound and music (+ synth layers), guide/manifest/preview/icon/favicon, then chec
 
 1. **Eclipse (Reversi)** — done (v1.3.0).
 2. **Chapel Glass (Breakout)** — done, see below.
-3. **Frostline (Minesweeper)** — sweeping a frozen lake at dawn. Numbers are crack patterns
-   in the ice, flags are ice-fishing flags, mines are thin ice. A wrong step sends cracks
-   racing through an ice shader and the tile plunges into dark water; clearing a region melts
-   frost outward. Safe first click, optional no-guess boards (generator checked by a
-   solver), daily seeded board, best times per difficulty. Solo. Effort low–medium.
+3. **Frostline (Minesweeper)** — done, see below.
 4. **Cartographer (Dots and Boxes)** — rival mapmakers inking borders on parchment by
    candlelight. Each closed box fills with a tiny ink illustration (sea serpent, mountain,
    village) so the finished board is a map. AI understands chains and the double-cross.
@@ -255,6 +253,50 @@ step from 0.36 s to 0.19 s and doubles the pulse at depth. Effects: bubbles for 
 turns, coral clicks on lock, a whoosh and thump for hard drops, plankton sparkle for clears,
 the whale song for a Lumen, sonar for level ups, game over and sprint finish.
 
+## Frostline (Minesweeper) — design
+
+Folder `src/lib/games/frost/`, route `/frost`, station `frost` (FROZEN master profile, `frost`
+synth-layer arrangement), storage key `frostline`, guide/tile tone `frost`, `order: 8`.
+
+**World.** Sweeping a frozen lake at dawn. Hidden cells are frost, opened cells are clear
+ice, numbers are crack patterns (glowing numeral plus n faint radiating cracks), flags are
+ice-fishing tip-up flags, mines are thin ice. A wrong step sends branching cracks racing
+across the field from the hit (`CRACK_SPEED`), every thin patch plunges into dark water in
+distance order, and the backdrop dims. Opening a region melts the frost outward ring by ring
+(`MELT_MS`, `RING_MS`) with sparkle motes and timed tinkles. The sun rises with progress.
+
+**Rules** (`engine.ts`, pure). Levels: Shore ice 9×9/10, Open lake 16×16/40, Black ice
+30×16/99; daily 16×16/40. Mines are planted on the first step with the step and its
+neighbours kept safe. "Sure footing" (on by default) redraws boards until `solves()` (single
+cell rules, pairwise overlap rules, global mine count) clears them from the first step; on
+Black ice that's ~25 tries, ~4 ms on average, so no worker. The daily (`createDaily`) is
+seeded from the date, always guess-free, and starts from a pre-opened zero near the centre
+marked by a drilled hole (auger sprite). `flood` records BFS rings for the melt; `burst`
+lists every mine by distance for the loss. Chording on a satisfied number; win auto-flags.
+`scripts/frost-check.ts` measures guess-free rates and timing and checks the daily and
+chord/win/loss: `npx rolldown scripts/frost-check.ts --file /tmp/frost-check.mjs --platform node
+&& node /tmp/frost-check.mjs`.
+
+**Session and controls.** `FrostSession` keeps the non-reactive `Field` and mirrors counters
+as `$state`; a 100 ms clock; saved survey resumes paused (a stale daily is dropped). Bests
+per level, daily time/tries and a daily streak in `persist.ts`. Mouse: left digs (press and
+release on the same cell), right flags, middle chords. Touch: tap digs, long press (380 ms)
+flags, or the Digging/Flagging toggle swaps them. Keys: arrows/WASD cursor, Space/Enter dig,
+F/E flag, P pause, N/R new lake, Esc menu, ? guide. Opening settings/guide pauses.
+
+**Look.** `render.ts` bakes per-cell-size sprites and only draws while something animates.
+Black ice transposes on tall screens. `FrostDawn.svelte` is the WebGL lake: dawn sky, hills
+and pines, aurora (fades with dawn), shooting stars, a skein of geese, sun shafts, reflections,
+snow drifts, spindrift, fishing shacks with stove smoke and lit windows, an angler at a hole,
+glitter column, Voronoi crack spread on a loss, mist and diamond dust. People are SDF figures
+(`skater()`, `dog()`, `angler()`): four skaters (one a pair, one with a dog) and a walker
+towing a sled, moving in plane space so speed and size follow depth. Their blade and runner
+marks are found analytically: for each pixel column, how long ago the figure crossed it.
+
+**Sound.** D Lydian score: FM bells, a filtered triangle pad, sine bass, gusting wind and
+the occasional "singing ice" chirp. Effects: crunch plus melt tinkles, flag thunk, crack and
+plunge, thaw chord on a win.
+
 ## Status log
 
 - v1.3.1 — synth layers on every game, warmer master chain, two-column settings.
@@ -295,4 +337,8 @@ the whale song for a Lumen, sonar for level ups, game over and sprint finish.
   network-first, Google Fonts are cached on first use. Because the viewport is
   `viewport-fit=cover`, every game's outer padding uses `max(…, env(safe-area-inset-*))`
   to stay clear of notches when fullscreen; new games must do the same.
-- Next up: Frostline (Minesweeper).
+- Frostline — built and browser-tested (menu, all levels, daily, sure footing, win and loss,
+  Black ice flipped on tall screens, phone 390 × 844 play/pause/settings, reduced motion,
+  hall tile; 60 fps). Awaiting user feedback. Open question: phone cells are small on Open
+  lake (~23 px) and a square board leaves vertical space; pinch-zoom/pan could help.
+- Next up: Cartographer (Dots and Boxes).

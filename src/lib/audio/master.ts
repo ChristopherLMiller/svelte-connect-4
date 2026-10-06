@@ -60,11 +60,23 @@ const ABYSS: Profile = {
 	brightness: 4200
 };
 
+/** Cold open air over a lake: bright and clear, with a long thin echo off the far shore. */
+const FROZEN: Profile = {
+	musicSpace: 0.3,
+	sfxSpace: 0.1,
+	chorus: 0.12,
+	drift: 2,
+	rt60: 2.8,
+	seconds: 3.2,
+	brightness: 8200
+};
+
 const PROFILES: Record<string, Profile> = {
 	library: ARCADE,
 	connect4: ARCADE,
 	breakout: CATHEDRAL,
-	reef: ABYSS
+	reef: ABYSS,
+	frost: FROZEN
 };
 
 export type Master = {

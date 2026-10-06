@@ -5,7 +5,7 @@
 		tone,
 		size = 'chip'
 	}: {
-		tone: 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef';
+		tone: 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost';
 		size?: 'chip' | 'banner' | 'tile';
 	} = $props();
 </script>

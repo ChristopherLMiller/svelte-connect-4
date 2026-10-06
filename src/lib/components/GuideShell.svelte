@@ -12,7 +12,7 @@
 	}: {
 		open: boolean;
 		onclose: () => void;
-		tone: 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef';
+		tone: 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost';
 		kicker: string;
 		title?: string;
 		children: Snippet;
@@ -131,6 +131,20 @@
 		--g-done: linear-gradient(180deg, #7ff3ff, #2a8fd8);
 		--g-done-ink: #021020;
 		--g-kbd: rgba(63, 233, 255, 0.08);
+	}
+
+	.frost {
+		--g-bg: linear-gradient(180deg, rgba(248, 252, 255, 0.97), rgba(226, 238, 248, 0.98));
+		--g-text: #1d2b47;
+		--g-muted: #4d5f7a;
+		--g-accent: #2f7fb0;
+		--g-line: rgba(47, 127, 176, 0.22);
+		--g-scrim: rgba(20, 26, 52, 0.45);
+		--g-head: 'Josefin Sans', ui-sans-serif, system-ui, sans-serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #ff9a6e, #e8573a);
+		--g-done-ink: #fff8f2;
+		--g-kbd: rgba(47, 127, 176, 0.08);
 	}
 
 	.scrim {

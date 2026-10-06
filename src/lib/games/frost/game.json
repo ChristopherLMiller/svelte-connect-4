@@ -1,0 +1,17 @@
+{
+	"id": "frost",
+	"title": "Frostline",
+	"genre": "Frozen-lake sweeper",
+	"players": "1",
+	"tagline": "Read the cracks. Trust the ice.",
+	"blurb": "Sweep a frozen lake at dawn. The cracks count the thin ice nearby; plant a flag where the water waits.",
+	"description": "Minesweeper on a frozen lake at sunrise. Every step through the frost reveals clear ice, and the cracks etched in it count the thin patches around you. Plant ice-fishing flags over the danger, open the rest, and watch the frost melt outward as the sun climbs over the pines. Safe first step, optional guess-free boards checked by a solver, a daily lake that is the same for everyone, and best times for Shore ice, Open lake and Black ice.",
+	"keywords": ["Frostline", "minesweeper", "mines", "logic puzzle", "frozen lake", "ice", "daily puzzle", "no guess"],
+	"theme": "#1a2340",
+	"favicon": "/frost-favicon.svg",
+	"href": "/frost",
+	"accent": "#bfeaff",
+	"glow": "#ff8a6a",
+	"cabinet": "#16203a",
+	"order": 8
+}

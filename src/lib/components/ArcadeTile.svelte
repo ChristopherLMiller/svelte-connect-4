@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef';
+	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost';
 
 	let {
 		tone,
@@ -346,6 +346,39 @@
 
 	.reef .copy small {
 		color: #3fe9ff;
+		opacity: 1;
+	}
+
+	.frost {
+		--ink: #eaf7ff;
+		--accent: #ff6a3d;
+		border: 1px solid rgba(255, 255, 255, 0.7);
+		background: linear-gradient(180deg, rgba(246, 251, 255, 0.82), rgba(214, 232, 246, 0.78));
+		color: #1d2b47;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.9),
+			0 10px 26px rgba(30, 40, 80, 0.22);
+		backdrop-filter: blur(8px);
+		font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.frost:hover {
+			border-color: #fff;
+			box-shadow:
+				inset 0 1px 0 #fff,
+				0 12px 30px rgba(30, 40, 80, 0.28),
+				0 0 22px rgba(255, 190, 160, 0.4);
+		}
+	}
+
+	.frost .glyph {
+		background: linear-gradient(180deg, #2a4b72, #13253f);
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+	}
+
+	.frost .copy small {
+		color: #2f7fb0;
 		opacity: 1;
 	}
 

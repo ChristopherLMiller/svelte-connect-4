@@ -3,7 +3,7 @@ import { jitter, loadTone, peekTone, type Tone } from './tone';
 
 /**
  * Synth layers for the slow generative scores (Eclipse, Lantern Wyrm, Tide & Cross,
- * Ashcourt, Chapel Glass, Lumen Reef). Each game's score calls `note` and `bass` as it plays; the layers answer,
+ * Ashcourt, Chapel Glass, Lumen Reef, Frostline). Each game's score calls `note` and `bass` as it plays; the layers answer,
  * drone, and ornament around those calls without changing the score itself.
  */
 
@@ -58,6 +58,13 @@ const ARRANGEMENTS: Record<string, Arrangement> = {
 		answer: { voice: 'keys', ratio: 1.5, delay: 0.75, every: 2, volume: -24, decay: 2 },
 		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 520, volume: -21, attack: 3, holdSteps: 2 },
 		glints: { voice: 'glass', octave: 2, chance: 0.2, volume: -27 }
+	},
+	/** Frozen lake at dawn: glass answers an octave up, a thin open-fifth swell, frost glints. */
+	frost: {
+		echo: { steps: 0.5, feedback: 0.38, level: 0.3, cutoff: 5200 },
+		answer: { voice: 'glass', ratio: 2, delay: 0.5, every: 2, volume: -25, decay: 2.2 },
+		drone: { osc: 'fattriangle', ratios: [2, 3], cutoff: 680, volume: -24, attack: 2.5, holdSteps: 6 },
+		glints: { voice: 'bell', octave: 2, chance: 0.22, volume: -29 }
 	}
 };
 
