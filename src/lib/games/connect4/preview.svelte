@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { Cell } from './types';
 
-	const uid = $props.id();
-
 	const SNAPSHOT: Cell[][] = [
 		[0, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 0, 0],
@@ -22,18 +20,12 @@
 		[18, 42, 0.8],
 		[92, 48, 1.1],
 		[8, 62, 0.9],
-		[71, 16, 1.5]
+		[71, 16, 1.5],
+		[5, 88, 1],
+		[95, 80, 1.2],
+		[36, 94, 0.8]
 	] as const;
 </script>
-
-<svelte:head>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-	<link
-		href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap"
-		rel="stylesheet"
-	/>
-</svelte:head>
 
 <div class="shot" aria-hidden="true">
 	<div class="void"></div>
@@ -42,37 +34,10 @@
 	{/each}
 	<div class="planet a"></div>
 	<div class="planet b"></div>
-	<div class="hud">
-		<div class="brand">
-			<span>CONNECT</span>
-			<strong>4</strong>
-		</div>
-		<div class="turn">
-			<i class="pip"></i>
-			<b>Crimson to drop</b>
-		</div>
-		<div class="score">
-			<em class="p1">2</em>
-			<span>VS</span>
-			<em class="p2">1</em>
-		</div>
-	</div>
 	<div class="well">
 		<div class="board">
-			<svg class="hull" viewBox="0 0 140 120" preserveAspectRatio="none">
-				<defs>
-					<linearGradient id="{uid}-hull" x1="0" y1="0" x2="0" y2="1">
-						<stop offset="0%" stop-color="#2a3348" />
-						<stop offset="28%" stop-color="#121826" />
-						<stop offset="100%" stop-color="#070910" />
-					</linearGradient>
-					<pattern id="{uid}-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-						<path d="M10 0H0V10" fill="none" stroke="rgba(92,225,230,0.12)" stroke-width="0.6" />
-					</pattern>
-				</defs>
-				<rect width="140" height="120" rx="10" fill="url(#{uid}-hull)" />
-				<rect width="140" height="120" rx="10" fill="url(#{uid}-grid)" />
-			</svg>
+			<i class="beam"></i>
+			<i class="drop"></i>
 			<div class="holes">
 				{#each SNAPSHOT as row, r (r)}
 					{#each row as cell, c (`${r}-${c}`)}
@@ -80,6 +45,10 @@
 					{/each}
 				{/each}
 			</div>
+			<i class="bracket tl"></i>
+			<i class="bracket tr"></i>
+			<i class="bracket bl"></i>
+			<i class="bracket br"></i>
 		</div>
 	</div>
 </div>
@@ -91,12 +60,10 @@
 		height: 100%;
 		min-height: 0;
 		display: grid;
-		grid-template-rows: auto minmax(0, 1fr);
-		gap: 4%;
-		padding: 5% 5% 6%;
+		grid-template-rows: minmax(0, 1fr);
+		padding: 10% 5% 3%;
+		box-sizing: border-box;
 		overflow: hidden;
-		font-family: Orbitron, sans-serif;
-		color: #f4f1ff;
 		container-type: size;
 		background: #07060d;
 	}
@@ -106,10 +73,11 @@
 		inset: 0;
 		z-index: 0;
 		background:
-			radial-gradient(circle at 16% 18%, rgba(139, 124, 255, 0.32), transparent 34%),
-			radial-gradient(circle at 88% 10%, rgba(255, 51, 92, 0.18), transparent 30%),
-			radial-gradient(circle at 70% 80%, rgba(92, 225, 230, 0.1), transparent 36%),
-			linear-gradient(180deg, #12081c 0%, #07060d 58%, #0c0714 100%);
+			radial-gradient(40% 34% at 22% 22%, rgba(139, 124, 255, 0.34), transparent 70%),
+			radial-gradient(46% 40% at 82% 16%, rgba(255, 51, 92, 0.3), transparent 70%),
+			radial-gradient(50% 40% at 60% 70%, rgba(150, 40, 90, 0.22), transparent 70%),
+			radial-gradient(36% 30% at 12% 80%, rgba(92, 225, 230, 0.1), transparent 70%),
+			linear-gradient(180deg, #160a22 0%, #0b0714 58%, #12081a 100%);
 	}
 
 	.star,
@@ -129,168 +97,58 @@
 	}
 
 	.planet.a {
-		width: 18%;
+		width: 14%;
 		aspect-ratio: 1;
-		left: 6%;
-		bottom: 18%;
-		background:
-			radial-gradient(circle at 32% 30%, #8b7cff, #3a2a78 62%, #12081c);
-		box-shadow: 0 0 18px rgba(139, 124, 255, 0.35);
-		opacity: 0.7;
+		left: 4%;
+		bottom: 10%;
+		background: radial-gradient(circle at 34% 30%, #7fd6d0, #2a6a70 60%, #0c1c22);
+		box-shadow: 0 0 16px rgba(92, 225, 230, 0.25);
+		opacity: 0.75;
 	}
 
 	.planet.b {
-		width: 9%;
+		width: 10%;
 		aspect-ratio: 1;
-		right: 8%;
-		top: 22%;
-		background: radial-gradient(circle at 40% 32%, #ffe38a, #c88814 70%);
-		box-shadow: 0 0 12px rgba(245, 194, 75, 0.35);
-		opacity: 0.55;
+		right: 5%;
+		top: 30%;
+		background:
+			repeating-linear-gradient(135deg, transparent 0 12%, rgba(255, 255, 255, 0.35) 12% 18%),
+			radial-gradient(circle at 40% 32%, #b07ad8, #4a2a78 70%);
+		opacity: 0.6;
 	}
 
-	.hud,
 	.well {
 		position: relative;
 		z-index: 1;
-	}
-
-	.hud {
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		gap: 5px;
-		align-items: stretch;
-		height: 18%;
-		min-height: 28px;
-	}
-
-	.brand,
-	.turn,
-	.score {
-		border: 1px solid rgba(255, 255, 255, 0.12);
-		background:
-			linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 40%),
-			rgba(10, 8, 20, 0.72);
-		border-radius: 8px;
-	}
-
-	.brand {
-		display: grid;
-		align-content: center;
-		padding: 3px 8px 3px 10px;
-		line-height: 0.82;
-		position: relative;
-	}
-
-	.brand::after {
-		content: '';
-		position: absolute;
-		inset: 0 auto 0 0;
-		width: 2px;
-		background: linear-gradient(180deg, #5ce1e6, #f5c24b, #ff335c);
-	}
-
-	.brand span {
-		letter-spacing: 0.16em;
-		font-size: 0.38rem;
-		color: #5ce1e6;
-	}
-
-	.brand strong {
-		font-size: 0.95rem;
-		background: linear-gradient(180deg, #fff1b0, #ff335c);
-		-webkit-background-clip: text;
-		background-clip: text;
-		color: transparent;
-	}
-
-	.turn {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 0 8px;
-		border-color: rgba(255, 51, 92, 0.4);
-		min-width: 0;
-	}
-
-	.pip {
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-		flex-shrink: 0;
-		background:
-			radial-gradient(circle at 32% 28%, #fff, #ff335c 42%, #6a1024);
-		box-shadow: 0 0 8px rgba(255, 51, 92, 0.55);
-	}
-
-	.turn b {
-		font-size: 0.52rem;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.score {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		padding: 0 8px;
-		font-size: 0.78rem;
-	}
-
-	.score em {
-		font-style: normal;
-	}
-
-	.score .p1 {
-		color: #ff6b88;
-	}
-
-	.score .p2 {
-		color: #ffe38a;
-	}
-
-	.score span {
-		font-size: 0.32rem;
-		letter-spacing: 0.12em;
-		color: #5ce1e6;
-		border: 1px solid rgba(92, 225, 230, 0.35);
-		border-radius: 999px;
-		padding: 2px 4px;
-	}
-
-	.well {
+		min-height: 0;
 		display: grid;
 		place-items: center;
-		min-height: 0;
 	}
 
 	.board {
 		position: relative;
 		aspect-ratio: 7 / 6;
-		width: min(100%, calc(100cqh * 7 / 6));
-		height: auto;
-		max-height: 100%;
-	}
-
-	.hull {
-		position: absolute;
-		inset: 0;
-		width: 100%;
 		height: 100%;
-		overflow: visible;
-		filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.45));
+		max-width: 100%;
+		border-radius: 5%;
+		background:
+			repeating-linear-gradient(0deg, rgba(92, 225, 230, 0.08) 0 1px, transparent 1px 4%),
+			repeating-linear-gradient(90deg, rgba(92, 225, 230, 0.08) 0 1px, transparent 1px 4%),
+			linear-gradient(180deg, rgba(70, 110, 130, 0.62), rgba(30, 52, 66, 0.72) 60%, rgba(24, 40, 54, 0.8));
+		box-shadow:
+			inset 0 0 0 1px rgba(150, 230, 240, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.2),
+			0 0 22px rgba(255, 51, 92, 0.22),
+			0 12px 22px rgba(0, 0, 0, 0.5);
 	}
 
 	.holes {
 		position: absolute;
-		inset: 8% 6% 9%;
+		inset: 5% 3.5%;
 		display: grid;
 		grid-template-columns: repeat(7, minmax(0, 1fr));
 		grid-template-rows: repeat(6, minmax(0, 1fr));
-		gap: 7%;
+		gap: 3%;
 	}
 
 	.hole {
@@ -298,35 +156,93 @@
 		min-width: 0;
 		min-height: 0;
 		border-radius: 50%;
-		background: radial-gradient(circle at 50% 40%, #14101c, #05040a 72%);
+		background: radial-gradient(circle at 50% 42%, rgba(40, 30, 60, 0.9), rgba(8, 8, 16, 0.95) 72%);
 		box-shadow:
-			inset 0 0 0 1px rgba(92, 225, 230, 0.42),
-			0 0 0 2px rgba(8, 10, 18, 0.9);
+			inset 0 0 0 1.5px rgba(110, 220, 225, 0.55),
+			inset 0 0 6px rgba(92, 225, 230, 0.25),
+			0 0 0 1px rgba(4, 8, 14, 0.8);
 	}
 
 	.hole.p1,
 	.hole.p2 {
 		box-shadow:
-			inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-			0 3px 6px rgba(0, 0, 0, 0.4);
+			inset 0 0 0 1.5px rgba(110, 220, 225, 0.35),
+			0 2px 5px rgba(0, 0, 0, 0.5);
 	}
 
 	.hole.p1 {
 		background:
-			radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.9), transparent 28%),
-			radial-gradient(circle at 50% 46%, #ff335c, #5a0820 70%);
+			radial-gradient(circle at 36% 30%, #fff 0 5%, rgba(255, 190, 205, 0.9) 11%, transparent 24%),
+			radial-gradient(circle at 50% 50%, #f0365e 0, #c01c42 45%, #5a0820 78%, #2a0410 100%);
 	}
 
 	.hole.p2 {
 		background:
-			radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.9), transparent 28%),
-			radial-gradient(circle at 50% 46%, #ffe38a, #8a5a08 70%);
+			radial-gradient(circle at 36% 30%, #fff8dc 0 5%, rgba(255, 236, 170, 0.9) 11%, transparent 24%),
+			radial-gradient(circle at 50% 50%, #f4c450 0, #c8901e 45%, #6a4208 78%, #2e1c04 100%);
 	}
 
-	@container (max-width: 220px) {
-		.turn b,
-		.score span {
-			display: none;
-		}
+	.beam {
+		position: absolute;
+		left: 44.5%;
+		width: 10.9%;
+		top: -9%;
+		bottom: 5%;
+		background: linear-gradient(180deg, rgba(220, 255, 255, 0.5), rgba(160, 240, 245, 0.12) 30%, rgba(160, 240, 245, 0.06));
+		border-radius: 40% 40% 8% 8%;
+		pointer-events: none;
+	}
+
+	.drop {
+		position: absolute;
+		left: 44.5%;
+		width: 10.9%;
+		aspect-ratio: 1;
+		top: -14%;
+		border-radius: 50%;
+		background:
+			radial-gradient(circle at 36% 30%, #fff 0 5%, rgba(255, 190, 205, 0.9) 11%, transparent 24%),
+			radial-gradient(circle at 50% 50%, #f0365e 0, #c01c42 45%, #5a0820 78%, #2a0410 100%);
+		box-shadow:
+			0 0 0 2px rgba(255, 255, 255, 0.3),
+			0 0 14px rgba(255, 51, 92, 0.55);
+	}
+
+	.bracket {
+		position: absolute;
+		width: 6%;
+		aspect-ratio: 1;
+		border: 0 solid #5ce1e6;
+		opacity: 0.8;
+	}
+
+	.bracket.tl {
+		top: 2.5%;
+		left: 2%;
+		border-top-width: 1.5px;
+		border-left-width: 1.5px;
+	}
+
+	.bracket.tr {
+		top: 2.5%;
+		right: 2%;
+		border-top-width: 1.5px;
+		border-right-width: 1.5px;
+	}
+
+	.bracket.bl {
+		bottom: 2.5%;
+		left: 2%;
+		border-color: #ff335c;
+		border-bottom-width: 1.5px;
+		border-left-width: 1.5px;
+	}
+
+	.bracket.br {
+		bottom: 2.5%;
+		right: 2%;
+		border-color: #ff335c;
+		border-bottom-width: 1.5px;
+		border-right-width: 1.5px;
 	}
 </style>

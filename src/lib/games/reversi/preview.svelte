@@ -1,5 +1,4 @@
 <script lang="ts">
-	import EclIcon from './components/EclIcon.svelte';
 
 	const POSITION = [
 		'........',
@@ -12,6 +11,7 @@
 		'........'
 	].join('');
 
+	const CORNERS = new Set([0, 7, 56, 63]);
 	const cells = Array.from(POSITION, (ch, i) => ({ i, side: ch === 'm' ? 1 : ch === 's' ? 2 : 0 }));
 	const stars = Array.from({ length: 28 }, (_, i) => ({
 		i,
@@ -42,21 +42,19 @@
 		<span class="r3"><b></b></span>
 	</div>
 	<div class="lamp"></div>
-	<div class="hud">
-		<div class="brand">
-			<EclIcon size="chip" />
-			<div>
-				<p>Eclipse</p>
-				<small>orrery reversi</small>
-			</div>
-		</div>
-		<div class="call"><b>Moon to move</b></div>
-		<div class="score"><span class="m"></span>13 · 9<span class="s"></span></div>
-	</div>
 	<div class="frame">
+		<i class="cap tl"></i>
+		<i class="cap tr"></i>
+		<i class="cap bl"></i>
+		<i class="cap br"></i>
 		<div class="grid">
+			{#each [25, 75] as y (y)}
+				{#each [25, 75] as x (x)}
+					<b class="pin" style:left="{x}%" style:top="{y}%"></b>
+				{/each}
+			{/each}
 			{#each cells as cell (cell.i)}
-				<span class="cell">
+				<span class="cell" class:corner={CORNERS.has(cell.i)}>
 					{#if cell.side === 1}
 						<i class="moon"></i>
 					{:else if cell.side === 2}
@@ -163,106 +161,43 @@
 		background: radial-gradient(circle, rgba(255, 220, 150, 0.28), transparent 62%);
 	}
 
-	.hud {
-		position: relative;
-		z-index: 2;
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		gap: 5px;
-		padding: 5% 5% 0;
-	}
-
-	.brand,
-	.call,
-	.score {
-		border: 1px solid rgba(232, 184, 90, 0.3);
-		background: rgba(20, 18, 44, 0.82);
-		border-radius: 10px;
-		padding: 4px 7px;
-		min-width: 0;
-	}
-
-	.brand {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 4px 8px 4px 4px;
-	}
-
-	.brand :global(.icon) {
-		width: 18px;
-		height: 18px;
-		flex-shrink: 0;
-	}
-
-	.brand p {
-		margin: 0;
-		font-family: 'Cormorant Garamond', Palatino, serif;
-		font-style: italic;
-		font-size: 0.64rem;
-		line-height: 1;
-		color: #f4d58a;
-		white-space: nowrap;
-	}
-
-	.brand small {
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		font-size: 0.38rem;
-		color: #9fb8e8;
-		display: block;
-	}
-
-	.call {
-		display: grid;
-		place-items: center;
-	}
-
-	.call b {
-		font-family: 'Cormorant Garamond', Palatino, serif;
-		font-style: italic;
-		font-size: clamp(0.5rem, 3.4cqw, 0.78rem);
-		white-space: nowrap;
-	}
-
-	.score {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		font-size: 0.5rem;
-		font-weight: 600;
-	}
-
-	.score span {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-	}
-
-	.score .m,
 	.moon {
-		background: radial-gradient(circle at 35% 30%, #fff, #c4cde0 50%, #66708e);
+		background:
+			radial-gradient(circle at 56% 44%, #c9d0de 0 29%, transparent 30%),
+			radial-gradient(circle at 45% 50%, #f6f8fc 0 35%, transparent 36%),
+			radial-gradient(circle at 38% 32%, #f2f4f8, #c4cbd8 50%, #7e869c 92%);
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+			0 2px 4px rgba(0, 0, 0, 0.6) !important;
 	}
 
-	.score .s,
 	.sun {
-		background: radial-gradient(circle at 35% 30%, #fff6d2, #f0c060 50%, #8a5a1c);
+		background:
+			radial-gradient(circle, #fff1b8 0 13%, #d89a2a 15% 18%, #f6cf6a 20% 25%, transparent 27%),
+			repeating-conic-gradient(rgba(150, 96, 20, 0.55) 0 5deg, transparent 5deg 22.5deg),
+			radial-gradient(circle at 38% 32%, #fff2c0, #e8b84a 50%, #9a6a1e 92%);
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 236, 170, 0.6),
+			0 2px 4px rgba(0, 0, 0, 0.6) !important;
 	}
 
 	.frame {
 		position: absolute;
 		left: 50%;
-		top: 24%;
-		height: 64%;
+		top: 50%;
+		height: 88%;
 		aspect-ratio: 1;
-		translate: -50% 0;
-		padding: 4.5%;
-		border-radius: 12px;
+		translate: -50% -50%;
+		padding: 6%;
+		border-radius: 1.6cqh;
 		box-sizing: border-box;
 		z-index: 1;
-		background: linear-gradient(160deg, #6a3e22, #3a2014 70%);
+		background:
+			repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 5px, rgba(255, 200, 150, 0.05) 5px 6px, transparent 6px 11px),
+			linear-gradient(160deg, #5a3620, #2e1a0e 70%);
 		box-shadow:
-			inset 0 0 0 2px #c9a256,
+			inset 0 0 0 1px #c9a256,
+			inset 0 0 0 1.4cqh rgba(0, 0, 0, 0.25),
 			0 12px 28px rgba(0, 0, 0, 0.55),
 			0 0 30px rgba(232, 184, 90, 0.18);
 	}
@@ -273,17 +208,78 @@
 		height: 100%;
 		grid-template-columns: repeat(8, 1fr);
 		grid-template-rows: repeat(8, 1fr);
+		position: relative;
 		gap: 1px;
 		padding: 1px;
 		box-sizing: border-box;
-		border-radius: 4px;
-		background: #c9a256;
+		border-radius: 2px;
+		background: #b8924a;
+		box-shadow: 0 0 0 0.8cqh #d8b468;
+	}
+
+	.cap {
+		position: absolute;
+		width: 7%;
+		aspect-ratio: 1;
+		background: linear-gradient(135deg, #f4dc98, #b8862e 60%, #7a5418);
+	}
+
+	.cap.tl {
+		left: 0;
+		top: 0;
+		clip-path: polygon(0 0, 100% 0, 0 100%);
+		border-top-left-radius: 1.6cqh;
+	}
+
+	.cap.tr {
+		right: 0;
+		top: 0;
+		clip-path: polygon(0 0, 100% 0, 100% 100%);
+		border-top-right-radius: 1.6cqh;
+	}
+
+	.cap.bl {
+		left: 0;
+		bottom: 0;
+		clip-path: polygon(0 0, 100% 100%, 0 100%);
+		border-bottom-left-radius: 1.6cqh;
+	}
+
+	.cap.br {
+		right: 0;
+		bottom: 0;
+		clip-path: polygon(100% 0, 100% 100%, 0 100%);
+		border-bottom-right-radius: 1.6cqh;
+	}
+
+	.pin {
+		position: absolute;
+		z-index: 1;
+		width: 1.6cqh;
+		aspect-ratio: 1;
+		translate: -50% -50%;
+		border-radius: 50%;
+		background: radial-gradient(circle at 35% 30%, #fff2c0, #d8a848 60%, #8a6020);
+	}
+
+	.cell.corner {
+		background: radial-gradient(circle at 50% 40%, #22305e, #172248);
+	}
+
+	.cell.corner::before {
+		content: '';
+		width: 46%;
+		aspect-ratio: 1;
+		background: rgba(201, 162, 86, 0.45);
+		clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
 	}
 
 	.cell {
 		display: grid;
 		place-items: center;
-		background: radial-gradient(circle at 50% 40%, #232450, #14143a);
+		background:
+			radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.3) 0 0.5px, transparent 1px),
+			radial-gradient(circle at 50% 40%, #22305e, #172248);
 	}
 
 	.cell i {
@@ -303,13 +299,6 @@
 	@keyframes orbit {
 		to {
 			rotate: 346deg;
-		}
-	}
-
-	@container (max-width: 220px) {
-		.brand small,
-		.score {
-			display: none;
 		}
 	}
 

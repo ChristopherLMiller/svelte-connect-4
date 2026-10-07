@@ -1,0 +1,17 @@
+{
+	"id": "cartographer",
+	"title": "Cartographer",
+	"genre": "Candlelit dots and boxes",
+	"players": "1–2",
+	"tagline": "Close a square. Claim the land.",
+	"blurb": "Rival mapmakers ink borders by candlelight. Every square you close blooms into a piece of a hidden map.",
+	"description": "Dots and boxes on a sheet of parchment. Take turns inking a border between two dots; close the fourth side of a square and it's yours, painted in with the coast, forest, mountains or sea serpent hidden beneath, and you ink again. The finished sheet is a map, coloured in two inks. Three chart sizes, hotseat for two, or play Mercator, a rival who understands chains and the double-cross.",
+	"keywords": ["Cartographer", "dots and boxes", "boxes", "pencil and paper", "map", "strategy", "hotseat", "chains"],
+	"theme": "#1c0f07",
+	"favicon": "/cartographer-favicon.svg",
+	"href": "/cartographer",
+	"accent": "#f0d9a8",
+	"glow": "#ff9a4a",
+	"cabinet": "#24140a",
+	"order": 9
+}

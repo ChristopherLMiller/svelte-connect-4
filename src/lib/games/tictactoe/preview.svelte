@@ -1,6 +1,5 @@
 <script lang="ts">
 	import TttMark from './components/TttMark.svelte';
-	import TttIcon from './components/TttIcon.svelte';
 	import { scratchGrid } from './scratch';
 	import type { Cell } from './types';
 
@@ -12,6 +11,21 @@
 
 	const LINES = scratchGrid(814229);
 	const SEEDS = [41, 0, 88, 0, 17, 203, 64, 0, 0];
+	const FRONDS = [12, 34, 58, 80].map((deg) => {
+		const a = (deg * Math.PI) / 180;
+		const [dx, dy] = [Math.cos(a), Math.sin(a)];
+		const [nx, ny] = [-dy, dx];
+		const at = (t: number) => [dx * t * 96 + nx * t * t * 14, dy * t * 96 + ny * t * t * 14];
+		let d = `M0 0 Q ${at(0.5).join(' ')} ${at(1).join(' ')}`;
+		for (let t = 0.12; t < 0.96; t += 0.06) {
+			const [x, y] = at(t);
+			const len = 22 * (1 - t * 0.7);
+			for (const side of [1, -1]) {
+				d += ` M${x} ${y} l${(nx * side * 0.9 + dx * 0.5) * len} ${(ny * side * 0.9 + dy * 0.5) * len}`;
+			}
+		}
+		return d;
+	});
 </script>
 
 <svelte:head>
@@ -25,6 +39,16 @@
 
 <div class="shot" aria-hidden="true">
 	<div class="glare"></div>
+	<svg class="frond left" viewBox="0 0 100 100">
+		{#each FRONDS as d, i (i)}
+			<path {d} />
+		{/each}
+	</svg>
+	<svg class="frond right" viewBox="0 0 100 100">
+		{#each FRONDS as d, i (i)}
+			<path {d} />
+		{/each}
+	</svg>
 	<div class="gull a"></div>
 	<div class="gull b"></div>
 	<div class="wood"></div>
@@ -32,17 +56,6 @@
 	<div class="shell b"></div>
 	<div class="print a"></div>
 	<div class="print b"></div>
-	<div class="hud">
-		<div class="brand">
-			<TttIcon size="chip" />
-			<div>
-				<p>Tide & Cross</p>
-				<small>in the wet sand</small>
-			</div>
-		</div>
-		<div class="call"><b>You to scratch</b></div>
-		<div class="score">You <em>1</em> · Tide <em>0</em></div>
-	</div>
 	<div class="grid">
 		<svg class="grooves" viewBox="0 0 300 300">
 			<g class="ridge">
@@ -177,83 +190,40 @@
 		bottom: 31%;
 	}
 
-	.hud {
-		position: relative;
-		z-index: 2;
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		gap: 5px;
-		padding: 5% 5% 0;
-		height: 18%;
-		box-sizing: border-box;
+	.frond {
+		position: absolute;
+		top: -4%;
+		width: 34cqh;
+		height: 34cqh;
+		overflow: visible;
+		pointer-events: none;
+		opacity: 0.22;
+		animation: sway 6s ease-in-out infinite;
 	}
 
-	.brand,
-	.call,
-	.score {
-		border: 1px solid rgba(90, 64, 42, 0.16);
-		background: rgba(255, 248, 236, 0.55);
-		border-radius: 10px;
-		padding: 4px 7px;
-		color: #3b2a1c;
-		font-family: Nunito, ui-sans-serif, system-ui, sans-serif;
-		min-width: 0;
+	.frond path {
+		fill: none;
+		stroke: #4a3220;
+		stroke-width: 2.4;
+		stroke-linecap: round;
 	}
 
-	.brand {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 4px 8px 4px 4px;
+	.frond.left {
+		left: -2%;
+		transform-origin: 0 0;
 	}
 
-	.brand :global(.icon) {
-		width: 18px;
-		height: 18px;
-		flex-shrink: 0;
-	}
-
-	.brand p {
-		margin: 0;
-		font-family: Fraunces, Georgia, serif;
-		font-style: italic;
-		font-size: 0.62rem;
-		line-height: 1;
-		white-space: nowrap;
-	}
-
-	.brand small,
-	.score {
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		font-size: 0.38rem;
-		display: flex;
-		align-items: center;
-	}
-
-	.call {
-		display: grid;
-		place-items: center;
-	}
-
-	.call b {
-		font-family: Fraunces, Georgia, serif;
-		font-style: italic;
-		font-size: clamp(0.5rem, 3.4cqw, 0.78rem);
-		white-space: nowrap;
-	}
-
-	.score em {
-		font-style: normal;
-		font-weight: 700;
-		margin: 0 2px;
+	.frond.right {
+		right: -2%;
+		scale: -1 1;
+		animation-delay: -2.4s;
 	}
 
 	.grid {
 		position: absolute;
 		left: 50%;
-		top: 24%;
-		height: 48%;
+		top: 10%;
+		height: 58%;
 		width: auto;
 		aspect-ratio: 1;
 		translate: -50% 0;
@@ -310,15 +280,12 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		height: 26%;
+		height: 24%;
 		overflow: hidden;
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			rgba(90, 180, 196, 0.28) 22%,
-			#1d6d86 58%,
-			#0e3f52 100%
-		);
+		background:
+			repeating-radial-gradient(ellipse 18% 9% at 30% 60%, transparent 0 40%, rgba(230, 255, 255, 0.22) 46%, transparent 52%),
+			repeating-radial-gradient(ellipse 14% 8% at 74% 40%, transparent 0 40%, rgba(230, 255, 255, 0.18) 46%, transparent 52%),
+			linear-gradient(180deg, transparent 0%, rgba(120, 200, 210, 0.45) 18%, #5cb0c2 42%, #3e93ab 72%, #6cb6c8 100%);
 		-webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
 		mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
 		z-index: 1;
@@ -348,6 +315,12 @@
 		opacity: 0.65;
 	}
 
+	@keyframes sway {
+		50% {
+			rotate: 3deg;
+		}
+	}
+
 	@keyframes drift {
 		50% {
 			translate: 8px -6px;
@@ -360,15 +333,9 @@
 		}
 	}
 
-	@container (max-width: 220px) {
-		.brand small,
-		.score {
-			display: none;
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		.gull,
+		.frond,
 		.swell {
 			animation: none;
 		}

@@ -1,0 +1,17 @@
+{
+	"id": "apothecary",
+	"title": "Apothecary",
+	"genre": "Alchemist's sliding puzzle",
+	"players": "1",
+	"tagline": "Pour like with like. Make the Stone.",
+	"blurb": "Tip the alchemist's rack and pour matching vials together, rainwater to brine to sulphur, all the way to the Philosopher's Stone.",
+	"description": "2048 on an alchemist's bench by candle and burner light. Every swipe tips the rack; two vials of the same reagent pour together into a rarer one, swirling into a richer colour. Climb from rainwater through cinnabar, quicksilver and drinkable gold to the Philosopher's Stone at 2048. Rare brews glow and give off vapour, the alembic boils in the colour of your best vial, and three stoppers let you take back a pour. Classic four by four, a grand five by five cabinet, and a brew of the day that is the same for everyone.",
+	"keywords": ["Apothecary", "2048", "sliding puzzle", "merge game", "alchemy", "potions", "daily puzzle", "undo"],
+	"theme": "#141110",
+	"favicon": "/apothecary-favicon.svg",
+	"href": "/apothecary",
+	"accent": "#f1e6c8",
+	"glow": "#ff5a78",
+	"cabinet": "#1a2420",
+	"order": 10
+}

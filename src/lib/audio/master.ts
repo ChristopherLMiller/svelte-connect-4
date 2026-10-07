@@ -71,12 +71,96 @@ const FROZEN: Profile = {
 	brightness: 8200
 };
 
+/** A small panelled study: warm and close, wood soaking up the highs, a short tail. */
+const STUDY: Profile = {
+	musicSpace: 0.18,
+	sfxSpace: 0.08,
+	chorus: 0.1,
+	drift: 3,
+	rt60: 1.2,
+	seconds: 1.6,
+	brightness: 5200
+};
+
+/** A vaulted stone cellar: a mid-length dark tail, glass ringing a little longer than wood would let it. */
+const CELLAR: Profile = {
+	musicSpace: 0.28,
+	sfxSpace: 0.12,
+	chorus: 0.14,
+	drift: 2.5,
+	rt60: 2.2,
+	seconds: 2.6,
+	brightness: 4600
+};
+
+/** Open air by slow water: soft and natural, a short diffuse tail off the far bank. */
+const RIVERBANK: Profile = {
+	musicSpace: 0.22,
+	sfxSpace: 0.07,
+	chorus: 0.1,
+	drift: 2,
+	rt60: 1.6,
+	seconds: 2,
+	brightness: 6400
+};
+
+/** A walled temple garden: open sky, but plaster and cedar send back a soft mid-length bloom. */
+const TEMPLE: Profile = {
+	musicSpace: 0.27,
+	sfxSpace: 0.09,
+	chorus: 0.12,
+	drift: 2.5,
+	rt60: 2.3,
+	seconds: 2.6,
+	brightness: 6000
+};
+
+/** A rocky headland at night: cannon and surf roll off the cliffs in a long, dark echo. */
+const HEADLAND: Profile = {
+	musicSpace: 0.24,
+	sfxSpace: 0.12,
+	chorus: 0.1,
+	drift: 3,
+	rt60: 2.8,
+	seconds: 3,
+	brightness: 4800
+};
+
+/** A marble hall at night: a tall, warm bloom off stone and panelling; wood on marble stays crisp. */
+const GRAND_HALL: Profile = {
+	musicSpace: 0.3,
+	sfxSpace: 0.1,
+	chorus: 0.09,
+	drift: 2,
+	rt60: 2.6,
+	seconds: 3,
+	brightness: 6200
+};
+
+/** A low-beamed snug: warm and close, plaster and oak taking the edge off, a short tail. */
+const SNUG: Profile = {
+	musicSpace: 0.2,
+	sfxSpace: 0.07,
+	chorus: 0.1,
+	drift: 2.5,
+	rt60: 1.3,
+	seconds: 1.7,
+	brightness: 5400
+};
+
 const PROFILES: Record<string, Profile> = {
 	library: ARCADE,
 	connect4: ARCADE,
 	breakout: CATHEDRAL,
 	reef: ABYSS,
-	frost: FROZEN
+	frost: FROZEN,
+	cartographer: STUDY,
+	apothecary: CELLAR,
+	seedkeeper: RIVERBANK,
+	zengarden: TEMPLE,
+	lighthouse: HEADLAND,
+	chess: GRAND_HALL,
+	pub: SNUG
 };
 
 export type Master = {

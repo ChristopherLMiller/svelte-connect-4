@@ -84,9 +84,16 @@ function AudioCtor() {
 function bindVisibility(audio: AudioContext) {
 	if (visBound || typeof document === 'undefined') return;
 	visBound = true;
+	// Safari only resumes a suspended context inside a click or key press, so the context stays
+	// running while hidden and the score stops instead; restarting it on return also keeps the
+	// schedulers from bursting out the notes their throttled timers missed.
 	document.addEventListener('visibilitychange', () => {
-		if (document.hidden) void audio.suspend();
-		else void audio.resume();
+		if (document.hidden) {
+			musicHooks?.stop();
+			return;
+		}
+		if (audio.state !== 'running') audio.resume().catch(() => {});
+		if (isLayeredScoreOn()) musicHooks?.start();
 	});
 }
 

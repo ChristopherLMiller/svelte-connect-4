@@ -1,0 +1,29 @@
+{
+	"id": "chess",
+	"title": "Chess",
+	"genre": "Chess by candlelight",
+	"players": "1–2",
+	"tagline": "Climb a ladder of eight rivals in a candlelit marble hall.",
+	"blurb": "Full-rules chess on a marble board in a grand hall at night. Face eight opponents from the page boy to the Count, each with their own openings and style.",
+	"description": "Chess under the official rules, played on a carved marble board in a grand hall at midnight, with rain on the tall windows and candles flickering in the chandeliers. Climb a ladder of eight opponents rated from 400 to 2200, each with a personality, a style of play and an opening repertoire, who make the kind of mistakes real players of their strength make. Play untimed or on the clock from rapid to bullet, take either colour, or share the board for hotseat. Copy any game as PGN, keep an evaluation bar beside the board, and after the game let the Count review every move, marking the inaccuracies, mistakes and blunders.",
+	"keywords": [
+		"Chess",
+		"chess online",
+		"chess vs computer",
+		"chess AI",
+		"chess openings",
+		"board game",
+		"strategy",
+		"hotseat",
+		"pass and play",
+		"chess clock",
+		"PGN"
+	],
+	"theme": "#0d0806",
+	"favicon": "/chess-favicon.svg",
+	"href": "/chess",
+	"accent": "#d9b25e",
+	"glow": "#ffd58a",
+	"cabinet": "#24140f",
+	"order": 13
+}

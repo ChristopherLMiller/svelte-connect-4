@@ -1,0 +1,17 @@
+{
+	"id": "seedkeeper",
+	"title": "Seedkeeper",
+	"genre": "Riverbank mancala",
+	"players": "1–2",
+	"tagline": "Sow the stones. Gather the harvest.",
+	"blurb": "Carved river stones on a mossy bank at dusk. Sow seeds pit by pit, land in your store to go again, and catch the fireflies when you capture.",
+	"description": "Mancala (Kalah) on a carved slab of river stone. Lift every seed from one of your pits and sow them one by one around the board. Drop the last seed in your store and you sow again; land it in an empty pit of your own and you capture everything across from it. The evening deepens as the stores fill: the sun sinks, the moon rises, and fireflies swarm every capture. Three sowings, hotseat for two, or play Old Heron, who has watched this river for years.",
+	"keywords": ["Seedkeeper", "mancala", "kalah", "sowing game", "count and capture", "board game", "strategy", "hotseat", "family"],
+	"theme": "#0c140d",
+	"favicon": "/seedkeeper-favicon.svg",
+	"href": "/seedkeeper",
+	"accent": "#f6c453",
+	"glow": "#b8f06a",
+	"cabinet": "#13200f",
+	"order": 10
+}

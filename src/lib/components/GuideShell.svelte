@@ -12,7 +12,7 @@
 	}: {
 		open: boolean;
 		onclose: () => void;
-		tone: 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost';
+		tone: 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost' | 'ink' | 'brew' | 'moss' | 'zen' | 'beacon' | 'regal' | 'tavern';
 		kicker: string;
 		title?: string;
 		children: Snippet;
@@ -145,6 +145,104 @@
 		--g-done: linear-gradient(180deg, #ff9a6e, #e8573a);
 		--g-done-ink: #fff8f2;
 		--g-kbd: rgba(47, 127, 176, 0.08);
+	}
+
+	.ink {
+		--g-bg: linear-gradient(180deg, #f6ead0, #ead7ad);
+		--g-text: #2e2014;
+		--g-muted: #6b5238;
+		--g-accent: #a33a1f;
+		--g-line: rgba(107, 72, 36, 0.24);
+		--g-scrim: rgba(18, 10, 4, 0.6);
+		--g-head: Almendra, 'EB Garamond', Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #c4482a, #8e2a14);
+		--g-done-ink: #fbefd6;
+		--g-kbd: rgba(107, 72, 36, 0.1);
+	}
+
+	.brew {
+		--g-bg: linear-gradient(180deg, #1e2a24, #111915);
+		--g-text: #f1e6c8;
+		--g-muted: #b9ad90;
+		--g-accent: #6fe3b0;
+		--g-line: rgba(214, 170, 92, 0.26);
+		--g-scrim: rgba(4, 6, 5, 0.65);
+		--g-head: Cinzel, Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #ff5a78, #a8122f);
+		--g-done-ink: #fff4f0;
+		--g-kbd: rgba(214, 170, 92, 0.12);
+	}
+
+	.moss {
+		--g-bg: linear-gradient(180deg, #1c2a1a, #0f170e);
+		--g-text: #f3ecd6;
+		--g-muted: #b8b49a;
+		--g-accent: #b8f06a;
+		--g-line: rgba(184, 240, 106, 0.2);
+		--g-scrim: rgba(4, 8, 4, 0.65);
+		--g-head: Fraunces, Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #ffd56e, #d69a22);
+		--g-done-ink: #1c1406;
+		--g-kbd: rgba(184, 240, 106, 0.1);
+	}
+
+	.zen {
+		--g-bg: linear-gradient(180deg, #fbf7ee, #efe6d4);
+		--g-text: #2b2622;
+		--g-muted: #6b5f52;
+		--g-accent: #c8321f;
+		--g-line: rgba(60, 40, 25, 0.18);
+		--g-scrim: rgba(20, 14, 8, 0.5);
+		--g-head: 'Shippori Mincho', Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #d8442c, #a8261a);
+		--g-done-ink: #fff6ec;
+		--g-kbd: rgba(60, 40, 25, 0.08);
+	}
+
+	.beacon {
+		--g-bg: linear-gradient(180deg, #14222e, #0a121a);
+		--g-text: #f2e8d5;
+		--g-muted: #b3ab9a;
+		--g-accent: #e8b05a;
+		--g-line: rgba(232, 176, 90, 0.22);
+		--g-scrim: rgba(2, 5, 9, 0.65);
+		--g-head: 'IM Fell English', Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #f2c26e, #c58a2c);
+		--g-done-ink: #1a1206;
+		--g-kbd: rgba(232, 176, 90, 0.12);
+	}
+
+	.regal {
+		--g-bg: linear-gradient(180deg, #24140f, #120a08);
+		--g-text: #f3e7cf;
+		--g-muted: #bba88a;
+		--g-accent: #d9b25e;
+		--g-line: rgba(217, 178, 94, 0.22);
+		--g-scrim: rgba(6, 3, 2, 0.66);
+		--g-head: 'Cinzel', Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #ecc874, #b8862e);
+		--g-done-ink: #1c1107;
+		--g-kbd: rgba(217, 178, 94, 0.12);
+	}
+
+	.tavern {
+		--g-bg: linear-gradient(180deg, #2a1c12, #140d08);
+		--g-text: #f4e6c8;
+		--g-muted: #bfa985;
+		--g-accent: #e0a548;
+		--g-line: rgba(224, 165, 72, 0.22);
+		--g-scrim: rgba(6, 4, 2, 0.66);
+		--g-head: 'Playfair Display SC', Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #f0be66, #b97a26);
+		--g-done-ink: #1c1107;
+		--g-kbd: rgba(224, 165, 72, 0.12);
 	}
 
 	.scrim {

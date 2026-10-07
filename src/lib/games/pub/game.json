@@ -1,0 +1,29 @@
+{
+	"id": "pub",
+	"title": "Lamplight Pub",
+	"genre": "Pub card games",
+	"players": "1–4",
+	"tagline": "Cribbage, Hearts, Gin and Euchre by a country pub fire.",
+	"blurb": "Four classic card games in a snug country pub at night. Peg round a walnut board, dodge the black lady, knock at gin, or go alone at euchre with the regulars.",
+	"description": "A snug country pub on a rainy night: low oak beams, an inglenook fire, rain on leaded windows and a dog asleep on the hearth. Pick a table from the chalkboard: Cribbage pegged on a walnut board to 121, Hearts with passing and shooting the moon, Gin Rummy with knocks, undercuts and big gin, or Euchre with bowers, loners, the farmer's hand, stick the dealer and six-and-four counters. Play the regulars at three strengths, or pass the device round for two to four people with a curtain between turns. Each game keeps its own record and saves where you left off.",
+	"keywords": [
+		"Lamplight Pub",
+		"cribbage",
+		"hearts",
+		"gin rummy",
+		"euchre",
+		"card games",
+		"pub games",
+		"cribbage board",
+		"card game vs computer",
+		"pass and play",
+		"hotseat"
+	],
+	"theme": "#140b05",
+	"favicon": "/pub-favicon.svg",
+	"href": "/pub",
+	"accent": "#e0a548",
+	"glow": "#ffc26a",
+	"cabinet": "#2a1a0e",
+	"order": 14
+}

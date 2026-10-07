@@ -3,7 +3,7 @@ import { jitter, loadTone, peekTone, type Tone } from './tone';
 
 /**
  * Synth layers for the slow generative scores (Eclipse, Lantern Wyrm, Tide & Cross,
- * Ashcourt, Chapel Glass, Lumen Reef, Frostline). Each game's score calls `note` and `bass` as it plays; the layers answer,
+ * Ashcourt, Chapel Glass, Lumen Reef, Frostline, Cartographer, Apothecary, Seedkeeper, Zen Garden, Lighthouse, Grand Hall). Each game's score calls `note` and `bass` as it plays; the layers answer,
  * drone, and ornament around those calls without changing the score itself.
  */
 
@@ -65,6 +65,55 @@ const ARRANGEMENTS: Record<string, Arrangement> = {
 		answer: { voice: 'glass', ratio: 2, delay: 0.5, every: 2, volume: -25, decay: 2.2 },
 		drone: { osc: 'fattriangle', ratios: [2, 3], cutoff: 680, volume: -24, attack: 2.5, holdSteps: 6 },
 		glints: { voice: 'bell', octave: 2, chance: 0.22, volume: -29 }
+	},
+	/** Candlelit study: a recorder answers a fifth up, a low reed drone, the odd lute pluck. */
+	cartographer: {
+		echo: { steps: 0.5, feedback: 0.28, level: 0.24, cutoff: 2800 },
+		answer: { voice: 'flute', ratio: 1.5, delay: 0.5, every: 2, volume: -24, decay: 0.8 },
+		drone: { osc: 'fatsawtooth', ratios: [1, 1.5], cutoff: 520, volume: -25, attack: 2, holdSteps: 4 },
+		glints: { voice: 'pluck', octave: 1, chance: 0.22, volume: -22 }
+	},
+	/** Alchemist's cellar: glass answers a fifth up through a long echo, a dark drone, bell glints. */
+	apothecary: {
+		echo: { steps: 0.75, feedback: 0.36, level: 0.3, cutoff: 3400 },
+		answer: { voice: 'glass', ratio: 1.5, delay: 0.75, every: 2, volume: -24, decay: 2 },
+		drone: { osc: 'fattriangle', ratios: [2, 3], cutoff: 560, volume: -24, attack: 2.5, holdSteps: 8 },
+		glints: { voice: 'bell', octave: 2, chance: 0.2, volume: -28 }
+	},
+	/** Riverbank at dusk: marimba answers an octave up, a reedy open-fifth hum, plucked glints like dripping water. */
+	seedkeeper: {
+		echo: { steps: 0.75, feedback: 0.3, level: 0.26, cutoff: 3600 },
+		answer: { voice: 'marimba', ratio: 2, delay: 0.5, every: 2, volume: -22, decay: 0.8 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5, 2], cutoff: 600, volume: -25, attack: 2.5, holdSteps: 8 },
+		glints: { voice: 'pluck', octave: 2, chance: 0.18, volume: -24 }
+	},
+	/** Temple garden: a flute answers a fifth up through a long echo, a low bowed drone, wind-bell glints. */
+	zengarden: {
+		echo: { steps: 0.75, feedback: 0.34, level: 0.28, cutoff: 3800 },
+		answer: { voice: 'flute', ratio: 1.5, delay: 0.75, every: 2, volume: -24, decay: 1 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 520, volume: -25, attack: 3, holdSteps: 8 },
+		glints: { voice: 'bell', octave: 2, chance: 0.14, volume: -28 }
+	},
+	/** Night headland: a tin whistle answers an octave up, a hurdy-gurdy fifth, a far bell buoy. */
+	lighthouse: {
+		echo: { steps: 1, feedback: 0.32, level: 0.26, cutoff: 3000 },
+		answer: { voice: 'flute', ratio: 2, delay: 0.5, every: 2, volume: -25, decay: 0.8 },
+		drone: { osc: 'fatsawtooth', ratios: [1, 1.5], cutoff: 480, volume: -26, attack: 2.5, holdSteps: 6 },
+		glints: { voice: 'bell', octave: 1, chance: 0.1, volume: -29 }
+	},
+	/** Grand hall: soft keys echo the nocturne an octave up, a warm low fifth, rare glass from the chandeliers. */
+	chess: {
+		echo: { steps: 1.5, feedback: 0.28, level: 0.22, cutoff: 2600 },
+		answer: { voice: 'keys', ratio: 2, delay: 1.5, every: 3, volume: -29, decay: 1.4 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 380, volume: -30, attack: 3, holdSteps: 6 },
+		glints: { voice: 'glass', octave: 2, chance: 0.08, volume: -32 }
+	},
+	/** Country pub: a tin whistle answers the fiddle an octave up, a soft drone like a pipe chanter, the odd harp pluck. */
+	pub: {
+		echo: { steps: 1, feedback: 0.24, level: 0.2, cutoff: 2800 },
+		answer: { voice: 'flute', ratio: 2, delay: 1, every: 3, volume: -29, decay: 0.8 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 420, volume: -30, attack: 3, holdSteps: 6 },
+		glints: { voice: 'pluck', octave: 2, chance: 0.1, volume: -27 }
 	}
 };
 

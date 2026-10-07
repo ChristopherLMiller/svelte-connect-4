@@ -36,7 +36,7 @@
 	});
 </script>
 
-<svelte:window onpointerdown={primeAudio} />
+<svelte:window onpointerdown={primeAudio} onkeydown={primeAudio} />
 
 <svelte:head>
 	<title>{seo.title}</title>

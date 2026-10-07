@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost';
+	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost' | 'ink' | 'brew' | 'moss' | 'zen' | 'beacon' | 'regal' | 'tavern';
 
 	let {
 		tone,
@@ -379,6 +379,230 @@
 
 	.frost .copy small {
 		color: #2f7fb0;
+		opacity: 1;
+	}
+
+	.ink {
+		--ink: #f6e8c8;
+		--accent: #c4482a;
+		border: 1px solid rgba(107, 72, 36, 0.45);
+		background: linear-gradient(180deg, rgba(246, 234, 208, 0.94), rgba(230, 210, 168, 0.92));
+		color: #2e2014;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 248, 228, 0.8),
+			0 10px 26px rgba(10, 4, 0, 0.45);
+		font-family: 'EB Garamond', Georgia, serif;
+	}
+
+	@media (hover: hover) {
+		.ink:hover {
+			border-color: rgba(163, 58, 31, 0.7);
+			box-shadow:
+				inset 0 1px 0 rgba(255, 248, 228, 0.9),
+				0 12px 30px rgba(10, 4, 0, 0.5),
+				0 0 24px rgba(255, 170, 80, 0.3);
+		}
+	}
+
+	.ink .glyph {
+		background: linear-gradient(180deg, #5a3a20, #2e1d10);
+		box-shadow: inset 0 0 0 1px rgba(246, 222, 170, 0.35);
+	}
+
+	.ink .copy small {
+		color: #a33a1f;
+		opacity: 1;
+	}
+
+	.brew {
+		--ink: #f1e6c8;
+		--accent: #ff5a78;
+		border: 1px solid rgba(214, 170, 92, 0.4);
+		background: linear-gradient(180deg, rgba(30, 42, 36, 0.94), rgba(14, 20, 17, 0.95));
+		color: #f1e6c8;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 240, 200, 0.1),
+			0 10px 26px rgba(0, 0, 0, 0.5);
+		font-family: Spectral, Georgia, serif;
+	}
+
+	@media (hover: hover) {
+		.brew:hover {
+			border-color: #e0b25c;
+			box-shadow:
+				inset 0 1px 0 rgba(255, 240, 200, 0.14),
+				0 12px 30px rgba(0, 0, 0, 0.55),
+				0 0 24px rgba(111, 227, 176, 0.2);
+		}
+	}
+
+	.brew .glyph {
+		background: linear-gradient(180deg, #2a3a32, #0e1411);
+		box-shadow: inset 0 0 0 1px rgba(214, 170, 92, 0.45);
+	}
+
+	.brew .copy small {
+		color: #6fe3b0;
+		opacity: 1;
+	}
+
+	.moss {
+		--ink: #f3ecd6;
+		--accent: #f6c453;
+		border: 1px solid rgba(184, 240, 106, 0.28);
+		background: linear-gradient(180deg, rgba(28, 40, 26, 0.92), rgba(12, 20, 12, 0.94));
+		color: #f3ecd6;
+		box-shadow:
+			inset 0 1px 0 rgba(230, 255, 190, 0.08),
+			0 10px 26px rgba(0, 0, 0, 0.5);
+		font-family: Nunito, ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.moss:hover {
+			border-color: #f6c453;
+			box-shadow:
+				inset 0 1px 0 rgba(230, 255, 190, 0.12),
+				0 12px 30px rgba(0, 0, 0, 0.55),
+				0 0 24px rgba(200, 240, 106, 0.25);
+		}
+	}
+
+	.moss .glyph {
+		background: linear-gradient(180deg, #3a4636, #161d14);
+		box-shadow: inset 0 0 0 1px rgba(184, 240, 106, 0.35);
+	}
+
+	.moss .copy small {
+		color: #b8f06a;
+		opacity: 1;
+	}
+
+	.zen {
+		--ink: #2b2622;
+		--accent: #c8321f;
+		border: 1px solid rgba(60, 40, 25, 0.28);
+		background: linear-gradient(180deg, rgba(252, 248, 239, 0.95), rgba(238, 229, 212, 0.95));
+		color: #2b2622;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.7),
+			0 10px 24px rgba(40, 25, 10, 0.25);
+		font-family: 'Zen Kaku Gothic New', ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.zen:hover {
+			border-color: #c8321f;
+			box-shadow:
+				inset 0 1px 0 rgba(255, 255, 255, 0.8),
+				0 12px 28px rgba(40, 25, 10, 0.3),
+				0 0 0 2px rgba(200, 50, 31, 0.18);
+		}
+	}
+
+	.zen .glyph {
+		background: linear-gradient(180deg, #4a3a2c, #2b2017);
+		box-shadow: inset 0 0 0 1px rgba(200, 50, 31, 0.45);
+	}
+
+	.zen .copy small {
+		color: #c8321f;
+		opacity: 1;
+	}
+
+	.beacon {
+		--ink: #f2e8d5;
+		--accent: #e8b05a;
+		border: 1px solid rgba(232, 176, 90, 0.32);
+		background: linear-gradient(180deg, rgba(20, 34, 46, 0.94), rgba(9, 17, 24, 0.95));
+		color: #f2e8d5;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 230, 180, 0.08),
+			0 10px 26px rgba(0, 0, 0, 0.5);
+		font-family: 'Alegreya Sans', ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.beacon:hover {
+			border-color: #e8b05a;
+			box-shadow:
+				inset 0 1px 0 rgba(255, 230, 180, 0.12),
+				0 12px 30px rgba(0, 0, 0, 0.55),
+				0 0 24px rgba(255, 198, 90, 0.25);
+		}
+	}
+
+	.beacon .glyph {
+		background: linear-gradient(180deg, #24384a, #0c161f);
+		box-shadow: inset 0 0 0 1px rgba(232, 176, 90, 0.45);
+	}
+
+	.beacon .copy small {
+		color: #e8b05a;
+		opacity: 1;
+	}
+
+	.regal {
+		--ink: #f3e7cf;
+		--accent: #d9b25e;
+		border: 1px solid rgba(217, 178, 94, 0.34);
+		background: linear-gradient(180deg, rgba(42, 22, 16, 0.94), rgba(18, 10, 8, 0.95));
+		color: #f3e7cf;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 226, 170, 0.08),
+			0 10px 26px rgba(0, 0, 0, 0.5);
+		font-family: 'Cormorant Garamond', Georgia, serif;
+	}
+
+	@media (hover: hover) {
+		.regal:hover {
+			border-color: #d9b25e;
+			box-shadow:
+				inset 0 1px 0 rgba(255, 226, 170, 0.12),
+				0 12px 30px rgba(0, 0, 0, 0.55),
+				0 0 24px rgba(240, 190, 90, 0.25);
+		}
+	}
+
+	.regal .glyph {
+		background: linear-gradient(180deg, #4a2418, #1a0d08);
+		box-shadow: inset 0 0 0 1px rgba(217, 178, 94, 0.45);
+	}
+
+	.regal .copy small {
+		color: #d9b25e;
+		opacity: 1;
+	}
+
+	.tavern {
+		--ink: #f4e6c8;
+		--accent: #e0a548;
+		border: 1px solid rgba(224, 165, 72, 0.34);
+		background: linear-gradient(180deg, rgba(46, 30, 18, 0.94), rgba(20, 13, 8, 0.95));
+		color: #f4e6c8;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 220, 160, 0.08),
+			0 10px 26px rgba(0, 0, 0, 0.5);
+		font-family: Spectral, Georgia, serif;
+	}
+
+	@media (hover: hover) {
+		.tavern:hover {
+			border-color: #e0a548;
+			box-shadow:
+				inset 0 1px 0 rgba(255, 220, 160, 0.12),
+				0 12px 30px rgba(0, 0, 0, 0.55),
+				0 0 24px rgba(255, 180, 80, 0.25);
+		}
+	}
+
+	.tavern .glyph {
+		background: linear-gradient(180deg, #2a4a36, #10221a);
+		box-shadow: inset 0 0 0 1px rgba(224, 165, 72, 0.45);
+	}
+
+	.tavern .copy small {
+		color: #e0a548;
 		opacity: 1;
 	}
 

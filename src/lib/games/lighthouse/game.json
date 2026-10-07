@@ -1,0 +1,28 @@
+{
+	"id": "lighthouse",
+	"title": "Lighthouse",
+	"genre": "Battleship in the fog",
+	"players": "1–2",
+	"tagline": "Hunt hidden ships by lamplight on a stormy headland.",
+	"blurb": "Hide your fleet, then call shots into the fog while the lighthouse beam sweeps the water. Sink every hull before the Wrecker finds yours.",
+	"description": "Battleship on a stormy night beneath a lighthouse. Lay out your fleet on a brass-framed chart, then take turns firing into your rival's fogbound waters as the beam swings round to light each shot. Misses splash beside a buoy, hits set timber burning, and a sinking ship breaks apart in a chain of explosions while lightning cracks over the sea. Three seas from a tight cove to the open ocean, storm, fog or moonlit weather, pass-the-device hotseat with a curtain between turns, or face the Wrecker, whose Captain keeps a probability chart of every place a ship could hide.",
+	"keywords": [
+		"Lighthouse",
+		"battleship",
+		"sea battle",
+		"naval",
+		"board game",
+		"strategy",
+		"hotseat",
+		"pass and play",
+		"guessing game",
+		"ships"
+	],
+	"theme": "#060b11",
+	"favicon": "/lighthouse-favicon.svg",
+	"href": "/lighthouse",
+	"accent": "#e8b05a",
+	"glow": "#ffd27a",
+	"cabinet": "#0f1a24",
+	"order": 12
+}

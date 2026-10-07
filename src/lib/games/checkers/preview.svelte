@@ -1,5 +1,4 @@
 <script lang="ts">
-	import AshIcon from './components/AshIcon.svelte';
 	import { playable } from './types';
 
 	const cells = Array.from({ length: 64 }, (_, i) => {
@@ -37,17 +36,6 @@
 		<em></em>
 	</div>
 	<div class="floor"></div>
-	<div class="hud">
-		<div class="brand">
-			<AshIcon size="chip" />
-			<div>
-				<p>Ashcourt</p>
-				<small>raku draughts</small>
-			</div>
-		</div>
-		<div class="call"><b>Ember to hop</b></div>
-		<div class="score">You <em>0</em> · Yard <em>0</em></div>
-	</div>
 	<div class="slab">
 		<div class="grid">
 			{#each cells as cell (cell.i)}
@@ -70,8 +58,10 @@
 		overflow: hidden;
 		container-type: size;
 		background:
-			radial-gradient(720px 280px at 70% -8%, #fffdf6, transparent 55%),
-			linear-gradient(180deg, #e7eef0 0%, #efe6d6 48%, #d7cbb8 100%);
+			radial-gradient(40% 30% at 72% 14%, rgba(255, 253, 240, 0.95), transparent 70%),
+			radial-gradient(30% 10% at 20% 18%, rgba(255, 255, 255, 0.5), transparent 70%),
+			radial-gradient(36% 9% at 88% 30%, rgba(255, 255, 255, 0.4), transparent 70%),
+			linear-gradient(180deg, #86aecb 0%, #a9c6d8 26%, #d8dfdc 50%, #e9e0cf 64%, #d7cbb8 100%);
 		font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
 	}
 
@@ -87,38 +77,41 @@
 	}
 
 	.sun {
-		left: 50%;
-		top: 4%;
-		width: 22%;
+		left: 72%;
+		top: 2%;
+		width: 26%;
 		aspect-ratio: 1;
 		translate: -50% 0;
+		background: repeating-conic-gradient(rgba(255, 253, 240, 0.22) 0 4deg, transparent 4deg 18deg);
+		border-radius: 50%;
+		-webkit-mask-image: radial-gradient(circle, #000 20%, transparent 70%);
+		mask-image: radial-gradient(circle, #000 20%, transparent 70%);
 	}
 
 	.sun b {
 		position: absolute;
 		inset: 18%;
 		border-radius: 50%;
-		background: radial-gradient(circle at 40% 36%, #fffdf6, #f4e4b8);
-		box-shadow: 0 0 24px rgba(255, 252, 240, 0.85);
+		inset: 36%;
+		background: radial-gradient(circle at 40% 36%, #ffffff, #fff6d8);
+		box-shadow: 0 0 24px 8px rgba(255, 252, 240, 0.9);
 	}
 
 	.tree {
 		bottom: 18%;
-		width: 7%;
-		height: 28%;
-		background: linear-gradient(180deg, #3d6b5c, #2a4a40);
-		clip-path: polygon(50% 0, 86% 100%, 14% 100%);
+		width: 5%;
+		height: 46%;
+		background: linear-gradient(180deg, #4a6a5a, #2a4438);
+		clip-path: polygon(50% 0, 78% 40%, 88% 100%, 12% 100%, 22% 40%);
 	}
 
 	.tree.a {
-		left: 4%;
-		height: 34%;
+		left: 7%;
 	}
 
 	.tree.b {
-		right: 2%;
-		height: 22%;
-		opacity: 0.7;
+		right: 6%;
+		height: 52%;
 	}
 
 	.wall {
@@ -197,90 +190,23 @@
 			linear-gradient(180deg, #d2c4ae, #c2b49a);
 	}
 
-	.hud {
-		position: relative;
-		z-index: 2;
-		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		gap: 5px;
-		padding: 5% 5% 0;
-	}
-
-	.brand,
-	.call,
-	.score {
-		border: 1px solid rgba(158, 27, 42, 0.22);
-		background: rgba(255, 250, 242, 0.82);
-		border-radius: 10px;
-		padding: 4px 7px;
-		color: #2a221c;
-		min-width: 0;
-	}
-
-	.brand {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 4px 8px 4px 4px;
-	}
-
-	.brand :global(.icon) {
-		width: 18px;
-		height: 18px;
-		flex-shrink: 0;
-	}
-
-	.brand p {
-		margin: 0;
-		font-family: 'Cormorant Garamond', Palatino, serif;
-		font-style: italic;
-		font-size: 0.64rem;
-		line-height: 1;
-		white-space: nowrap;
-	}
-
-	.brand small,
-	.score {
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		font-size: 0.38rem;
-		display: flex;
-		align-items: center;
-	}
-
-	.call {
-		display: grid;
-		place-items: center;
-	}
-
-	.call b {
-		font-family: 'Cormorant Garamond', Palatino, serif;
-		font-style: italic;
-		font-size: clamp(0.5rem, 3.4cqw, 0.78rem);
-		white-space: nowrap;
-	}
-
-	.score em {
-		font-style: normal;
-		font-weight: 700;
-		color: #9e1b2a;
-		margin: 0 2px;
-	}
-
 	.slab {
 		position: absolute;
 		left: 50%;
-		top: 24%;
-		height: 62%;
+		top: 50%;
+		height: 78%;
 		width: auto;
 		aspect-ratio: 1;
-		translate: -50% 0;
-		padding: 5%;
-		border-radius: 12px;
-		background: linear-gradient(180deg, #5a5048, #2a2420);
+		translate: -50% -50%;
+		padding: 3.6%;
+		border-radius: 3.5cqh;
+		background: linear-gradient(180deg, #4e4440, #2e2724);
 		box-sizing: border-box;
 		z-index: 1;
-		box-shadow: 0 12px 24px rgba(42, 34, 28, 0.28);
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+			inset 0 0 0 0.9cqh rgba(0, 0, 0, 0.18),
+			0 12px 24px rgba(42, 34, 28, 0.32);
 	}
 
 	.grid {
@@ -296,15 +222,22 @@
 	.cell {
 		display: grid;
 		place-items: center;
-		background: linear-gradient(145deg, #fbf8f2, #ece4d6 58%, #d8ccbc);
+		background:
+			url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M0 13 L9 11 L15 16 L24 12 M15 16 L13 27 L4 31 M13 27 L22 30 L28 40 M24 12 L31 4 M24 12 L33 19 L40 17 M33 19 L30 30 L22 30' fill='none' stroke='%237a6e62' stroke-opacity='0.35' stroke-width='0.7'/%3E%3C/svg%3E") center / 100% 100%,
+			linear-gradient(145deg, #fdfbf7, #f1ece3 58%, #e2dbd0);
 	}
 
+
+
 	.cell.dark {
-		background: linear-gradient(160deg, #3a342e, #2a2420 62%, #1c1814);
+		background:
+			linear-gradient(#262120, #262120) center / 74% 74% no-repeat,
+			linear-gradient(rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.07)) center / 80% 80% no-repeat,
+			linear-gradient(160deg, #3a342f, #2a2421 62%, #1e1a17);
 	}
 
 	.cell i {
-		width: 68%;
+		width: 74%;
 		aspect-ratio: 1;
 		height: auto;
 		border-radius: 50%;
@@ -312,13 +245,21 @@
 	}
 
 	.ember {
-		background: radial-gradient(circle at 32% 26%, #f8d4d6, #c43b4a 28%, #9e1b2a 62%, #4a1018);
-		box-shadow: inset 0 2px 0 rgba(255, 230, 230, 0.45);
+		background:
+			radial-gradient(circle at 50% 50%, rgba(255, 214, 218, 0.85) 0 15%, transparent 30%),
+			radial-gradient(circle at 42% 36%, #e45a68, #b82a3a 45%, #7a1420 85%);
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 200, 205, 0.3),
+			0 2px 3px rgba(0, 0, 0, 0.45);
 	}
 
 	.bone {
-		background: radial-gradient(circle at 34% 26%, #ffffff, #f7f4ee 42%, #e6e0d4 78%, #b7c9be);
-		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+		background:
+			radial-gradient(circle at 50% 50%, transparent 0 33%, rgba(160, 156, 146, 0.55) 35%, transparent 39%),
+			radial-gradient(circle at 36% 30%, #ffffff, #f7f4ee 46%, #e6e0d4 80%, #c8c2b6);
+		box-shadow:
+			inset 0 0 0 1px rgba(255, 255, 255, 0.6),
+			0 2px 3px rgba(0, 0, 0, 0.4);
 	}
 
 	@keyframes linen {
@@ -338,13 +279,6 @@
 			opacity: 0.55;
 			translate: 20% -30%;
 			scale: 1.35;
-		}
-	}
-
-	@container (max-width: 220px) {
-		.brand small,
-		.score {
-			display: none;
 		}
 	}
 

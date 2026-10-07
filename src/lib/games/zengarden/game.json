@@ -1,0 +1,17 @@
+{
+	"id": "zengarden",
+	"title": "Zen Garden",
+	"genre": "Temple gomoku",
+	"players": "1–2",
+	"tagline": "Set five stones in a line on raked gravel.",
+	"blurb": "Slate and quartz on a raked temple bed. Lay five in a row before your rival as the seasons drift past the garden wall.",
+	"description": "Gomoku (five in a row) on a raked gravel bed inside a temple garden. Take turns setting slate and quartz stones on the crossings; the first unbroken line of five or more wins. Each stone ripples the gravel, the light moves through the day as the bed fills, and a five is brushed in vermilion and sealed with a stamp. Three garden sizes, spring blossom, autumn maples or winter snow, hotseat for two, or sit across from the Monk, who hunts for forced wins built from fours.",
+	"keywords": ["Zen Garden", "gomoku", "five in a row", "gobang", "renju", "board game", "strategy", "hotseat", "abstract", "japanese garden"],
+	"theme": "#1e1a16",
+	"favicon": "/zengarden-favicon.svg",
+	"href": "/zengarden",
+	"accent": "#c8321f",
+	"glow": "#f3c9a8",
+	"cabinet": "#2a211a",
+	"order": 11
+}
