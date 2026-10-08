@@ -1,7 +1,7 @@
 {
 	"name": "arcade-protocol",
 	"private": true,
-	"version": "1.6.0",
+	"version": "1.7.0",
 	"description": "AI Arcade. Live cabinets that launch standalone titles. Each game lives in its own world.",
 	"type": "module",
 	"scripts": {
