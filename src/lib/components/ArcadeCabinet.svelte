@@ -3,30 +3,43 @@
 
 	let {
 		game,
+		index = 0,
 		hot = false,
 		nested = false,
 		compact = false,
+		awake = true,
 		onfocus,
 		onlaunch
 	}: {
 		game: LibraryGame;
+		index?: number;
 		hot?: boolean;
 		nested?: boolean;
 		compact?: boolean;
+		/** Run the marquee lamps. The screen itself is always the captured still. */
+		awake?: boolean;
 		onfocus?: () => void;
-		onlaunch: () => void;
+		onlaunch: (index: number) => void;
 	} = $props();
 
 	const rim = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 	const uid = $props.id();
-	const Preview = $derived(game.Preview);
 </script>
+
+{#snippet attract()}
+	<div class="attract">
+		{#if game.favicon}
+			<img src={game.favicon} alt="" />
+		{/if}
+	</div>
+{/snippet}
 
 <article
 	class="cab"
 	class:hot
 	class:nested
 	class:compact
+	class:asleep={!awake}
 	style:--accent={game.accent}
 	style:--glow={game.glow}
 	style:--body={game.cabinet}
@@ -59,7 +72,7 @@
 		aria-label="Play {game.title}"
 		aria-describedby="{uid}-card"
 		aria-pressed={hot}
-		onclick={onlaunch}
+		onclick={() => onlaunch(index)}
 		onpointerenter={() => onfocus?.()}
 		onfocus={() => onfocus?.()}
 	>
@@ -72,7 +85,17 @@
 					<i class="pin br"></i>
 					<div class="glass">
 						<div class="live">
-							<Preview />
+							{@render attract()}
+							<img
+								class="still"
+								src="/previews/{game.id}.jpg"
+								alt=""
+								draggable="false"
+								onerror={(event) => {
+									const img = event.currentTarget;
+									if (img instanceof HTMLImageElement) img.hidden = true;
+								}}
+							/>
 						</div>
 						<div class="fx" aria-hidden="true">
 							<i class="phosphors"></i>
@@ -402,8 +425,52 @@
 		contain: layout paint;
 	}
 
-	.live :global(:first-child) {
+	.still {
+		position: absolute;
+		inset: 0;
+		width: 100%;
 		height: 100%;
+		object-fit: cover;
+		pointer-events: none;
+	}
+
+	.attract {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		background:
+			radial-gradient(50% 42% at 50% 40%, color-mix(in srgb, var(--accent) 65%, #fff), transparent 62%),
+			radial-gradient(38% 34% at 62% 68%, color-mix(in srgb, var(--glow) 55%, transparent), transparent 70%),
+			linear-gradient(165deg, #221430, #09060f 70%);
+	}
+
+	.attract img {
+		width: 34%;
+		aspect-ratio: 1;
+		object-fit: contain;
+		filter: drop-shadow(0 0 10px var(--accent));
+	}
+
+	.cab.asleep .rim i,
+	.cab.asleep .phosphors,
+	.cab.asleep .beam,
+	.cab.asleep .stick b,
+	.cab.asleep .start {
+		animation: none;
+	}
+
+	.cab.asleep .rim i {
+		box-shadow: none;
+	}
+
+	.cab.asleep .rim i:nth-child(odd) {
+		opacity: 0.9;
+	}
+
+	.cab.asleep .beam,
+	.cab.asleep .stick b {
+		will-change: auto;
 	}
 
 	.fx,

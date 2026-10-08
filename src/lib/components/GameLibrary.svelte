@@ -17,7 +17,13 @@
 	const LIGHTS = Array.from({ length: 56 }, (_, i) => i);
 	const TICKER = tickerCopy();
 	const COUNT = LIBRARY_GAMES.length;
-	const STEP = 360 / Math.max(COUNT, 1);
+	/**
+	 * Visual gap between neighbours, in degrees. It stays fixed so a larger library
+	 * does not pack every cabinet onto the wheel — only a window around the front is mounted.
+	 */
+	const STEP = 28;
+	/** How many cabinets to keep on either side of the one in front. */
+	const WINDOW = 5;
 
 	function wrap(next: number) {
 		return ((next % COUNT) + COUNT) % COUNT;
@@ -26,6 +32,33 @@
 	function indexOfId(id: string | null | undefined) {
 		const found = LIBRARY_GAMES.findIndex((game) => game.id === id);
 		return found >= 0 ? found : 0;
+	}
+
+	/** Unwrapped index of cabinet `i` nearest the continuous wheel position. */
+	function nearest(i: number, cursor: number) {
+		if (COUNT <= 1) return 0;
+		return i + Math.round((cursor - i) / COUNT) * COUNT;
+	}
+
+	function visualAngle(i: number) {
+		return (nearest(i, spin.current) - spin.current) * STEP;
+	}
+
+	function windowIndices(cursor: number) {
+		if (COUNT <= 1) return [0];
+		const reach = Math.min(COUNT, WINDOW * 2 + 1);
+		const pad = COUNT > reach ? 1 : 0;
+		const half = Math.floor((reach - 1) / 2) + pad;
+		const base = Math.round(cursor);
+		const seen = new Set<number>();
+		const indices: number[] = [];
+		for (let k = -half; k <= half; k++) {
+			const wrapped = wrap(base + k);
+			if (seen.has(wrapped)) continue;
+			seen.add(wrapped);
+			indices.push(wrapped);
+		}
+		return indices;
 	}
 
 	const start = indexOfId(recallCabinet());
@@ -41,8 +74,10 @@
 	let dragSpin = 0;
 	let restored = false;
 
-	const spin = new Spring(-start * STEP, { stiffness: 0.14, damping: 0.6, precision: 0.05 });
-	const facingIndex = $derived(wrap(Math.round(-spin.current / STEP)));
+	const spin = new Spring(start, { stiffness: 0.14, damping: 0.6, precision: 0.002 });
+	const facingIndex = $derived(wrap(Math.round(spin.current)));
+	const windowBase = $derived(Math.round(spin.current));
+	const shown = $derived(windowIndices(windowBase));
 	const focused = $derived(LIBRARY_GAMES[index] ?? LIBRARY_GAMES[0]);
 	const rx = $derived(Math.max(168, Math.min(wide * 0.24, 268)));
 	const rz = $derived(Math.max(96, Math.min(wide * 0.11, 148)));
@@ -51,8 +86,8 @@
 	/** Horizontal blur radii (px) for each motion-blur level. */
 	const BLUR_LEVELS = [2, 4.5, 8, 13];
 
-	/** Ghost silhouettes smeared along the arc behind each cabinet while spinning. */
-	const GHOSTS = Array.from({ length: 10 }, (_, k) => k);
+	/** Ghost silhouettes smeared along the arc behind the front cabinets while spinning. */
+	const GHOSTS = Array.from({ length: 4 }, (_, k) => k);
 	const WARP_COLORS = ['#ff2bd6', '#00f0ff', '#ffe14a', '#ffffff'];
 	/** Neon speed lines that rush across the stage while the wheel spins. */
 	const WARP = Array.from({ length: 18 }, (_, i) => ({
@@ -78,7 +113,7 @@
 
 	function blurLevel(depth: number) {
 		const v = speed * Math.max(0, depth);
-		if (calm || v < 0.5) return 0;
+		if (calm || depth < 0.65 || v < 0.5) return 0;
 		if (v < 1.2) return 1;
 		if (v < 2.1) return 2;
 		if (v < 3.1) return 3;
@@ -93,15 +128,15 @@
 		let raf = 0;
 		const tick = (now: number) => {
 			const dt = Math.max(1, now - lastT) / 1000;
-			const angle = spin.current;
-			const raw = (angle - last) / STEP / dt;
+			const cursor = spin.current;
+			const raw = -(cursor - last) / dt;
 			smooth += (raw - smooth) * Math.min(1, dt * 18);
-			last = angle;
+			last = cursor;
 			lastT = now;
 			const next = Math.abs(smooth) < 0.05 ? 0 : Math.round(smooth * 20) / 20;
 			if (next !== vel) vel = next;
 			peak = Math.max(peak, Math.abs(smooth));
-			if (peak > 0.9 && Math.abs(smooth) < 0.35 && Math.abs(angle - spin.target) < STEP * 0.12) {
+			if (peak > 0.9 && Math.abs(smooth) < 0.35 && Math.abs(cursor - spin.target) < 0.12) {
 				peak = 0;
 				landKey += 1;
 			}
@@ -133,7 +168,7 @@
 		const delta = shortest(index, to);
 		index = to;
 		keep(to);
-		spin.set(spin.target - delta * STEP, { instant: calm });
+		spin.set(spin.target + delta, { instant: calm });
 		playLibraryHover();
 	}
 
@@ -157,7 +192,7 @@
 	function slotPose(i: number) {
 		const lean = calm ? 0 : Math.max(-18, Math.min(18, -vel * 7));
 		const bank = calm ? 0 : Math.max(-6, Math.min(6, vel * 2.2));
-		const pose = arcPose(i * STEP + spin.current, 0, lean, bank);
+		const pose = arcPose(visualAngle(i), 0, lean, bank);
 		const blur = blurLevel(pose.depth);
 		return {
 			filter: blur ? `url(#spin-blur-${blur})` : 'none',
@@ -174,7 +209,7 @@
 		const arc = Math.min(STEP * 0.95, speed * STEP * 0.34);
 		const back = -Math.sign(vel) * arc * ((k + 1) / GHOSTS.length);
 		const lean = Math.max(-18, Math.min(18, -vel * 7));
-		const pose = arcPose(i * STEP + spin.current + back, 16 + k * 3, lean);
+		const pose = arcPose(visualAngle(i) + back, 16 + k * 3, lean);
 		const fade = Math.pow(1 - k / GHOSTS.length, 1.2);
 		return {
 			transform: pose.transform,
@@ -227,7 +262,7 @@
 		const saved = indexOfId(loadCabinet());
 		if (saved === index) return;
 		index = saved;
-		spin.set(-saved * STEP, { instant: true });
+		spin.set(saved, { instant: true });
 	});
 
 	function launch(game: LibraryGame = focused) {
@@ -307,20 +342,20 @@
 			dragged = true;
 			(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
 		}
-		spin.set(dragSpin + (dx / Math.max(160, wide * 0.2)) * STEP, { instant: true });
+		spin.set(dragSpin - dx / Math.max(160, wide * 0.2), { instant: true });
 	}
 
 	function onPointerUp() {
 		if (!dragging) return;
 		dragging = false;
 		if (!dragged) return;
-		const nearest = wrap(Math.round(-spin.current / STEP));
-		const snapped = -nearest * STEP;
-		if (nearest !== index) {
-			index = nearest;
+		const snapped = Math.round(spin.current);
+		const snappedIndex = wrap(snapped);
+		if (snappedIndex !== index) {
+			index = snappedIndex;
 			playLibraryHover();
 		}
-		keep(nearest);
+		keep(snappedIndex);
 		spin.set(snapped, { instant: calm });
 		window.setTimeout(() => {
 			dragged = false;
@@ -417,9 +452,10 @@
 			{/if}
 			<div class="ring" style:--rush={smear} aria-hidden="true"></div>
 			<div class="wheel">
-				{#each LIBRARY_GAMES as game, i (game.id)}
+				{#each shown as i (LIBRARY_GAMES[i].id)}
+					{@const game = LIBRARY_GAMES[i]}
 					{@const pose = slotPose(i)}
-					{#if smear > 0 && slotHeight > 0 && pose.depth > -0.35}
+					{#if smear > 0 && slotHeight > 0 && pose.depth > 0.55}
 						{#each GHOSTS as k (k)}
 							{@const ghost = ghostPose(i, k, pose.opacity)}
 							<div
@@ -445,10 +481,12 @@
 					>
 						<ArcadeCabinet
 							{game}
+							index={i}
 							nested
 							compact
 							hot={i === facingIndex}
-							onlaunch={() => pick(i)}
+							awake={i === index && speed < 14}
+							onlaunch={pick}
 						/>
 						{#if i === facingIndex && landKey && !calm}
 							{#key landKey}

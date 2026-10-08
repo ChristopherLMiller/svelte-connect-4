@@ -5,22 +5,32 @@ export type { GameManifest };
 export { GAME_MANIFESTS, manifestById, manifestForPath } from './manifests';
 
 export type LibraryGame = GameManifest & {
-	Preview: Component;
+	/** Loads the cabinet's attract preview. Split out so the hall does not boot every game at once. */
+	preview: () => Promise<{ default: Component }>;
 };
 
 type SvelteModule = { default: Component };
 
-const previews = import.meta.glob<SvelteModule>('./*/preview.svelte', {
-	eager: true
-});
+const previews = import.meta.glob<SvelteModule>('./*/preview.svelte');
+
+const previewCache = new Map<string, Promise<Component>>();
+
+export function takePreview(game: LibraryGame) {
+	let pending = previewCache.get(game.id);
+	if (!pending) {
+		pending = game.preview().then((mod) => mod.default);
+		previewCache.set(game.id, pending);
+	}
+	return pending;
+}
 
 const pages = import.meta.glob<SvelteModule>('./*/Page.svelte');
 const layouts = import.meta.glob<SvelteModule>('./*/Layout.svelte');
 
 export const LIBRARY_GAMES: LibraryGame[] = GAME_MANIFESTS.flatMap((manifest) => {
-	const Preview = previews[`./${manifest.id}/preview.svelte`]?.default;
-	if (!Preview) return [];
-	return [{ ...manifest, Preview }];
+	const preview = previews[`./${manifest.id}/preview.svelte`];
+	if (!preview) return [];
+	return [{ ...manifest, preview }];
 });
 
 export function gameById(id: string | undefined) {
