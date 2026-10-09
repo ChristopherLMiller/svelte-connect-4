@@ -2,8 +2,10 @@
 	import GuideShell from '$lib/components/GuideShell.svelte';
 	import { pubPanelControls, pubPanels, pubView } from '../settings.svelte';
 	import { VARIANTS, VARIANT_INFO, type Variant } from '../types';
+	import { viewForVariant } from '../views';
 
 	let tab = $state<Variant>(pubView.variant);
+	const guide = $derived(viewForVariant(tab)?.guide ?? null);
 
 	$effect(() => {
 		if (pubPanels.guide.open) tab = pubView.variant;
@@ -12,7 +14,8 @@
 	const controls = [
 		['Tap a card', 'Play it, or choose it for a pass or the crib'],
 		['Drag a card up', 'Play it, the way you would toss it on the table'],
-		['Tap the stock or discard', 'Gin: draw or take'],
+		['Tap the stock or discard', 'Draw or take, in the rummy games'],
+		['Tap a card, then a glowing pile', 'Move it there, in patience and Kings Corner'],
 		['Enter', 'Deal in from the bar'],
 		['?', 'Open this guide'],
 		['Esc', 'Close a panel, then back to the bar']
@@ -97,6 +100,40 @@
 				</ul>
 			</div>
 		</div>
+	{:else if tab === 'spades'}
+		<p>Four players in two partnerships, all 52 cards, 13 tricks. <strong>Spades are always trump.</strong> Each side bids how many tricks it will take, then tries to take exactly that many.</p>
+		<div class="cols">
+			<div>
+				<p class="sub">Bidding and play</p>
+				<ul>
+					<li>Everyone bids once, starting left of the dealer. Partners' bids add up to the side's contract.</li>
+					<li><strong>Nil</strong> is a bid of zero: a promise to take no tricks at all. The partner's bid stands on its own.</li>
+					<li>Follow suit if you can; otherwise play anything. The highest spade wins, or the highest card of the suit led.</li>
+					<li>Spades can't be led until one has been played on another suit (<strong>broken</strong>), unless you hold only spades.</li>
+				</ul>
+			</div>
+			<div>
+				<p class="sub">Scoring</p>
+				<ul>
+					<li>Make the contract: 10 per trick bid, plus 1 per extra trick (a <strong>bag</strong>).</li>
+					<li>Fall short (<strong>set</strong>): lose 10 per trick bid.</li>
+					<li>Nil made: +100. Nil broken: −100, and the nil player's tricks don't help the partner.</li>
+					<li>Every ten bags collected costs 100. First side to 300 wins; a side at −200 loses.</li>
+				</ul>
+			</div>
+		</div>
+	{:else if tab !== 'euchre' && guide}
+		<p>{@render rich(guide.intro)}</p>
+		<div class="cols">
+			{#each guide.cols as col (col.title)}
+				<div>
+					<p class="sub">{col.title}</p>
+					<ul>
+						{#each col.items as item, i (i)}<li>{@render rich(item)}</li>{/each}
+					</ul>
+				</div>
+			{/each}
+		</div>
 	{:else}
 		<p>Four players in two partnerships, 24 cards (nine to ace). Make trump and take <strong>three of five tricks</strong>. The jack of trump (<strong>right bower</strong>) is highest, then the other jack of the same colour (<strong>left bower</strong>, which counts as trump).</p>
 		<div class="cols">
@@ -131,6 +168,10 @@
 	</dl>
 </GuideShell>
 
+{#snippet rich(text: string)}
+	{#each text.split('**') as part, i (i)}{#if i % 2}<strong>{part}</strong>{:else}{part}{/if}{/each}
+{/snippet}
+
 <style>
 	.tabs {
 		display: flex;
@@ -145,8 +186,9 @@
 		background: transparent;
 		color: inherit;
 		border-radius: 999px;
-		padding: 6px 14px;
+		padding: 5px 12px;
 		font: inherit;
+		font-size: 0.86rem;
 		font-weight: 700;
 		cursor: pointer;
 	}

@@ -4,6 +4,10 @@
 	import { canBigGin, canKnockWith } from '../rules/gin';
 	import { PASS_NAMES, passDir, passTarget } from '../rules/hearts';
 	import { mayGoAlone, mustCall, partnerOf, teamOf } from '../rules/euchre';
+	import { contractOf, teamTricks } from '../rules/spades';
+	import { viewOf } from '../views';
+	import type { PromptButton, PromptDo } from '../views/types';
+	import type { CoachButton } from '../coach';
 	import type { PubSession } from '../session.svelte';
 
 	let { session }: { session: PubSession } = $props();
@@ -15,11 +19,27 @@
 
 	let alone = $state(false);
 
+	const hint = $derived(session.coaching && my ? (session.advice?.button ?? null) : null);
+	const lock = (id: CoachButton) => session.guided && hint !== id;
+
+	function run(what: PromptDo) {
+		if (what === 'next') session.next();
+		else if (what === 'confirm') session.confirm();
+		else if ('spot' in what) session.spot(what.spot);
+		else session.act(what);
+	}
+
+	const lookClass = (b: PromptButton) => (b.look === 'num' ? 'soft num' : b.look === 'gold' ? 'soft gold' : (b.look ?? 'go'));
+	const advisedAlone = $derived(!!(session.advice?.action as { alone?: boolean } | undefined)?.alone);
+
 	const waiting = $derived.by(() => {
+		if (session.teaching) return 'Rosie has something to show you';
 		if (!s || session.over || actor === null || my) return '';
 		if (session.thinking !== null) return `${names[session.thinking]} is thinking…`;
 		return `Waiting for ${names[actor]}`;
 	});
+
+	const model = $derived(s && viewOf(s) ? viewOf(s)!.prompt(s, { ...session.viewCtx, my, waiting, selected: session.selected }) : null);
 
 	const KIND: Record<ScoreItem['kind'], string> = {
 		fifteen: 'Fifteen',
@@ -74,10 +94,10 @@
 				</div>
 			{:else if my && s.phase === 'discard'}
 				<p class="line">Choose two cards for <b>{s.dealer === session.viewer ? 'your' : `${names[s.dealer]}'s`}</b> crib</p>
-				<button class="go" disabled={session.selected.length !== 2} onclick={() => session.confirm()}>Throw to the crib</button>
+				<button class="go" class:hint={hint === 'confirm' && session.selected.length === 2} disabled={session.selected.length !== 2} onclick={() => session.confirm()}>Throw to the crib</button>
 			{:else if my && s.phase === 'cut'}
 				<p class="line">Cut the deck for the starter</p>
-				<button class="go" onclick={() => session.spot('cut')}>Cut</button>
+				<button class="go" class:hint={hint === 'cut'} disabled={lock('cut')} onclick={() => session.spot('cut')}>Cut</button>
 			{:else if my && s.phase === 'peg'}
 				<p class="line">Play a card. The count is <b>{s.count}</b>, keep it at 31 or under</p>
 			{:else}
@@ -98,7 +118,7 @@
 				</div>
 			{:else if my && s.phase === 'pass'}
 				<p class="line">Pass three cards <b>{PASS_NAMES[passDir(s.handNo)]}</b> to {names[passTarget(session.viewer, passDir(s.handNo))]}</p>
-				<button class="go" disabled={session.selected.length !== 3} onclick={() => session.confirm()}>Pass them</button>
+				<button class="go" class:hint={hint === 'confirm' && session.selected.length === 3} disabled={session.selected.length !== 3} onclick={() => session.confirm()}>Pass them</button>
 			{:else if my && s.phase === 'play'}
 				<p class="line">
 					{#if s.trickNo === 0 && s.trick.every((c) => c === null)}Lead the two of clubs
@@ -136,21 +156,26 @@
 			{:else if my && s.phase === 'firstUp'}
 				<p class="line">Take the <b>{longName(s.discard[s.discard.length - 1])}</b>, or pass</p>
 				<div class="row-buttons">
-					<button class="go" onclick={() => session.act({ type: 'take' })}>Take it</button>
-					<button class="soft" onclick={() => session.act({ type: 'pass' })}>Pass</button>
+					<button class="go" class:hint={hint === 'take'} disabled={lock('take')} onclick={() => session.act({ type: 'take' })}>Take it</button>
+					<button class="soft" class:hint={hint === 'pass'} disabled={lock('pass')} onclick={() => session.act({ type: 'pass' })}>Pass</button>
 				</div>
 			{:else if my && s.phase === 'draw'}
 				<p class="line">Draw from the stock, or take the <b>{label(s.discard[s.discard.length - 1])}</b></p>
 				<div class="row-buttons">
-					<button class="go" onclick={() => session.act({ type: 'draw' })}>Draw</button>
-					<button class="soft" onclick={() => session.act({ type: 'take' })}>Take {label(s.discard[s.discard.length - 1])}</button>
+					<button class="go" class:hint={hint === 'draw'} disabled={lock('draw')} onclick={() => session.act({ type: 'draw' })}>Draw</button>
+					<button class="soft" class:hint={hint === 'take'} disabled={lock('take')} onclick={() => session.act({ type: 'take' })}>Take {label(s.discard[s.discard.length - 1])}</button>
 				</div>
 			{:else if my && s.phase === 'discard'}
 				<p class="line">{session.knocking ? 'Tap the card to throw face down and knock' : 'Tap a card to discard it'}</p>
 				<div class="row-buttons">
-					{#if canBigGin(s)}<button class="go" onclick={() => session.act({ type: 'bigGin' })}>Big gin!</button>{/if}
+					{#if canBigGin(s)}<button class="go" class:hint={hint === 'bigGin'} disabled={lock('bigGin')} onclick={() => session.act({ type: 'bigGin' })}>Big gin!</button>{/if}
 					{#if knockable}
-						<button class={session.knocking ? 'go' : 'soft'} onclick={() => (session.knocking = !session.knocking)}>{session.knocking ? 'Cancel knock' : 'Knock…'}</button>
+						<button
+							class={session.knocking ? 'go' : 'soft'}
+							class:hint={hint === 'knock' && !session.knocking}
+							disabled={lock('knock')}
+							onclick={() => (session.knocking = !session.knocking)}>{session.knocking ? 'Cancel knock' : 'Knock…'}</button
+						>
 					{/if}
 				</div>
 			{:else}
@@ -174,8 +199,8 @@
 			{:else if my && s.phase === 'farmer'}
 				<p class="line">Farmer's hand! Swap three nines and tens for the hidden kitty cards?</p>
 				<div class="row-buttons">
-					<button class="go" onclick={() => session.act({ type: 'farmer', swap: true })}>Swap</button>
-					<button class="soft" onclick={() => session.act({ type: 'farmer', swap: false })}>Keep my hand</button>
+					<button class="go" class:hint={hint === 'swap'} disabled={lock('swap')} onclick={() => session.act({ type: 'farmer', swap: true })}>Swap</button>
+					<button class="soft" class:hint={hint === 'keep'} disabled={lock('keep')} onclick={() => session.act({ type: 'farmer', swap: false })}>Keep my hand</button>
 				</div>
 			{:else if my && s.phase === 'bid1'}
 				{@const dealer = s.dealer === session.viewer}
@@ -184,41 +209,132 @@
 					the <b>{longName(s.upcard)}</b>? Trump would be {SUIT_NAME[Math.floor(s.upcard / 13)]}
 				</p>
 				<div class="row-buttons">
-					<button class="go" onclick={() => session.act({ type: 'order', alone: false })}>{dealer ? 'Pick it up' : 'Order up'}</button>
+					<button class="go" class:hint={hint === 'order'} disabled={lock('order')} onclick={() => session.act({ type: 'order', alone: false })}>{dealer ? 'Pick it up' : 'Order up'}</button>
 					{#if mayGoAlone(s, session.viewer)}
-						<button class="soft gold" onclick={() => session.act({ type: 'order', alone: true })}>Go alone</button>
+						<button class="soft gold" class:hint={hint === 'alone'} disabled={lock('alone')} onclick={() => session.act({ type: 'order', alone: true })}>Go alone</button>
 					{/if}
-					<button class="soft" onclick={() => session.act({ type: 'pass' })}>Pass</button>
+					<button class="soft" class:hint={hint === 'pass'} disabled={lock('pass')} onclick={() => session.act({ type: 'pass' })}>Pass</button>
 				</div>
 			{:else if my && s.phase === 'bid2'}
 				<p class="line">{mustCall(s) ? 'Stuck! You must name trump' : 'Name trump, or pass'}</p>
 				<div class="row-buttons">
 					{#each [0, 1, 2, 3] as suit (suit)}
 						{#if suit !== Math.floor(s.upcard / 13)}
-							<button class={['suit', (suit === 1 || suit === 3) && 'red']} onclick={() => session.act({ type: 'call', suit: suit as Suit, alone })} aria-label="Call {SUIT_NAME[suit]}">
+							<button
+								class={['suit', (suit === 1 || suit === 3) && 'red']}
+								class:hint={hint === `call-${suit}`}
+								disabled={lock(`call-${suit}` as CoachButton)}
+								onclick={() => session.act({ type: 'call', suit: suit as Suit, alone: session.guided ? advisedAlone : alone })}
+								aria-label="Call {SUIT_NAME[suit]}"
+							>
 								{SUIT_GLYPH[suit]}
 							</button>
 						{/if}
 					{/each}
-					<label class="alone"><input type="checkbox" bind:checked={alone} /> Alone</label>
-					{#if !mustCall(s)}<button class="soft" onclick={() => session.act({ type: 'pass' })}>Pass</button>{/if}
+					{#if !session.guided}<label class="alone"><input type="checkbox" bind:checked={alone} /> Alone</label>{/if}
+					{#if !mustCall(s)}<button class="soft" class:hint={hint === 'pass'} disabled={lock('pass')} onclick={() => session.act({ type: 'pass' })}>Pass</button>{/if}
 				</div>
 			{:else if my && s.phase === 'discard'}
 				<p class="line">You picked up the <b>{longName(s.upcard)}</b>. Tap a card to bury</p>
 			{:else if my && s.phase === 'defend'}
 				<p class="line">{names[s.maker!]} is going alone. Defend alone for 4 if you euchre them?</p>
 				<div class="row-buttons">
-					<button class="soft gold" onclick={() => session.act({ type: 'defend', alone: true })}>Defend alone</button>
-					<button class="go" onclick={() => session.act({ type: 'defend', alone: false })}>Play with my partner</button>
+					<button class="soft gold" class:hint={hint === 'defend-alone'} disabled={lock('defend-alone')} onclick={() => session.act({ type: 'defend', alone: true })}>Defend alone</button>
+					<button class="go" class:hint={hint === 'defend'} disabled={lock('defend')} onclick={() => session.act({ type: 'defend', alone: false })}>Play with my partner</button>
 				</div>
 			{:else if my && s.phase === 'play'}
 				<p class="line">{s.trick.every((c) => c === null) ? 'Your lead' : 'Follow suit if you can'} · trump is <b>{SUIT_NAME[s.trump!]}</b></p>
 			{:else}
 				<p class="line muted">{waiting}</p>
 			{/if}
+		{:else if s.kind === 'spades'}
+			{@const us = session.viewer % 2}
+			{#if s.phase === 'handOver' && s.summary}
+				<div class="summary">
+					<p class="head">Hand {s.handNo} is in</p>
+					<ul class="items row">
+						{#each [us, 1 - us] as team (team)}
+							{@const r = s.summary[team]}
+							<li>
+								<em>{team === us ? 'Us' : 'Them'}</em>
+								{#if r.bid > 0}took {r.took} of {r.bid}{:else}no contract{/if}
+								{#each r.nils as n (n.seat)}<span class="muted"> · {names[n.seat]}’s nil {n.made ? 'made' : 'broken'}</span>{/each}
+								{#if r.penalty}<span class="muted"> · bag penalty</span>{/if}
+								<b>{r.points > 0 ? '+' : ''}{r.points}</b>
+								<span class="muted">→ {s.scores[team]}</span>
+							</li>
+						{/each}
+					</ul>
+					<button class="go" onclick={() => session.next()}>{s.winner !== null ? 'See the result' : 'Deal again'}</button>
+				</div>
+			{:else if my && s.phase === 'bid'}
+				{@const partner = s.bids[(session.viewer + 2) % 4]}
+				<p class="line">
+					How many tricks will you take?{#if partner !== null}
+						{names[(session.viewer + 2) % 4]} bid <b>{partner === 0 ? 'nil' : partner}</b>{/if}
+				</p>
+				<div class="row-buttons bids">
+					{#each Array.from({ length: 14 }, (_, n) => n) as n (n)}
+						<button
+							class={n === 0 ? 'soft gold' : 'soft num'}
+							class:hint={hint === `bid-${n}`}
+							disabled={lock(`bid-${n}`)}
+							onclick={() => session.act({ type: 'bid', bid: n })}>{n === 0 ? 'Nil' : n}</button
+						>
+					{/each}
+				</div>
+			{:else if my && s.phase === 'play'}
+				<p class="line">
+					{#if s.trick.every((c) => c === null)}Your lead{s.spadesBroken ? '' : ' (spades not broken yet)'}{:else}Follow suit if you can{/if}
+					· your side has <b>{teamTricks(s, us)}</b> of {contractOf(s, us)}
+				</p>
+			{:else}
+				<p class="line muted">{waiting}</p>
+			{/if}
+		{:else if model?.kind === 'summary'}
+			<div class="summary">
+				<p class="head">{@render rich(model.head)}</p>
+				<ul class="items row">
+					{#each model.items as item, i (i)}
+						<li>
+							<em>{item.label}</em>
+							{#if item.value}<b>{item.value}</b>{/if}
+							{#if item.note}<span class="muted">{item.note}</span>{/if}
+						</li>
+					{/each}
+				</ul>
+				{#if model.buttons?.length}
+					<div class="row-buttons">
+						{#each model.buttons as b (b.id)}{@render button(b)}{/each}
+					</div>
+				{/if}
+			</div>
+		{:else if model}
+			<p class="line" class:muted={model.muted}>{@render rich(model.text)}</p>
+			{#if model.buttons?.length}
+				<div class="row-buttons" class:bids={model.buttons.some((b) => b.look === 'num')}>
+					{#each model.buttons as b (b.id)}{@render button(b)}{/each}
+				</div>
+			{/if}
 		{/if}
 	</div>
 {/if}
+
+{#snippet rich(text: string)}
+	{#each text.split('**') as part, i (i)}{#if i % 2}<b>{part}</b>{:else}{part}{/if}{/each}
+{/snippet}
+
+{#snippet button(b: PromptButton)}
+	<button
+		class={[lookClass(b), b.red && 'red']}
+		class:hint={hint === b.id}
+		disabled={b.disabled || (b.do !== 'next' && my && lock(b.id))}
+		aria-label={b.aria}
+		onclick={() => run(b.do)}
+	>
+		{b.label}{#if b.sub}<small>{b.sub}</small>{/if}
+	</button>
+{/snippet}
 
 <style>
 	.prompt {
@@ -294,6 +410,27 @@
 		cursor: default;
 	}
 
+	.prompt button.hint {
+		box-shadow:
+			0 0 0 2px rgba(80, 230, 215, 0.95),
+			0 0 18px rgba(80, 230, 215, 0.55);
+		animation: hint 1.6s ease-in-out infinite;
+	}
+
+	@keyframes hint {
+		50% {
+			box-shadow:
+				0 0 0 2px rgba(150, 245, 235, 1),
+				0 0 28px rgba(80, 230, 215, 0.8);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.prompt button.hint {
+			animation: none;
+		}
+	}
+
 	.go {
 		color: #1c1107;
 		background: linear-gradient(180deg, #f6c873, #c88a2e);
@@ -311,6 +448,17 @@
 		box-shadow: inset 0 0 0 1px rgba(255, 196, 106, 0.8);
 	}
 
+	.bids {
+		gap: 6px;
+	}
+
+	.num {
+		min-width: 38px;
+		padding: 9px 0;
+		font-size: 0.9rem;
+		letter-spacing: 0;
+	}
+
 	.suit {
 		width: 52px;
 		height: 52px;
@@ -326,6 +474,37 @@
 
 	.suit.red {
 		color: #b3262e;
+	}
+
+	button small {
+		display: block;
+		font-size: 0.62rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		opacity: 0.75;
+	}
+
+	.chip {
+		width: 54px;
+		height: 54px;
+		padding: 0;
+		border-radius: 50%;
+		color: #fff4dc;
+		font-size: 0.95rem;
+		letter-spacing: 0;
+		background:
+			radial-gradient(circle, #9b2c2c 0 60%, transparent 61%),
+			repeating-conic-gradient(from 0deg, #f4ead6 0 10deg, #7a1f1f 10deg 45deg);
+		box-shadow:
+			inset 0 0 0 2px rgba(0, 0, 0, 0.35),
+			0 6px 14px rgba(0, 0, 0, 0.4);
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+	}
+
+	.chip.red {
+		background:
+			radial-gradient(circle, #1f5a3a 0 60%, transparent 61%),
+			repeating-conic-gradient(from 0deg, #f4ead6 0 10deg, #15402a 10deg 45deg);
 	}
 
 	.alone {

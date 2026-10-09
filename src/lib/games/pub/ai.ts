@@ -1,4 +1,4 @@
-import { ACE, KING, NINE, QUEEN, SPADES, HEARTS, euchreDeck, fullDeck, pipValue, rankOf, seededRandom, shuffle, suitOf, type Card, type Suit } from '../kit/cards/deck';
+import { ACE, KING, NINE, QUEEN, SPADES, HEARTS, euchreDeck, fullDeck, pipValue, rankOf, seededRandom, suitOf, type Card, type Suit } from '../kit/cards/deck';
 import { legalPegs, pegPoints, scoreHand, total, type CribAction, type CribState } from './rules/cribbage';
 import { QUEEN_OF_SPADES, applyHearts, ledSuit, legalHearts, passDir, passTarget, pointsOf, type HeartsAction, type HeartsState } from './rules/hearts';
 import { bestMelding, canBigGin, canKnockWith, deadwoodOf, type GinAction, type GinState } from './rules/gin';
@@ -19,39 +19,21 @@ import {
 	type EuchreAction,
 	type EuchreState
 } from './rules/euchre';
+import type { SpadesAction, SpadesState } from './rules/spades';
+import type { ExtraAction, ExtraState } from './rules/registry';
+import { bestBy, dealUnknown as deal, humanish, pick, type Holder } from './bots/shared';
+import { botFor } from './bots/registry';
+import { spadesAi } from './bots/spades';
 import type { Difficulty } from './types';
 
-export type PubState = CribState | HeartsState | GinState | EuchreState;
-export type PubAction = CribAction | HeartsAction | GinAction | EuchreAction;
+export type PubState = CribState | HeartsState | GinState | EuchreState | SpadesState | ExtraState;
+export type PubAction = CribAction | HeartsAction | GinAction | EuchreAction | SpadesAction | ExtraAction;
 
 export type AiRequest = { state: PubState; seat: number; difficulty: Difficulty; seed: number };
 
-const pick = <T>(items: T[], random: () => number) => items[Math.floor(random() * items.length)];
-
-function bestBy<T>(items: T[], score: (item: T) => number): T {
-	let best = items[0];
-	let bestScore = -Infinity;
-	for (const item of items) {
-		const v = score(item);
-		if (v > bestScore) {
-			bestScore = v;
-			best = item;
-		}
-	}
-	return best;
-}
-
-/** Sometimes a weaker player grabs a near-best option instead of the best. */
-function humanish<T>(items: T[], score: (item: T) => number, difficulty: Difficulty, random: () => number): T {
-	const ranked = items.map((item) => ({ item, v: score(item) })).sort((a, b) => b.v - a.v);
-	const slip = difficulty === 'easy' ? 0.45 : difficulty === 'medium' ? 0.12 : 0;
-	if (ranked.length > 1 && random() < slip) return ranked[1 + Math.floor(random() * Math.min(ranked.length - 1, difficulty === 'easy' ? 4 : 2))].item;
-	return ranked[0].item;
-}
-
 /* ───────────── Cribbage ───────────── */
 
-function cribGuess(thrown: Card[]) {
+export function cribGuess(thrown: Card[]) {
 	const [a, b] = thrown;
 	let v = 4;
 	if (pipValue(a) + pipValue(b) === 15) v += 2;
@@ -109,33 +91,6 @@ function cribAi(s: CribState, seat: number, difficulty: Difficulty, random: () =
 	if (s.phase === 'discard') return { type: 'discard', seat, cards: cribDiscard(s, seat, difficulty, random) };
 	if (s.phase === 'cut') return { type: 'cut' };
 	return { type: 'play', card: cribPeg(s, seat, difficulty, random) };
-}
-
-/* ───────────── Shared: sampling hidden hands ───────────── */
-
-type Holder = { seat: number; need: number; voids: Set<Suit>; known: Card[] };
-
-function deal(unknown: Card[], holders: Holder[], random: () => number, suitOfCard: (c: Card) => Suit): Map<number, Card[]> | null {
-	for (let attempt = 0; attempt < 30; attempt++) {
-		const cards = shuffle(unknown, random);
-		const out = new Map<number, Card[]>(holders.map((h) => [h.seat, h.known.slice()]));
-		const room = new Map(holders.map((h) => [h.seat, h.need - h.known.length]));
-		let ok = true;
-		const strict = attempt < 24;
-		for (const c of cards) {
-			const options = holders.filter((h) => room.get(h.seat)! > 0 && (!strict || !h.voids.has(suitOfCard(c))));
-			if (!options.length) {
-				ok = false;
-				break;
-			}
-			const tight = options.filter((h) => h.voids.size > 0);
-			const h = pick(tight.length && random() < 0.5 ? tight : options, random);
-			out.get(h.seat)!.push(c);
-			room.set(h.seat, room.get(h.seat)! - 1);
-		}
-		if (ok) return out;
-	}
-	return null;
 }
 
 /* ───────────── Hearts ───────────── */
@@ -481,5 +436,9 @@ export function chooseAction(request: AiRequest): PubAction {
 			return ginAi(state, seat, difficulty, random);
 		case 'euchre':
 			return euchreAi(state, seat, difficulty, random);
+		case 'spades':
+			return spadesAi(state, seat, difficulty, random);
+		default:
+			return botFor(state.kind)(state, seat, difficulty, random);
 	}
 }

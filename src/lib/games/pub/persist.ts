@@ -2,6 +2,8 @@ import { validCribbage, type CribState } from './rules/cribbage';
 import { validEuchre, type EuchreState } from './rules/euchre';
 import { validGin, type GinState } from './rules/gin';
 import { validHearts, type HeartsState } from './rules/hearts';
+import { rulesOf, type ExtraKind, type ExtraState } from './rules/registry';
+import { validSpades, type SpadesState } from './rules/spades';
 import { DIFFICULTIES, VARIANTS, VARIANT_INFO, type Difficulty, type HotseatEuchre, type HotseatHearts, type Mode, type Variant } from './types';
 import type { PubState } from './ai';
 
@@ -31,6 +33,8 @@ export type PubView = {
 	euchreTarget: 5 | 10 | 11 | 15;
 	/** Dim the cards you can't play. */
 	hints: boolean;
+	/** Rosie suggests and explains a move on your turn. */
+	coach: boolean;
 	/** How long the regulars linger over each card. */
 	pace: 'brisk' | 'easy' | 'slow';
 };
@@ -68,6 +72,7 @@ export function freshView(): PubView {
 		stick: true,
 		euchreTarget: 10,
 		hints: true,
+		coach: true,
 		pace: 'easy'
 	};
 }
@@ -85,6 +90,7 @@ export function readView(): PubView {
 		stick: raw.stick !== false,
 		euchreTarget: raw.euchreTarget === 5 || raw.euchreTarget === 11 || raw.euchreTarget === 15 ? raw.euchreTarget : 10,
 		hints: raw.hints !== false,
+		coach: raw.coach !== false,
 		pace: raw.pace === 'brisk' || raw.pace === 'slow' ? raw.pace : 'easy'
 	};
 }
@@ -101,7 +107,9 @@ function validState(variant: Variant, state: unknown): state is PubState {
 		if (variant === 'cribbage') return validCribbage(state as CribState);
 		if (variant === 'hearts') return validHearts(state as HeartsState);
 		if (variant === 'gin') return validGin(state as GinState);
-		return validEuchre(state as EuchreState);
+		if (variant === 'spades') return validSpades(state as SpadesState);
+		if (variant === 'euchre') return validEuchre(state as EuchreState);
+		return rulesOf(variant as ExtraKind).valid(state as ExtraState);
 	} catch {
 		return false;
 	}

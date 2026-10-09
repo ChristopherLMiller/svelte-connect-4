@@ -3,9 +3,11 @@
 	import ArcadeExit from '$lib/components/ArcadeExit.svelte';
 	import ArcadeTile from '$lib/components/ArcadeTile.svelte';
 	import PubIcon from './PubIcon.svelte';
+	import Rosie from './Rosie.svelte';
 	import { playSelect } from '../audio';
 	import { persistPubView, pubPanelControls, pubRecords, pubView } from '../settings.svelte';
-	import { DIFFICULTIES, DIFFICULTY_INFO, REGULARS, VARIANTS, VARIANT_INFO, type Difficulty, type HotseatEuchre, type HotseatHearts, type Mode, type Variant } from '../types';
+	import { DIFFICULTIES, PARTNERED, REGULARS, SHELVES, SOLO, VARIANTS, VARIANT_INFO, difficultyInfo, type Difficulty, type HotseatEuchre, type HotseatHearts, type Mode, type Variant } from '../types';
+	import { viewForVariant } from '../views';
 	import type { PubSession } from '../session.svelte';
 
 	let { session }: { session: PubSession } = $props();
@@ -14,13 +16,18 @@
 	const record = $derived(pubRecords[variant]);
 	const saved = $derived(record.saved);
 	const four = $derived(VARIANT_INFO[variant].players === 4);
+	const solo = $derived(SOLO.includes(variant));
+	const mode = $derived(solo ? 'ai' : pubView.mode);
 
-	const GLYPH: Record<Variant, { glyph: string; red: boolean }> = {
+	const BASE_GLYPH: Partial<Record<Variant, { glyph: string; red: boolean }>> = {
 		cribbage: { glyph: '15', red: false },
 		hearts: { glyph: '♥', red: true },
 		gin: { glyph: '♣', red: false },
-		euchre: { glyph: 'J', red: true }
+		euchre: { glyph: 'J', red: true },
+		spades: { glyph: '♠', red: false }
 	};
+	const glyph = (v: Variant) => BASE_GLYPH[v] ?? viewForVariant(v)?.glyph ?? { glyph: '?', red: false };
+	const players = (v: Variant) => (VARIANT_INFO[v].players === 1 ? 'Patience' : SOLO.includes(v) ? 'You v the house' : `${VARIANT_INFO[v].players} players`);
 
 	function pick(next: Variant) {
 		session.open(next);
@@ -69,41 +76,47 @@
 
 	<div class="board" role="radiogroup" aria-label="Game">
 		<p class="chalk-head">Tonight's tables</p>
-		{#each VARIANTS as v (v)}
-			{@const info = VARIANT_INFO[v]}
-			<button role="radio" aria-checked={variant === v} class:on={variant === v} onclick={() => pick(v)}>
-				<i class:red={GLYPH[v].red} aria-hidden="true">{GLYPH[v].glyph}</i>
-				<span>
-					<strong>{info.title}</strong>
-					<small>{info.line}</small>
-				</span>
-				<em>{info.players} players · {info.chalk}</em>
-			</button>
+		{#each SHELVES as shelf (shelf.id)}
+			<p class="shelf">{shelf.title}</p>
+			{#each VARIANTS.filter((v) => VARIANT_INFO[v].shelf === shelf.id) as v (v)}
+				{@const info = VARIANT_INFO[v]}
+				<button role="radio" aria-checked={variant === v} class:on={variant === v} onclick={() => pick(v)}>
+					<i class:red={glyph(v).red} class:long={glyph(v).glyph.length > 1} aria-hidden="true">{glyph(v).glyph}</i>
+					<span>
+						<strong>{info.title}</strong>
+						<small>{info.line}</small>
+					</span>
+					<em>{players(v)} · {info.chalk}</em>
+				</button>
+			{/each}
 		{/each}
 	</div>
 
-	<div class="modes">
-		<button class="card" class:on={pubView.mode === 'ai'} onclick={() => setMode('ai')}>
-			<span class="tag">With the regulars</span>
-			<strong>Sit in with {opponents}</strong>
-			<small>{four ? (variant === 'euchre' ? 'Nell partners you across the table.' : 'Every seat for themselves.') : 'Heads up across the table.'}</small>
-		</button>
-		<button class="card" class:on={pubView.mode === 'local'} onclick={() => setMode('local')}>
-			<span class="tag">Pass and play</span>
-			<strong>One device, passed round</strong>
-			<small>A curtain drops between turns so nobody peeks.</small>
-		</button>
-	</div>
+	{#if !solo}
+		<div class="modes">
+			<button class="card" class:on={mode === 'ai'} onclick={() => setMode('ai')}>
+				<span class="tag">With the regulars</span>
+				<strong>Sit in with {opponents}</strong>
+				<small>{four ? (PARTNERED.includes(variant) ? `${REGULARS[variant][2]} partners you across the table.` : 'Every seat for themselves.') : 'Heads up across the table.'}</small>
+			</button>
+			<button class="card" class:on={mode === 'local'} onclick={() => setMode('local')}>
+				<span class="tag">Pass and play</span>
+				<strong>One device, passed round</strong>
+				<small>A curtain drops between turns so nobody peeks.</small>
+			</button>
+		</div>
+	{/if}
 
-	{#if pubView.mode === 'ai'}
+	{#if mode === 'ai'}
 		<div class="chips" transition:fade={{ duration: 160 }}>
 			{#each DIFFICULTIES as level (level)}
+				{@const info = difficultyInfo(variant, level)}
 				<button class:on={pubView.difficulty === level} onclick={() => setDifficulty(level)}>
-					{DIFFICULTY_INFO[level].title}<small>{DIFFICULTY_INFO[level].line}</small>
+					{info.title}<small>{info.line}</small>
 				</button>
 			{/each}
 		</div>
-	{:else if variant === 'hearts'}
+	{:else if four && !PARTNERED.includes(variant)}
 		<div class="chips" transition:fade={{ duration: 160 }}>
 			{#each [2, 3, 4] as n (n)}
 				<button class:on={pubView.heartsPlayers === n} onclick={() => setHearts(n as HotseatHearts)}>
@@ -111,26 +124,34 @@
 				</button>
 			{/each}
 		</div>
-	{:else if variant === 'euchre'}
+	{:else if PARTNERED.includes(variant)}
 		<div class="chips" transition:fade={{ duration: 160 }}>
-			<button class:on={pubView.euchreSeats === 'partners'} onclick={() => setEuchre('partners')}>Two partners<small>Against Fergus and Bert</small></button>
+			<button class:on={pubView.euchreSeats === 'partners'} onclick={() => setEuchre('partners')}>Two partners<small>Against {REGULARS[variant][1]} and {REGULARS[variant][3]}</small></button>
 			<button class:on={pubView.euchreSeats === 'rivals'} onclick={() => setEuchre('rivals')}>Two rivals<small>Each with a regular</small></button>
 			<button class:on={pubView.euchreSeats === 'four'} onclick={() => setEuchre('four')}>Four people<small>A full table</small></button>
 		</div>
 	{/if}
 
 	<p class="ledger">
-		{#if pubView.mode === 'ai'}
-			<span>{DIFFICULTY_INFO[pubView.difficulty].title} · won <strong>{ai.w}</strong></span>
-			<span>Lost <strong>{ai.l}</strong></span>
+		{#if mode === 'ai'}
+			<span>{difficultyInfo(variant, pubView.difficulty).title} · won <strong>{ai.w}</strong></span>
+			<span>{VARIANT_INFO[variant].players === 1 ? 'Not out' : 'Lost'} <strong>{ai.l}</strong></span>
 		{:else}
 			<span>Pass-and-play games <strong>{record.local}</strong></span>
 		{/if}
 	</p>
 
+	<button class="learn" onclick={() => session.startLesson(variant)}>
+		<Rosie size={40} />
+		<span>
+			<strong>New to {VARIANT_INFO[variant].title}? Learn it with Rosie</strong>
+			<small>She walks you through {VARIANT_INFO[variant].players === 1 ? 'the opening of a deal' : 'one hand'}, explaining every move. Nothing counts toward your record.</small>
+		</span>
+	</button>
+
 	<div class="cta">
 		{#if saved}
-			<button class="ghost" onclick={resume}>Resume {VARIANT_INFO[variant].title.toLowerCase()}, hand {saved.state.handNo}</button>
+			<button class="ghost" onclick={resume}>Resume {VARIANT_INFO[variant].title.toLowerCase()}{VARIANT_INFO[variant].players > 1 ? `, hand ${saved.state.handNo}` : ''}</button>
 		{/if}
 		<button class="go" onclick={() => session.start()}>Deal me in</button>
 	</div>
@@ -204,6 +225,17 @@
 		letter-spacing: 0.04em;
 	}
 
+	.shelf {
+		grid-column: 1 / -1;
+		margin: 10px 0 0;
+		text-align: left;
+		font-size: 0.95rem;
+		letter-spacing: 0.08em;
+		color: rgba(255, 212, 138, 0.75);
+		border-bottom: 1px dashed rgba(240, 236, 226, 0.18);
+		padding-bottom: 2px;
+	}
+
 	.board button {
 		appearance: none;
 		position: relative;
@@ -252,6 +284,10 @@
 
 	.board i.red {
 		color: #b3262e;
+	}
+
+	.board i.long {
+		font-size: 1.15rem;
 	}
 
 	.board span {
@@ -387,6 +423,49 @@
 		margin-left: 4px;
 		font: 700 1.05rem 'Playfair Display SC', Georgia, serif;
 		color: #fff2d6;
+	}
+
+	.learn {
+		appearance: none;
+		margin: 14px auto 0;
+		width: min(560px, 100%);
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 16px 10px 10px;
+		border-radius: 16px;
+		border: 1px solid rgba(80, 230, 215, 0.35);
+		background: linear-gradient(180deg, rgba(22, 38, 36, 0.9), rgba(12, 20, 19, 0.92));
+		color: #e8f4ee;
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			border-color 160ms ease,
+			box-shadow 160ms ease;
+	}
+
+	.learn span {
+		display: grid;
+		gap: 2px;
+	}
+
+	.learn strong {
+		font: 700 1.02rem Spectral, Georgia, serif;
+		color: #8ff0e2;
+	}
+
+	.learn small {
+		font-size: 0.82rem;
+		line-height: 1.35;
+		color: #b5c9c1;
+	}
+
+	@media (hover: hover) {
+		.learn:hover {
+			border-color: rgba(80, 230, 215, 0.75);
+			box-shadow: 0 0 22px rgba(80, 230, 215, 0.18);
+		}
 	}
 
 	.cta {

@@ -7,6 +7,7 @@
 	import { deadwoodOf } from '../rules/gin';
 	import { sitsOut, teamOf } from '../rules/euchre';
 	import { SEAT_GLOW } from '../types';
+	import { viewOf } from '../views';
 	import type { PubSession } from '../session.svelte';
 
 	let { session }: { session: PubSession } = $props();
@@ -30,7 +31,9 @@
 			stage: session.stage,
 			reveal: (seat) => (session.curtain ? false : lone ? session.humans[seat] : seat === session.viewer),
 			myTurn: session.myTurn,
-			knocking: session.knocking
+			knocking: session.knocking,
+			suggested: session.coaching && !(session.advice?.button === 'knock' && !session.knocking) ? (session.advice?.cards ?? []) : [],
+			suggestedSpot: session.coaching ? (session.advice?.spot ?? null) : null
 		};
 		return layoutTable(input, w, h);
 	});
@@ -57,8 +60,20 @@
 				const team = teamOf(seat);
 				return { score: `${s.tricks[seat]}`, sub: `trick${s.tricks[seat] === 1 ? '' : 's'} · team ${team === teamOf(session.viewer) ? 'us' : 'them'}`, tags };
 			}
+			case 'spades': {
+				if (s.dealer === seat) tags.push('Dealer');
+				const bid = s.bids[seat];
+				if (bid === 0) tags.push(s.tricks[seat] ? 'Nil broken' : 'Nil');
+				const side = seat % 2 === session.viewer % 2 ? 'us' : 'them';
+				return { score: `${s.tricks[seat]}`, sub: bid === null ? `trick${s.tricks[seat] === 1 ? '' : 's'} · ${side}` : bid === 0 ? `bid nil · ${side}` : `of ${bid} bid · ${side}`, tags };
+			}
+			default:
+				return viewOf(s)!.plate(s, seat, session.viewCtx);
 		}
 	}
+
+	const SPOT_LABEL: Record<string, string> = { draw: 'Draw from the stock', take: 'Take the discard', cut: 'Cut the deck' };
+	const hinted = $derived(session.coaching && session.myTurn ? (session.advice?.spot ?? null) : null);
 
 	function trumpGlyph(text: string) {
 		return SUIT_GLYPH[Number(text) as Suit];
@@ -73,9 +88,11 @@
 	{#if view}
 		{#each view.marks as mark, i (i)}
 			{#if mark.kind === 'trump'}
-				<div class="trump" class:red={red(mark.text)} style:left="{mark.x}px" style:top="{mark.y}px" aria-label="Trump">
-					<small>Trump</small>{trumpGlyph(mark.text)}
+				<div class="trump" class:red={red(mark.text)} class:bold={!!mark.caption} style:left="{mark.x}px" style:top="{mark.y}px" aria-label={mark.caption ?? 'Trump'}>
+					<small>{mark.caption ?? 'Trump'}</small>{trumpGlyph(mark.text)}
 				</div>
+			{:else if mark.kind === 'slot'}
+				<div class="slot" style:left="{mark.x}px" style:top="{mark.y}px" style:width="{mark.w}px" style:height="{mark.h}px">{mark.text}</div>
 			{:else}
 				<div class={['mark', mark.kind]} style:left="{mark.x}px" style:top="{mark.y}px">{mark.text}</div>
 			{/if}
@@ -92,12 +109,14 @@
 		{#each view.spots as spot (spot.action)}
 			<button
 				class="spot"
+				class:target={spot.target}
+				class:hint={hinted === spot.action}
 				style:left="{spot.x}px"
 				style:top="{spot.y}px"
 				style:width="{spot.w}px"
 				style:height="{spot.h}px"
 				onclick={() => session.spot(spot.action)}
-				aria-label={spot.action === 'draw' ? 'Draw from the stock' : spot.action === 'take' ? 'Take the discard' : 'Cut the deck'}
+				aria-label={spot.label ?? SPOT_LABEL[spot.action] ?? spot.action}
 			></button>
 		{/each}
 
@@ -248,6 +267,10 @@
 		color: #b3262e;
 	}
 
+	.trump.bold {
+		opacity: 0.92;
+	}
+
 	.spot {
 		position: absolute;
 		z-index: 350;
@@ -259,6 +282,42 @@
 
 	.spot:focus-visible {
 		outline: 2px solid #e0a548;
+	}
+
+	.spot.target {
+		outline: 2px dashed rgba(255, 212, 138, 0.75);
+		outline-offset: 2px;
+		background: rgba(255, 212, 138, 0.08);
+	}
+
+	.spot.hint {
+		outline: 2px solid rgba(80, 230, 215, 0.95);
+		outline-offset: 2px;
+		box-shadow: 0 0 18px rgba(80, 230, 215, 0.55);
+		background: rgba(80, 230, 215, 0.08);
+		animation: spot-hint 1.6s ease-in-out infinite;
+	}
+
+	@keyframes spot-hint {
+		50% {
+			box-shadow: 0 0 28px rgba(80, 230, 215, 0.8);
+		}
+	}
+
+	.slot {
+		position: absolute;
+		translate: -50% -50%;
+		box-sizing: border-box;
+		display: grid;
+		place-items: center;
+		border-radius: 7%;
+		border: 2px dashed rgba(244, 230, 200, 0.22);
+		background: rgba(0, 0, 0, 0.12);
+		color: rgba(244, 230, 200, 0.4);
+		font: 700 0.9rem 'Playfair Display SC', Georgia, serif;
+		text-align: center;
+		pointer-events: none;
+		z-index: 1;
 	}
 
 	.plate {
@@ -463,7 +522,8 @@
 
 	@media (prefers-reduced-motion: reduce) {
 		.lamp,
-		.dots i {
+		.dots i,
+		.spot.hint {
 			animation: none;
 		}
 

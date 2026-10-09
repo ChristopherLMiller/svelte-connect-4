@@ -11,9 +11,9 @@
 		['↓ / S', 'Soft drop'],
 		['Space', 'Hard drop'],
 		['C / Shift', 'Hold the piece for later'],
-		['P', 'Pause and resume'],
+		['Esc / P', 'Pause and resume'],
 		['Enter', 'Start, or dive again'],
-		['Esc', 'Close a panel, then back to the title']
+		['Esc', 'Close a panel, or leave a finished dive']
 	];
 
 	const touch = [

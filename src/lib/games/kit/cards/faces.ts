@@ -403,6 +403,7 @@ const faceCache = new Map<Card, string>();
 
 /** Data URL for a card face, painted once per session. */
 export function faceUrl(c: Card): string {
+	c = c % 52;
 	const hit = faceCache.get(c);
 	if (hit) return hit;
 	const canvas = makeCanvas();

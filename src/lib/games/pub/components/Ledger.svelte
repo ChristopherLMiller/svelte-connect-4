@@ -4,6 +4,8 @@
 	import { SUIT_GLYPH, SUIT_NAME } from '../../kit/cards/deck';
 	import { PASS_NAMES, passDir } from '../rules/hearts';
 	import { teamOf } from '../rules/euchre';
+	import { contractOf } from '../rules/spades';
+	import { viewOf } from '../views';
 	import { SEAT_GLOW, VARIANT_INFO } from '../types';
 	import type { PubSession } from '../session.svelte';
 
@@ -16,6 +18,8 @@
 	const KIND = { knock: 'knock', gin: 'gin', bigGin: 'big gin', undercut: 'undercut', void: 'void' } as const;
 
 	const teamName = (team: number) => `${names[team]} & ${names[team + 2]}`;
+
+	const extra = $derived(s && viewOf(s) ? viewOf(s)!.ledger(s, session.viewCtx) : null);
 </script>
 
 {#if s}
@@ -114,6 +118,82 @@
 			{:else}
 				<p class="note">First to {s.target}. Each hand won is a box worth 25 at the end</p>
 			{/if}
+		{:else if s.kind === 'spades'}
+			<div class="chalk">
+				<table>
+					<thead>
+						<tr>
+							<th>#</th>
+							{#each [us, 1 - us] as team (team)}<th style:color={SEAT_GLOW[team]}>{teamName(team)}</th>{/each}
+						</tr>
+					</thead>
+					<tbody>
+						{#each s.history.slice(-8) as row, i (i)}
+							<tr>
+								<td class="n">{Math.max(0, s.history.length - 8) + i + 1}</td>
+								{#each [us, 1 - us] as team (team)}<td>{row[team]}</td>{/each}
+							</tr>
+						{:else}
+							<tr><td colspan="3" class="empty">No hands yet</td></tr>
+						{/each}
+					</tbody>
+					<tfoot>
+						<tr>
+							<td></td>
+							{#each [us, 1 - us] as team (team)}<td>{s.scores[team]}<small>{s.bags[team]} bag{s.bags[team] === 1 ? '' : 's'}</small></td>{/each}
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+			{#if s.phase === 'play' || s.phase === 'trick'}
+				<p class="note">
+					Bids: us {contractOf(s, us)}, them {contractOf(s, 1 - us)}{#each s.bids as b, seat (seat)}{#if b === 0} · {names[seat]} nil{/if}{/each}
+				</p>
+			{/if}
+			<p class="note">First side to {s.target} wins. Every tenth bag costs 100; sinking to −200 loses</p>
+		{:else if extra}
+			{#if extra.table}
+				{@const t = extra.table}
+				<div class="chalk">
+					<table>
+						<thead>
+							<tr>
+								<th>#</th>
+								{#each t.head as cell, i (i)}<th style:color={cell.seat !== undefined ? SEAT_GLOW[cell.seat] : undefined}>{cell.text}</th>{/each}
+							</tr>
+						</thead>
+						<tbody>
+							{#each t.rows as row, i (i)}
+								<tr>
+									<td class="n">{i + 1}</td>
+									{#each row as cell, j (j)}<td>{cell}</td>{/each}
+								</tr>
+							{:else}
+								<tr><td colspan={t.head.length + 1} class="empty">{t.empty ?? 'Nothing yet'}</td></tr>
+							{/each}
+						</tbody>
+						{#if t.foot}
+							<tfoot>
+								<tr>
+									<td></td>
+									{#each t.foot as cell, i (i)}<td class:low={cell.best}>{cell.text}{#if cell.sub}<small>{cell.sub}</small>{/if}</td>{/each}
+								</tr>
+							</tfoot>
+						{/if}
+					</table>
+				</div>
+			{/if}
+			{#if extra.rows?.length}
+				<ul class="lanes">
+					{#each extra.rows as row, i (i)}
+						<li style:--glow={row.seat !== undefined ? SEAT_GLOW[row.seat] : '#e0a548'}>
+							<i></i><b>{row.label}</b><span>{row.value}</span>
+							{#if row.tag}<em>{row.tag}</em>{/if}
+						</li>
+					{/each}
+				</ul>
+			{/if}
+			{#each extra.notes as note, i (i)}<p class="note">{note}</p>{/each}
 		{/if}
 	</aside>
 {/if}

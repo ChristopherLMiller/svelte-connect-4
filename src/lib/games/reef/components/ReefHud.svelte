@@ -10,6 +10,8 @@
 	const sprint = $derived(session.mode === 'sprint');
 	const zone = $derived(zoneOf(session.depth));
 	const fill = $derived(sprint ? session.lines / SPRINT_LINES : depthFraction(session.level));
+	const paused = $derived(session.status.type === 'paused');
+	const pausable = $derived(['paused', 'playing', 'ready'].includes(session.status.type));
 	const toNext = $derived(LINES_PER_LEVEL - (session.lines % LINES_PER_LEVEL));
 
 	const call = $derived.by(() => {
@@ -99,11 +101,21 @@
 		</span>
 	</section>
 	<nav class="ops" aria-label="Game">
+		<button
+			type="button"
+			class:on={paused}
+			disabled={!pausable}
+			aria-pressed={paused}
+			onclick={(event) => {
+				session.togglePause();
+				event.currentTarget.blur();
+			}}>{paused ? 'Resume' : 'Pause'}</button
+		>
 		<button type="button" onclick={() => openReefSettings()}>Settings</button>
 		<button type="button" onclick={() => session.restart()}>Restart</button>
 		<button type="button" onclick={() => session.backToMenu()}>Menu</button>
 		<ArcadeExit tone="reef" />
-		<p class="keys">← → move · ↑ or X turns, Z back · ↓ soft · Space drops · C holds · P pauses · ? guide</p>
+		<p class="keys">← → move · ↑ or X turns, Z back · ↓ soft · Space drops · C holds · Esc pauses · ? guide</p>
 	</nav>
 </header>
 
@@ -313,8 +325,18 @@
 			color 160ms ease;
 	}
 
+	.ops button.on {
+		border-color: rgba(63, 233, 255, 0.7);
+		color: #bff6ff;
+	}
+
+	.ops button:disabled {
+		opacity: 0.45;
+		cursor: default;
+	}
+
 	@media (hover: hover) {
-		.ops button:hover {
+		.ops button:hover:not(:disabled) {
 			border-color: rgba(63, 233, 255, 0.55);
 			background: rgba(8, 30, 50, 0.92);
 			color: #bff6ff;

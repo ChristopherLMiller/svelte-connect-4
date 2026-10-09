@@ -5,7 +5,9 @@ import type { PubState } from './ai';
 import { showOf } from './rules/cribbage';
 import { effSuit, power, sitsOut, type EuchreState } from './rules/euchre';
 import { bestMelding } from './rules/gin';
+import { powerS } from './rules/spades';
 import type { Stage } from './session.svelte';
+import { viewOf } from './views';
 
 export type TableInput = {
 	state: PubState;
@@ -20,17 +22,23 @@ export type TableInput = {
 	reveal: (seat: number) => boolean;
 	myTurn: boolean;
 	knocking: boolean;
+	/** Rosie's suggested cards, glowing in the viewer's hand. */
+	suggested: Card[];
+	suggestedSpot: string | null;
 };
 
 export type Plate = { seat: number; pos: number; x: number; y: number; anchor: 'left' | 'right' | 'center' };
-export type Mark = { x: number; y: number; text: string; kind: 'count' | 'label' | 'trump' };
-export type Spot = { x: number; y: number; w: number; h: number; action: 'draw' | 'take' | 'cut' };
+/** `slot` is an empty pile outline (w/h in px); `trump` text is a suit number. */
+export type Mark = { x: number; y: number; text: string; kind: 'count' | 'label' | 'trump' | 'slot'; w?: number; h?: number; caption?: string };
+/** A tappable place on the felt. `target` outlines it as somewhere a chosen card can go. */
+export type Spot = { x: number; y: number; w: number; h: number; action: string; label?: string; target?: boolean };
 
 export type TableView = { cards: Placement[]; plates: Plate[]; marks: Mark[]; spots: Spot[]; cw: number; ch: number };
 
 const GOLD = 'rgba(255, 196, 92, 0.85)';
 const GREEN = 'rgba(140, 230, 140, 0.85)';
 const RED = 'rgba(255, 110, 90, 0.85)';
+const TEAL = 'rgba(80, 230, 215, 0.95)';
 
 export function cardWidth(w: number, h: number, players: number) {
 	const portrait = w < h * 0.8;
@@ -46,19 +54,18 @@ function jitter(c: Card, amount: number) {
 
 export function layoutTable(input: TableInput, w: number, h: number): TableView {
 	const { state: s, players } = input;
-	const cw = cardWidth(w, h, players);
+	const view = viewOf(s);
+	const cw = view?.cardWidth?.(w, h) ?? cardWidth(w, h, players);
 	const ch = cw / CARD_RATIO;
 	const cx = w / 2;
 	const cy = h * (players === 4 ? 0.46 : 0.47);
 	const cards = new Map<Card, Placement>();
-	const deckCards = s.kind === 'euchre' ? euchreDeck() : fullDeck();
+	const deckCards = view?.deck?.(s) ?? (s.kind === 'euchre' ? euchreDeck() : fullDeck());
 	const small = 0.7;
 	const pileScale = 0.5;
 
 	const put = (id: Card, p: Omit<Placement, 'id'>) => cards.set(id, { id, ...p });
 
-	/** Fan geometry by table position. */
-	/** Shift a whole fan so every rotated card stays inside the felt's rail. */
 	const RAIL = 18;
 	const box = (pts: Array<{ x: number; y: number; rot: number }>, scale: number) => {
 		const hw = (cw * scale) / 2;
@@ -78,6 +85,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 		}
 		return { left, right, top, bottom };
 	};
+	/** Shift a whole fan so every rotated card stays inside the felt's rail. */
 	const fit = (pts: Array<{ x: number; y: number; rot: number }>, scale: number) => {
 		if (!pts.length) return pts;
 		const { left, right, top, bottom } = box(pts, scale);
@@ -86,6 +94,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 		return pts.map((p) => ({ ...p, x: p.x + dx, y: p.y + dy }));
 	};
 
+	/** Fan geometry by table position. */
 	const handFan = (pos: number, count: number, own: boolean) => {
 		const scale = own ? 1 : small;
 		const cwS = cw * scale;
@@ -95,14 +104,14 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 		return { pts: fit(fan(count, { cx: x, cy, w: cwS, span: Math.min(h * 0.5, cwS * (count * 0.36 + 0.8)), arc: 2.4, turn: pos === 1 ? 90 : -90, gap: 0.36 }), scale), scale };
 	};
 
-	const hand = (seat: number, list: Card[], options: { order?: Card[]; glow?: (c: Card) => string | null; dim?: boolean; faceUp?: boolean } = {}) => {
+	const hand = (seat: number, list: Card[], options: { order?: Card[]; glow?: (c: Card) => string | null; dim?: boolean; faceUp?: boolean; live?: (c: Card) => boolean } = {}) => {
 		const pos = input.place(seat);
 		const own = pos === 0 && input.reveal(seat);
 		const face = options.faceUp ?? input.reveal(seat);
 		const ordered = options.order ?? (face ? sortHand(list) : list);
 		const { pts, scale } = handFan(pos, ordered.length, own);
 		ordered.forEach((c, i) => {
-			const live = own && input.myTurn && input.playable.includes(c);
+			const live = options.live ? options.live(c) : own && input.myTurn && input.playable.includes(c);
 			put(c, {
 				...pts[i],
 				face,
@@ -111,7 +120,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 				live,
 				raised: own && input.selected.includes(c),
 				dim: own && input.hints && input.myTurn && input.playable.length > 0 && !input.playable.includes(c),
-				glow: options.glow?.(c) ?? (live && input.knocking ? RED : null),
+				glow: options.glow?.(c) ?? (own && input.myTurn && input.suggested.includes(c) ? TEAL : live && input.knocking ? RED : null),
 				delay: input.stage === 'deal' ? 60 * i * (players === 4 ? 4 : 2) + seat * 60 : 0
 			});
 		});
@@ -140,7 +149,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 	};
 
 	const plates: Plate[] = [];
-	for (let seat = 0; seat < players; seat++) {
+	for (let seat = 0; seat < (view?.noPlates ? 0 : players); seat++) {
 		const pos = input.place(seat);
 		if (pos === 0) plates.push({ seat, pos, x: w - 10, y: box(handFan(0, players === 4 ? 13 : 11, true).pts, 1).top - ch * 0.22 - 58, anchor: 'right' });
 		else if (pos === 2) plates.push({ seat, pos, x: Math.min(cx + Math.min(w * 0.25, cw * small * 3.6) + 14, w - 124), y: 8, anchor: 'left' });
@@ -156,10 +165,44 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 		return { cards: [...cards.values()], plates, marks, spots, cw, ch };
 	}
 
+	if (view) {
+		const seatSpot = (pos: number) =>
+			[
+				{ x: cx, y: h - ch * 0.56 },
+				{ x: cw * 0.42, y: cy },
+				{ x: cx, y: ch * 0.36 },
+				{ x: w - cw * 0.42, y: cy }
+			][pos];
+		view.layout(s, {
+			input,
+			put,
+			hand,
+			trickSpot,
+			pileSpot,
+			seatSpot,
+			jitter,
+			plates,
+			marks,
+			spots,
+			cw,
+			ch,
+			cx,
+			cy,
+			w,
+			h,
+			small,
+			pileScale,
+			dealing: input.stage === 'deal',
+			colours: { gold: GOLD, green: GREEN, red: RED, teal: TEAL }
+		});
+		return { cards: [...cards.values()], plates, marks, spots, cw, ch };
+	}
+
 	if (s.kind === 'cribbage') {
 		const deckAt = { x: Math.max(cw * 0.9, cx - cw * 3.4), y: cy };
 		const cribAt = { x: Math.min(w - cw * 0.9, cx + cw * 3.4), y: cy + (input.place(s.dealer) === 0 ? ch * 0.45 : -ch * 0.45) };
-		stack(s.stock.length, deckAt.x, deckAt.y, cw).forEach((p, i) => put(s.stock[i], { ...p, face: false, z: 10 + i }));
+		const cutHint = s.phase === 'cut' && input.myTurn && input.suggestedSpot === 'cut';
+		stack(s.stock.length, deckAt.x, deckAt.y, cw).forEach((p, i) => put(s.stock[i], { ...p, face: false, z: 10 + i, glow: cutHint && i === s.stock.length - 1 ? TEAL : null }));
 		marks.push({ x: deckAt.x, y: deckAt.y + ch * 0.62, text: 'Deck', kind: 'label' });
 		marks.push({ x: cribAt.x, y: cribAt.y + ch * 0.62, text: `${s.dealer === input.viewer ? 'Your' : 'Their'} crib`, kind: 'label' });
 		if (s.phase === 'cut' && input.myTurn) spots.push({ x: deckAt.x - cw / 2, y: deckAt.y - ch / 2, w: cw, h: ch, action: 'cut' });
@@ -232,17 +275,44 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 		return { cards: [...cards.values()], plates, marks, spots, cw, ch };
 	}
 
+	if (s.kind === 'spades') {
+		for (let seat = 0; seat < 4; seat++) hand(seat, s.hands[seat]);
+		const order = [0, 1, 2, 3].map((i) => (s.leader + i) % 4);
+		order.forEach((seat, i) => {
+			const c = s.trick[seat];
+			if (c === null) return;
+			const spot = trickSpot(input.place(seat));
+			put(c, { ...spot, rot: spot.rot + jitter(c, 6), face: true, z: 200 + i, glow: s.phase === 'trick' && s.lastWinner === seat ? GOLD : null });
+		});
+		const taken = new Map<number, Card[][]>();
+		for (let t = 0; t < s.trickNo; t++) {
+			const plays = s.played.filter((p) => p.trick === t);
+			if (plays.length < 4) continue;
+			const led = plays[0].led;
+			const best = plays.reduce((a, b) => (powerS(b.card, led) > powerS(a.card, led) ? b : a));
+			taken.set(best.seat, [...(taken.get(best.seat) ?? []), plays.map((p) => p.card)]);
+		}
+		for (const [seat, tricks] of taken) {
+			const spot = pileSpot(input.place(seat));
+			tricks.forEach((trick, t) =>
+				trick.forEach((c, i) => put(c, { x: spot.x + (t % 7) * cw * 0.14, y: spot.y + Math.floor(t / 7) * ch * 0.18 + i * 1.5, rot: t % 2 ? 90 : 0, face: false, z: 40 + t * 5 + i, scale: pileScale }))
+			);
+		}
+		marks.push({ x: cx, y: cy, text: '2', kind: 'trump' });
+		return { cards: [...cards.values()], plates, marks, spots, cw, ch };
+	}
+
 	if (s.kind === 'gin') {
 		const stockAt = { x: cx - cw * 0.72, y: cy };
 		const discardAt = { x: cx + cw * 0.72, y: cy };
 		const drawing = input.myTurn && (s.phase === 'draw' || s.phase === 'firstUp');
 		stack(s.stock.length, stockAt.x, stockAt.y, cw).forEach((p, i) => {
 			const top = i === s.stock.length - 1;
-			put(s.stock[i], { ...p, face: false, z: 10 + i, glow: top && drawing && s.phase === 'draw' ? GOLD : null });
+			put(s.stock[i], { ...p, face: false, z: 10 + i, glow: top && drawing && s.phase === 'draw' ? (input.suggestedSpot === 'draw' ? TEAL : GOLD) : null });
 		});
 		s.discard.forEach((c, i) => {
 			const top = i === s.discard.length - 1;
-			put(c, { x: discardAt.x + jitter(c, cw * 0.06), y: discardAt.y + jitter(c + 7, cw * 0.06), rot: jitter(c, 10), face: true, z: 70 + i, glow: top && drawing ? GOLD : null });
+			put(c, { x: discardAt.x + jitter(c, cw * 0.06), y: discardAt.y + jitter(c + 7, cw * 0.06), rot: jitter(c, 10), face: true, z: 70 + i, glow: top && drawing ? (input.suggestedSpot === 'take' ? TEAL : GOLD) : null });
 		});
 		marks.push({ x: stockAt.x, y: stockAt.y + ch * 0.62, text: `Stock · ${s.stock.length}`, kind: 'label' });
 		marks.push({ x: discardAt.x, y: discardAt.y + ch * 0.62, text: 'Discard', kind: 'label' });
@@ -285,6 +355,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 		return { cards: [...cards.values()], plates, marks, spots, cw, ch };
 	}
 
+	if (s.kind !== 'euchre') return { cards: [...cards.values()], plates, marks, spots, cw, ch };
 	return euchreLayout(s, input, { put, hand, trickSpot, pileSpot, cards, plates, marks, spots, cw, ch, cx, cy, w, h, pileScale });
 }
 

@@ -159,7 +159,8 @@
 				{:else if type === 'paused'}
 					<p class="hint" transition:fade={{ duration: 160 }}>
 						<span>Holding depth</span>
-						<b>P or tap resumes</b>
+						<b>Paused</b>
+						<small>Esc, Space or tap to resume</small>
 					</p>
 				{/if}
 
@@ -304,12 +305,13 @@
 		left: 50%;
 		top: 38%;
 		translate: -50% 0;
+		width: 92%;
 		margin: 0;
 		display: grid;
 		gap: 6px;
 		text-align: center;
+		text-wrap: balance;
 		pointer-events: none;
-		white-space: nowrap;
 		color: #d8f4ff;
 		text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
 	}
@@ -325,6 +327,12 @@
 		font-weight: 700;
 		font-size: clamp(1.1rem, calc(var(--c) * 1), 1.8rem);
 		letter-spacing: 0.04em;
+	}
+
+	.hint small {
+		font-size: clamp(0.68rem, calc(var(--c) * 0.46), 0.85rem);
+		letter-spacing: 0.08em;
+		color: #a9d8e8;
 	}
 
 	.callout {

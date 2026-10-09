@@ -505,6 +505,24 @@ function settle(game: Game) {
 	spawn(game);
 }
 
+/** One soft-drop row, for the moment Down is pressed. */
+export function softStep(game: Game) {
+	const p = game.piece;
+	if (!p || game.over || game.done || game.clearing) return false;
+	if (!fits(game.board, p.kind, p.rot, p.x, p.y + 1)) return false;
+	p.y += 1;
+	game.fall = 0;
+	game.lastRotate = false;
+	game.score += 1;
+	if (p.y > game.lowest) {
+		game.lowest = p.y;
+		game.lockResets = 0;
+		game.lockTimer = 0;
+	}
+	if (!fits(game.board, p.kind, p.rot, p.x, p.y + 1)) game.events.push({ type: 'land' });
+	return true;
+}
+
 /** Advance time: line-clear dissolve, gravity and lock delay. */
 export function tick(game: Game, dt: number, soft: boolean) {
 	if (game.over || game.done) return;
@@ -517,7 +535,9 @@ export function tick(game: Game, dt: number, soft: boolean) {
 	const p = game.piece;
 	if (!p) return;
 	const gravity = gravityOf(game.level);
-	const interval = soft ? Math.min(gravity, 0.035) : gravity;
+	const interval = soft ? Math.max(gravity / 10, Math.min(0.1, gravity / 3)) : gravity;
+	// Time banked at normal gravity must not cash in as a burst of soft-drop rows.
+	if (game.fall > interval) game.fall = interval;
 	game.fall += dt;
 	while (game.fall >= interval) {
 		if (!fits(game.board, p.kind, p.rot, p.x, p.y + 1)) {

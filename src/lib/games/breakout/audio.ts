@@ -419,25 +419,30 @@ export function playLead(x: number) {
 
 let lastWall = 0;
 
-export function playWall(x: number) {
+export function playWall(x: number, y = 400) {
 	const audio = sfxContext();
 	if (!audio) return;
 	const t = audio.currentTime;
 	if (t - lastWall < 0.04) return;
 	lastWall = t;
 	const pan = panFor(x);
-	noiseHit(audio, t, 'bandpass', 620, 1.4, 0.05, 0.06, pan);
-	tone(audio, t, 'sine', 150, 110, 0.04, 0.002, 0.07, pan);
+	const f = y < 40 ? 740 : 620;
+	tone(audio, t, 'triangle', f, f * 0.82, 0.11, 0.002, 0.08, pan);
+	tone(audio, t, 'sine', f * 2.4, f * 2.3, 0.035, 0.002, 0.05, pan);
+	tone(audio, t, 'sine', 210, 160, 0.06, 0.002, 0.06, pan);
 }
+
+const BEAM_NOTES = [69, 72, 74, 76, 79];
 
 export function playBeam(rel: number, x: number) {
 	const audio = sfxContext();
 	if (!audio) return;
 	const t = audio.currentTime;
 	const pan = panFor(x);
-	tone(audio, t, 'sine', 300 + rel * 40, 175, 0.09, 0.002, 0.09, pan);
-	tone(audio, t, 'triangle', 620 + rel * 60, 420, 0.025, 0.002, 0.05, pan);
-	noiseHit(audio, t, 'bandpass', 1500, 2, 0.04, 0.03, pan);
+	tone(audio, t, 'sine', 330, 190, 0.14, 0.002, 0.11, pan);
+	tone(audio, t, 'triangle', 760, 520, 0.05, 0.002, 0.06, pan);
+	const note = BEAM_NOTES[Math.min(BEAM_NOTES.length - 1, Math.round(Math.abs(rel) * (BEAM_NOTES.length - 1)))]!;
+	chime(audio, t + 0.005, note + 12, 0.045, pan);
 }
 
 export function playServe() {

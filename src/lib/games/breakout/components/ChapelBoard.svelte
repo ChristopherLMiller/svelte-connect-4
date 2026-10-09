@@ -43,7 +43,14 @@
 	}
 
 	function move(event: PointerEvent) {
-		if (event.pointerType === 'mouse' || press) session.steerTo(fieldX(event.clientX));
+		if (press) session.steerTo(fieldX(event.clientX));
+	}
+
+	function glide(event: PointerEvent) {
+		if (event.pointerType !== 'mouse' || press) return;
+		if (type !== 'playing' && type !== 'serve') return;
+		const x = fieldX(event.clientX);
+		if (x !== null) session.steerTo(Math.max(0, Math.min(FIELD_W, x)));
 	}
 
 	function down(event: PointerEvent) {
@@ -59,6 +66,8 @@
 		if (moved < 14 && (quick || event.pointerType === 'mouse')) session.launch();
 	}
 </script>
+
+<svelte:window onpointermove={glide} />
 
 <div
 	class="pad"

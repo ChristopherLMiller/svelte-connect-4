@@ -602,6 +602,19 @@ dim the room.
 fingerpicked guitar and bodhrán; no noise beds. Effects: card, deal, pass, select, peg,
 turn, knock, cheer, hush, win, lose.
 
+**More tables.** Spades plus eleven more run through a generic pipeline: `rules/<game>.ts`
+(a `RuleSet`), `bots/<game>.ts`, `coach/<game>.ts` (advice with a why, and a review of the
+player's move) and `views/<game>.ts` (a `GameView`: glyph, tips, Rosie lesson, layout,
+prompt, ledger, guide, tap/spot handling). Each is registered in `rules/registry.ts`,
+`bots/registry.ts`, `coach/registry.ts` and `views/index.ts`. Games: Oh Hell, Crazy Eights,
+Go Fish, Old Maid, Blackjack (two decks, ids 0–103), Kings Corner, Rummy 500, Pinochle
+(48-card double deck), Klondike, FreeCell (best-first solver in `bots/freecell.ts`, cells
+5/4/3 by level) and Spider (1/2/4 suits by level, deck ids from `spiderDeck`). Patience
+layouts share `views/patience.ts`. Solitaire bots only make progress moves and resign when
+stuck, so AI games always end. `npx tsx scripts/coach-check.ts N [--only=game] [--show]
+[--lesson-seeds]` plays N games of each, checks every piece of advice is legal and its text
+has no undefined/NaN/null, and finds a lesson seed that shows every concept.
+
 ## Status log
 
 - v1.3.1 — synth layers on every game, warmer master chain, two-column settings.
@@ -671,3 +684,5 @@ turn, knock, cheer, hush, win, lose.
 - Lamplight Pub — built and browser-tested (menu, a hand of each game vs the regulars, a
   euchre game to the result, hotseat hearts through the curtain, phone 390 × 844 with the
   scores sheet, reduced motion; 60 fps). Awaiting user feedback.
+- Lamplight Pub, all sixteen tables with Rosie's coaching and lessons — coach-check passes for
+  every game; FreeCell and Spider lessons checked in the browser. Not yet committed.

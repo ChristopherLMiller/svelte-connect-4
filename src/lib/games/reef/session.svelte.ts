@@ -5,6 +5,7 @@ import {
 	holdPiece,
 	rotate,
 	shift,
+	softStep,
 	tick,
 	type ClearInfo,
 	type Game,
@@ -67,6 +68,7 @@ export class ReefSession {
 	private last = 0;
 	private readyAt = 0;
 	private soft = false;
+	private softAt = 0;
 	private dir: 'left' | 'right' | null = null;
 	private held = { left: false, right: false };
 	private repeatAt = 0;
@@ -149,7 +151,10 @@ export class ReefSession {
 		if (this.screen !== 'play') return;
 		if (this.status.type !== 'playing') {
 			if (action === 'left' || action === 'right') this.held[action] = true;
-			if (action === 'soft') this.soft = true;
+			if (action === 'soft') {
+				this.soft = true;
+				this.softAt = performance.now() + HANDLING[reefPrefs.handling].das;
+			}
 			return;
 		}
 		const game = this.game;
@@ -163,6 +168,8 @@ export class ReefSession {
 				break;
 			case 'soft':
 				this.soft = true;
+				this.softAt = performance.now() + HANDLING[reefPrefs.handling].das;
+				softStep(game);
 				break;
 			case 'cw':
 			case 'ccw':
@@ -199,6 +206,7 @@ export class ReefSession {
 
 	setSoft(on: boolean) {
 		this.soft = on;
+		this.softAt = 0;
 	}
 
 	release() {
@@ -302,6 +310,7 @@ export class ReefSession {
 					playLand();
 					break;
 				case 'lock':
+					this.soft = false;
 					playLock(event.cells.reduce((sum, [x]) => sum + x, 0) / event.cells.length);
 					break;
 				case 'harddrop':
@@ -414,7 +423,7 @@ export class ReefSession {
 			}
 		} else if (type === 'playing') {
 			this.repeat(now);
-			tick(this.game, dt, this.soft);
+			tick(this.game, dt, this.soft && now >= this.softAt);
 			this.drain();
 			this.time = this.game.time;
 		}

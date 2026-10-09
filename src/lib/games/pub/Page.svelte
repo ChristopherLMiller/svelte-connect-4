@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import Ledger from './components/Ledger.svelte';
+	import PubCoach from './components/PubCoach.svelte';
 	import PubCurtain from './components/PubCurtain.svelte';
 	import PubGuide from './components/PubGuide.svelte';
 	import PubHud from './components/PubHud.svelte';
+	import PubLesson from './components/PubLesson.svelte';
 	import PubMenu from './components/PubMenu.svelte';
 	import PubPrompt from './components/PubPrompt.svelte';
 	import PubResult from './components/PubResult.svelte';
@@ -56,7 +58,9 @@
 				<div class="arena">
 					<div class="felt-wrap">
 						<PubTable {session} />
+						<PubLesson {session} />
 					</div>
+					{#if session.coaching}<PubCoach {session} />{/if}
 					<PubPrompt {session} />
 				</div>
 				<div class="side">
@@ -135,6 +139,7 @@
 	}
 
 	.felt-wrap {
+		position: relative;
 		flex: 1 1 auto;
 		min-height: 0;
 		isolation: isolate;

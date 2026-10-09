@@ -2,13 +2,18 @@
 	import ArcadeExit from '$lib/components/ArcadeExit.svelte';
 	import PubIcon from './PubIcon.svelte';
 	import { pubPanelControls } from '../settings.svelte';
-	import { DIFFICULTY_INFO, VARIANT_INFO } from '../types';
+	import { ONE_DEAL, VARIANT_INFO, difficultyInfo } from '../types';
 	import type { PubSession } from '../session.svelte';
 
 	let { session, ledgerOpen, onledger }: { session: PubSession; ledgerOpen: boolean; onledger: () => void } = $props();
 
+	const hand = $derived(ONE_DEAL.includes(session.variant) ? '' : ` · hand ${session.state?.handNo ?? 0}`);
 	const sub = $derived(
-		session.mode === 'ai' ? `${DIFFICULTY_INFO[session.difficulty].line} · hand ${session.state?.handNo ?? 0}` : `Pass and play · hand ${session.state?.handNo ?? 0}`
+		session.lesson
+			? `Lesson with Rosie${hand}`
+			: session.mode === 'ai'
+				? `${difficultyInfo(session.variant, session.difficulty).line}${hand}`
+				: `Pass and play${hand}`
 	);
 </script>
 
@@ -22,6 +27,9 @@
 	</div>
 	<div class="ops">
 		<button type="button" class="ledger-toggle" aria-pressed={ledgerOpen} onclick={onledger}>Scores</button>
+		{#if !session.lesson}
+			<button type="button" class="coach" aria-pressed={session.coaching} onclick={() => session.toggleCoach()}>Coach</button>
+		{/if}
 		<button type="button" onclick={() => pubPanelControls.openGuide()}>Rules</button>
 		<button type="button" onclick={() => pubPanelControls.openSettings()}>Settings</button>
 		<button type="button" onclick={() => session.rematch()}>New game</button>
@@ -102,6 +110,11 @@
 	.ops button[aria-pressed='true'] {
 		border-color: #e0a548;
 		color: #ffd48a;
+	}
+
+	.ops button.coach[aria-pressed='true'] {
+		border-color: rgba(80, 230, 215, 0.7);
+		color: #8ff0e2;
 	}
 
 	.ledger-toggle {

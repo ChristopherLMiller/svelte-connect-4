@@ -1,6 +1,7 @@
 /**
  * A card is an integer 0..51: suit * 13 + rank, rank 0 = two … 12 = ace.
  * Suits alternate colour in sort order: clubs, diamonds, spades, hearts.
+ * Games with several decks add 52 per extra copy, so the face is always `id % 52`.
  */
 export type Card = number;
 export type Suit = 0 | 1 | 2 | 3;
@@ -26,7 +27,9 @@ export const KING = 11;
 export const ACE = 12;
 
 export const card = (suit: Suit, rank: number): Card => suit * 13 + rank;
-export const suitOf = (c: Card): Suit => Math.floor(c / 13) as Suit;
+export const suitOf = (c: Card): Suit => Math.floor((c % 52) / 13) as Suit;
+/** The same face in the first deck. */
+export const faceOf = (c: Card): Card => c % 52;
 export const rankOf = (c: Card) => c % 13;
 export const isRed = (c: Card) => suitOf(c) === DIAMONDS || suitOf(c) === HEARTS;
 export const sameColour = (a: Suit, b: Suit) => (a === DIAMONDS || a === HEARTS) === (b === DIAMONDS || b === HEARTS);

@@ -18,7 +18,7 @@
 		['Mouse / drag', 'Move the oak beam'],
 		['← → / A D', 'Move the beam from the keyboard'],
 		['Click / tap / Space', 'Serve the light'],
-		['P', 'Pause and resume'],
+		['Space / P', 'Pause and resume once the light is in flight'],
 		['Enter', 'Start, resume, or go again after the last candle'],
 		['?', 'Open this guide'],
 		['Esc', 'Close a panel, then back to the title']

@@ -47,6 +47,20 @@
 					<label class="row">
 						<input
 							type="checkbox"
+							checked={pubView.coach}
+							onchange={(event) => {
+								pubView.coach = event.currentTarget.checked;
+								persistPubView();
+							}}
+						/>
+						<span>
+							<strong>Coach</strong>
+							<small>Rosie suggests a move on your turn, explains why, and mentions it when a play cost you</small>
+						</span>
+					</label>
+					<label class="row">
+						<input
+							type="checkbox"
 							checked={pubView.hints}
 							onchange={(event) => {
 								pubView.hints = event.currentTarget.checked;

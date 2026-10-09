@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fade, fly, scale } from 'svelte/transition';
 	import { teamOf } from '../rules/euchre';
+	import { viewOf } from '../views';
 	import type { PubSession } from '../session.svelte';
 
 	let { session }: { session: PubSession } = $props();
@@ -67,6 +68,18 @@
 						: { kicker: 'Game', title: 'Fergus and Bert win', body: `${line} Bert won't stop talking about that last hand.` };
 				return { kicker: 'Game', title: `${who} win`, body: line };
 			}
+			case 'spades': {
+				const team = s.winner!;
+				const line = `${s.scores[team]} to ${s.scores[1 - team]} after ${s.handNo} hand${s.handNo === 1 ? '' : 's'}.`;
+				const kicker = s.scores[1 - team] <= -200 ? 'Sunk below −200' : `First to ${s.target}`;
+				if (lone)
+					return team === 0
+						? { kicker, title: 'You and Nell win', body: `${line} Nell taps the table: “Never doubted the bid.”` }
+						: { kicker, title: 'Fergus and Bert win', body: `${line} Fergus is already counting the bags he didn’t take.` };
+				return { kicker, title: `${who} win`, body: line };
+			}
+			default:
+				return viewOf(s)!.result(s, { ...session.viewCtx, won, winners: w });
 		}
 	});
 </script>

@@ -101,7 +101,7 @@
 		<button type="button" onclick={() => session.restart()}>Restart</button>
 		<button type="button" onclick={() => session.backToMenu()}>Menu</button>
 		<ArcadeExit tone="chapel" />
-		<p class="keys">Mouse or ← → to steer · Space serves · P pauses · ? guide</p>
+		<p class="keys">Mouse or ← → to steer · Space serves, then pauses · ? guide</p>
 	</nav>
 </header>
 

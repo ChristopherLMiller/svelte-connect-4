@@ -72,12 +72,13 @@
 			return;
 		}
 
+		const type = session.status.type;
 		if (event.key === 'Escape') {
-			session.backToMenu();
+			if (type === 'over' || type === 'done') session.backToMenu();
+			else if (!event.repeat) session.togglePause();
 			return;
 		}
 
-		const type = session.status.type;
 		if ((type === 'over' || type === 'done') && event.key === 'Enter') {
 			event.preventDefault();
 			session.restart();

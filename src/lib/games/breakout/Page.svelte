@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import ChapelBoard from './components/ChapelBoard.svelte';
 	import ChapelGuide from './components/ChapelGuide.svelte';
 	import ChapelHud from './components/ChapelHud.svelte';
@@ -20,6 +21,13 @@
 
 	const session = new ChapelSession();
 	let quiet = $state(false);
+
+	$effect(() => {
+		if (!chapelPanel.open && !chapelGuide.open) return;
+		untrack(() => {
+			if (session.screen === 'play' && session.status.type === 'playing') session.togglePause();
+		});
+	});
 
 	const LEFT = new Set(['ArrowLeft', 'a', 'A']);
 	const RIGHT = new Set(['ArrowRight', 'd', 'D']);
@@ -76,7 +84,7 @@
 		if (event.key === ' ' || event.key === 'Enter' || event.key === 'ArrowUp' || event.key === 'w' || event.key === 'W') {
 			event.preventDefault();
 			if (event.repeat) return;
-			if (type === 'paused') session.togglePause();
+			if (type === 'paused' || (type === 'playing' && event.key === ' ')) session.togglePause();
 			else session.launch();
 		}
 	}

@@ -295,7 +295,7 @@ export class ChapelSession {
 					playLead(event.x);
 					break;
 				case 'wall':
-					playWall(event.x);
+					playWall(event.x, event.y);
 					break;
 				case 'beam':
 					playBeam(event.rel, event.x);
