@@ -4,6 +4,12 @@
 	import { audioSettings, persistAudio, primeAudio, setLayersVolume, syncAudio } from '$lib/audio/prefs.svelte';
 	import { persistPubView, pubPanelControls, pubPanels, pubView } from '../settings.svelte';
 	import type { PubView } from '../persist';
+	import { SOLO, VARIANT_INFO } from '../types';
+
+	const variant = $derived(pubView.variant);
+	const title = $derived(VARIANT_INFO[variant].title);
+	const handGame = $derived(!SOLO.includes(variant));
+	const rivals = $derived(VARIANT_INFO[variant].players > 1);
 
 	const sfxPct = $derived(Math.round(audioSettings.sfxVolume * 100));
 	const musicPct = $derived(Math.round(audioSettings.musicVolume * 100));
@@ -40,10 +46,11 @@
 		<div class="panel" transition:scale={{ start: 0.96, duration: 180 }} role="dialog" aria-modal="true" aria-labelledby="pub-settings-title">
 			<p class="kicker">Behind the bar</p>
 			<h2 id="pub-settings-title">Settings</h2>
-			<p class="lede">Volumes are global. House rules for euchre take effect on the next new game.</p>
+			<p class="lede">Volumes are global.{variant === 'euchre' ? ' House rules take effect on the next new game.' : ''}</p>
 
 			<div class="cols">
 				<section class="col" aria-label="Table">
+					<p class="label first">At the table · {title}</p>
 					<label class="row">
 						<input
 							type="checkbox"
@@ -61,61 +68,81 @@
 					<label class="row">
 						<input
 							type="checkbox"
-							checked={pubView.hints}
+							checked={pubView.lift}
 							onchange={(event) => {
-								pubView.hints = event.currentTarget.checked;
+								pubView.lift = event.currentTarget.checked;
 								persistPubView();
 							}}
 						/>
 						<span>
-							<strong>Dim cards you can't play</strong>
-							<small>Cards that would break suit or the rules fade back in your hand</small>
+							<strong>Lift playable cards on hover</strong>
+							<small>Cards you can move rise a little under the pointer · off keeps the table still</small>
 						</span>
 					</label>
-
-					<p class="label">Pace of the regulars</p>
-					<div class="seg" role="radiogroup" aria-label="Pace">
-						{#each PACES as pace (pace.id)}
-							<button
-								role="radio"
-								aria-checked={pubView.pace === pace.id}
-								class:on={pubView.pace === pace.id}
-								onclick={() => {
-									pubView.pace = pace.id;
+					{#if handGame}
+						<label class="row">
+							<input
+								type="checkbox"
+								checked={pubView.hints}
+								onchange={(event) => {
+									pubView.hints = event.currentTarget.checked;
 									persistPubView();
-								}}>{pace.name}</button
-							>
-						{/each}
-					</div>
+								}}
+							/>
+							<span>
+								<strong>Dim cards you can't play</strong>
+								<small>Cards that would break suit or the rules fade back in your hand</small>
+							</span>
+						</label>
+					{/if}
 
-					<p class="label">Euchre house rules</p>
-					<label class="row">
-						<input
-							type="checkbox"
-							checked={pubView.stick}
-							onchange={(event) => {
-								pubView.stick = event.currentTarget.checked;
-								persistPubView();
-							}}
-						/>
-						<span>
-							<strong>Stick the dealer</strong>
-							<small>If everyone passes twice, the dealer must name trump instead of throwing the hand in</small>
-						</span>
-					</label>
-					<div class="seg" role="radiogroup" aria-label="Euchre game length">
-						{#each TARGETS as target (target)}
-							<button
-								role="radio"
-								aria-checked={pubView.euchreTarget === target}
-								class:on={pubView.euchreTarget === target}
-								onclick={() => {
-									pubView.euchreTarget = target;
+					{#if rivals}
+						<p class="label">Pace of the {variant === 'blackjack' ? 'dealer' : 'regulars'}</p>
+						<div class="seg" role="radiogroup" aria-label="Pace">
+							{#each PACES as pace (pace.id)}
+								<button
+									role="radio"
+									aria-checked={pubView.pace === pace.id}
+									class:on={pubView.pace === pace.id}
+									onclick={() => {
+										pubView.pace = pace.id;
+										persistPubView();
+									}}>{pace.name}</button
+								>
+							{/each}
+						</div>
+					{/if}
+
+					{#if variant === 'euchre'}
+						<p class="label">House rules</p>
+						<label class="row">
+							<input
+								type="checkbox"
+								checked={pubView.stick}
+								onchange={(event) => {
+									pubView.stick = event.currentTarget.checked;
 									persistPubView();
-								}}>To {target}</button
-							>
-						{/each}
-					</div>
+								}}
+							/>
+							<span>
+								<strong>Stick the dealer</strong>
+								<small>If everyone passes twice, the dealer must name trump instead of throwing the hand in</small>
+							</span>
+						</label>
+						<div class="seg" role="radiogroup" aria-label="Euchre game length">
+							{#each TARGETS as target (target)}
+								<button
+									role="radio"
+									aria-checked={pubView.euchreTarget === target}
+									class:on={pubView.euchreTarget === target}
+									onclick={() => {
+										pubView.euchreTarget = target;
+										persistPubView();
+									}}>To {target}</button
+								>
+							{/each}
+						</div>
+					{/if}
 				</section>
 
 				<section class="col" aria-label="Sound">
@@ -309,6 +336,10 @@
 		font-size: 0.66rem;
 		font-weight: 700;
 		color: #e0a548;
+	}
+
+	.label.first {
+		margin-top: 4px;
 	}
 
 	.seg {

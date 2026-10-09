@@ -162,7 +162,7 @@ export function applyFreeCell(state: FreeCellState, action: FreeCellAction): Fre
 		if (dst.kind === 'f') s.foundations[dst.i].push(...moving);
 		else if (dst.kind === 'c') s.cells[dst.i] = moving[0];
 		else s.tableau[dst.i].push(...moving);
-		autoHome(s);
+		if (!canAutoFC(s)) autoHome(s);
 		s.moves++;
 		finish(s);
 		return s;

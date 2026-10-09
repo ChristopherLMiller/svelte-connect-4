@@ -33,6 +33,8 @@ export type PubView = {
 	euchreTarget: 5 | 10 | 11 | 15;
 	/** Dim the cards you can't play. */
 	hints: boolean;
+	/** Playable cards rise under a hovering pointer. */
+	lift: boolean;
 	/** Rosie suggests and explains a move on your turn. */
 	coach: boolean;
 	/** How long the regulars linger over each card. */
@@ -72,6 +74,7 @@ export function freshView(): PubView {
 		stick: true,
 		euchreTarget: 10,
 		hints: true,
+		lift: true,
 		coach: true,
 		pace: 'easy'
 	};
@@ -90,6 +93,7 @@ export function readView(): PubView {
 		stick: raw.stick !== false,
 		euchreTarget: raw.euchreTarget === 5 || raw.euchreTarget === 11 || raw.euchreTarget === 15 ? raw.euchreTarget : 10,
 		hints: raw.hints !== false,
+		lift: raw.lift !== false,
 		coach: raw.coach !== false,
 		pace: raw.pace === 'brisk' || raw.pace === 'slow' ? raw.pace : 'easy'
 	};

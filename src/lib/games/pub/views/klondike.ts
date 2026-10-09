@@ -1,8 +1,8 @@
-import { SUIT_GLYPH, card, label, type Card } from '../../kit/cards/deck';
+import { SUIT_GLYPH, card, label, suitOf, type Card } from '../../kit/cards/deck';
 import { stack } from '../../kit/cards/layout';
 import { klondikeHint } from '../bots/klondike';
 import { canAuto, canDrawK, canRecycle, locate, targetsK, type KlondikeAction, type KlondikeState } from '../rules/klondike';
-import { pileOf } from '../rules/patience';
+import { lowRank, pileOf } from '../rules/patience';
 import { cardLook, columnsX, layColumn, patienceButtons, tableauY, topRowY } from './patience';
 import type { GameView } from './types';
 
@@ -120,8 +120,8 @@ export const KLONDIKE_VIEW: GameView<KlondikeState> = {
 		const passes = s.redeals !== null ? ` · pass ${s.passes + 1} of ${s.redeals + 1}` : '';
 		const sel = p.selected[0];
 		const text = sel !== undefined ? `Tap where the **${label(sel)}** goes` : `**${home(s)}** of 52 home · ${s.moves} moves${passes}`;
-		const extra = canAuto(s) ? [{ id: 'auto', label: 'Finish', look: 'go' as const, do: { type: 'auto' as const } }] : [];
-		return { kind: 'line', text, buttons: p.my ? patienceButtons(s.past.length > 0, extra) : [] };
+		if (canAuto(s)) return { kind: 'line', text: `Every card is face up. **Sending them home** · ${home(s)} of 52`, muted: true };
+		return { kind: 'line', text, buttons: p.my ? patienceButtons(s.past.length > 0) : [] };
 	},
 
 	ledger(s) {
@@ -157,7 +157,8 @@ export const KLONDIKE_VIEW: GameView<KlondikeState> = {
 				items: [
 					'Tap the stock to turn cards onto the waste; the top waste card can be played. When it’s empty, tap to turn the waste over.',
 					'Easy turns one card at a time. Medium turns three. Hard turns three and allows only three passes.',
-					'**Undo** takes back a move. **Finish** appears once every card is face up.'
+					'Double-tap a card to send it straight to its foundation.',
+					'**Undo** takes back a move. Once every card is face up, the rest go home on their own.'
 				]
 			}
 		]
@@ -177,6 +178,18 @@ export const KLONDIKE_VIEW: GameView<KlondikeState> = {
 		const t = targetsK(s, c);
 		if (t.length === 1) return { type: 'move', card: c, to: t[0] };
 		return t.length ? 'select' : null;
+	},
+
+	double: (s, c) => {
+		const up = targetsK(s, c).find((t) => t.startsWith('f'));
+		return up ? { type: 'move', card: c, to: up } : null;
+	},
+
+	autoStep: (s) => {
+		if (!canAuto(s)) return null;
+		const tops = s.tableau.map((col) => col[col.length - 1]).filter((c): c is Card => c !== undefined);
+		const next = tops.sort((a, b) => lowRank(a) - lowRank(b)).find((c) => targetsK(s, c).some((t) => t.startsWith('f')));
+		return next === undefined ? null : { type: 'move', card: next, to: `f${suitOf(next)}` };
 	},
 
 	spot: (s, id, _seat, selected): KlondikeAction | null => {

@@ -63,7 +63,7 @@
 		container-type: size;
 	}
 
-	.fit :global(:first-child) {
+	.fit > :global(:first-child) {
 		height: 100%;
 	}
 </style>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { CARD_RATIO, backUrl, faceUrl, type BackStyle } from './faces';
 	import { longName, type Card } from './deck';
 	import type { Placement } from './layout';
@@ -9,7 +11,9 @@
 		back,
 		onpick,
 		ondrop,
-		dropRise = 0.7
+		ondouble,
+		dropRise = 0.7,
+		lift = true
 	}: {
 		cards: Placement[];
 		/** Card width in px. */
@@ -18,11 +22,66 @@
 		onpick?: (id: Card) => void;
 		/** A live card dragged upward past `dropRise` card heights and let go. */
 		ondrop?: (id: Card) => void;
+		/** A second tap on the same card straight after the first. */
+		ondouble?: (id: Card) => void;
 		dropRise?: number;
+		/** Playable cards rise under a hovering pointer. */
+		lift?: boolean;
 	} = $props();
 
 	const height = $derived(width / CARD_RATIO);
+
+	/** A keyed node that moves in the DOM loses its transition, so cards keep one fixed order and z-index does the stacking. */
+	const ordered = $derived([...cards].sort((a, b) => a.id - b.id));
 	const backImage = $derived(`url(${backUrl(back)})`);
+
+	/** Cards lying under another card's footprint skip the drop shadow, so piles don't darken as they grow. */
+	const covered = $derived.by(() => {
+		const out = new Set<Card>();
+		const tx = width * 0.08;
+		const ty = height * 0.14;
+		for (const a of cards) {
+			for (const b of cards) {
+				if (b.z > a.z && Math.abs(b.x - a.x) < tx && Math.abs(b.y - a.y) < ty && (b.scale ?? 1) >= (a.scale ?? 1)) {
+					out.add(a.id);
+					break;
+				}
+			}
+		}
+		return out;
+	});
+
+	/** Cards on their way somewhere ride above everything until they land. */
+	const flying = new SvelteSet<Card>();
+	const where = new Map<Card, string>();
+	const timers = new Map<Card, ReturnType<typeof setTimeout>>();
+
+	$effect.pre(() => {
+		const list = cards;
+		untrack(() => {
+			for (const p of list) {
+				const key = `${Math.round(p.x)},${Math.round(p.y)}`;
+				const before = where.get(p.id);
+				where.set(p.id, key);
+				if (before === undefined || before === key) continue;
+				flying.add(p.id);
+				clearTimeout(timers.get(p.id));
+				timers.set(
+					p.id,
+					setTimeout(() => {
+						flying.delete(p.id);
+						timers.delete(p.id);
+					}, 480 + (p.delay ?? 0))
+				);
+			}
+		});
+	});
+
+	$effect(() => () => {
+		for (const t of timers.values()) clearTimeout(t);
+	});
+
+	let lastTap: { id: Card; at: number } | null = null;
 
 	let drag = $state<{ id: Card; pointer: number; x0: number; y0: number; dx: number; dy: number; moved: boolean } | null>(null);
 
@@ -43,8 +102,16 @@
 		if (!drag || event.pointerId !== drag.pointer) return;
 		const { id, moved, dy } = drag;
 		drag = null;
-		if (!moved) onpick?.(id);
-		else if (ondrop && -dy > height * dropRise) ondrop(id);
+		if (!moved) {
+			const now = performance.now();
+			if (ondouble && lastTap?.id === id && now - lastTap.at < 400) {
+				lastTap = null;
+				ondouble(id);
+			} else {
+				lastTap = { id, at: now };
+				onpick?.(id);
+			}
+		} else if (ondrop && -dy > height * dropRise) ondrop(id);
 	}
 
 	function cancel() {
@@ -61,14 +128,15 @@
 	}
 </script>
 
-<div class="layer" style:--w="{width}px" style:--h="{height}px" style:--back={backImage}>
-	{#each cards as p (p.id)}
+<div class="layer" class:hover={lift} style:--w="{width}px" style:--h="{height}px" style:--back={backImage}>
+	{#each ordered as p (p.id)}
 		{@const dragging = drag?.id === p.id && drag.moved}
 		<div
 			class="card"
 			class:dragging
+			class:flat={covered.has(p.id)}
 			style:transform="translate({p.x - width / 2 + (dragging ? drag!.dx : 0)}px, {p.y - height / 2 + (dragging ? drag!.dy : 0)}px) rotate({dragging ? 0 : p.rot}deg) scale({p.scale ?? 1})"
-			style:z-index={dragging ? 400 : p.z}
+			style:z-index={dragging ? 2000 : flying.has(p.id) ? 1000 + p.z : p.z}
 			style:transition-delay="{p.delay ?? 0}ms"
 		>
 			<div
@@ -146,7 +214,7 @@
 	}
 
 	@media (hover: hover) {
-		.lift.live:hover {
+		.hover .lift.live:hover {
 			translate: 0 -9%;
 		}
 	}
@@ -230,7 +298,13 @@
 		box-shadow:
 			0 0 0 2px var(--glow),
 			0 0 18px var(--glow),
-			0 3px 8px rgba(0, 0, 0, 0.4);
+			0 2px 5px rgba(0, 0, 0, 0.32);
+	}
+
+	.flat .spin {
+		box-shadow:
+			0 0 0 2px var(--glow),
+			0 0 18px var(--glow);
 	}
 
 	.spin.down {

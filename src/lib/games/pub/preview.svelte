@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { backUrl, faceUrl } from '../kit/cards/faces';
-	import { ACE, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES, card } from '../kit/cards/deck';
+	import { ACE, CLUBS, DIAMONDS, HEARTS, JACK, KING, QUEEN, SPADES, card, type Suit } from '../kit/cards/deck';
 	import { PUB_BACK } from './back';
+
+	/** A number card by its face value; ranks count from the two. */
+	const pip = (suit: Suit, n: number) => card(suit, n - 2);
 
 	/** A hearts trick in the middle, the queen of spades just dropped on it. */
 	const TRICK = [
-		{ c: card(HEARTS, 9), x: 50, y: 60, r: 4 },
-		{ c: card(HEARTS, 4), x: 41, y: 47, r: -12 },
+		{ c: pip(HEARTS, 9), x: 50, y: 60, r: 4 },
+		{ c: pip(HEARTS, 4), x: 41, y: 47, r: -12 },
 		{ c: card(SPADES, QUEEN), x: 50, y: 36, r: 9 },
 		{ c: card(HEARTS, KING), x: 59, y: 47, r: 16 }
 	];
-	const HAND = [card(CLUBS, ACE), card(DIAMONDS, JACK), card(SPADES, 6), card(HEARTS, 2), card(CLUBS, 8)];
+	const HAND = [card(CLUBS, ACE), card(DIAMONDS, JACK), pip(SPADES, 6), pip(HEARTS, 2), pip(CLUBS, 8)];
 
 	let faces = $state<string[]>([]);
 	let hand = $state<string[]>([]);

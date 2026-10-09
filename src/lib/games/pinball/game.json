@@ -1,0 +1,17 @@
+{
+	"id": "pinball",
+	"title": "Silverball",
+	"genre": "Pinball",
+	"players": "1",
+	"tagline": "Seven pinball tables, from 1960s woodrail chimes to a dragon's keep.",
+	"blurb": "A pinball parlour with seven tables: a haunted carnival, a 1960s woodrail, an 80s space station, a pirate ship, a kraken's trench, a dragon's keep and a Wild West train robbery.",
+	"description": "Silverball is a pinball parlour of seven full tables, each with its own rules, art and music. Ride the ramps of the Haunted Carnival and strike midnight for multiball. Chase chimes and score reels on a 1960s woodrail. Clear drop-target banks while the computer of an 80s space station calls your shots. Sink a galleon from a pirate ship's deck, escape the kraken's grip in the deep sea, smash the castle gate and fight the dragon in its keep, and rob the train before the Wild West showdown. Every table has real flipper physics with cradles, nudging and tilt, plus ramps, orbits, spinners, locks, timed modes, multiball, jackpots and a wizard mode to reach. Three difficulty settings each keep their own high score on every table.",
+	"keywords": ["Silverball", "pinball", "flipper", "multiball", "jackpot", "wizard mode", "ramps", "arcade", "pinball tables", "retro pinball"],
+	"theme": "#120a1c",
+	"favicon": "/pinball-favicon.svg",
+	"href": "/pinball",
+	"accent": "#ffc24a",
+	"glow": "#ff4b5c",
+	"cabinet": "#24122e",
+	"order": 16
+}

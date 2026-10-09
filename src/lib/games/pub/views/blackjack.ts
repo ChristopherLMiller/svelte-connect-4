@@ -114,9 +114,38 @@ export const BLACKJACK_VIEW: GameView<BlackjackState> = {
 
 		const playerY = k.cy + k.ch * 0.65;
 		const gap = k.cw * 2.2;
+		const chipD = Math.max(20, k.cw * 0.34);
+		const you = { x: k.cx + k.cw * 0.6, y: k.h + chipD };
+		const house = { x: k.cx, y: -chipD };
+		const tower = (id: string, amount: number, x: number, y: number, under: number, from: { x: number; y: number }, lost: boolean, delay = 0) => {
+			chipsFor(amount).forEach((value, j) => {
+				const level = under + j;
+				k.chips.push({
+					id: `${id}${j}`,
+					value,
+					x: lost ? house.x + k.jitter(level, chipD) : x,
+					y: lost ? house.y + chipD * 1.6 : y - level * chipD * 0.13,
+					z: 10 + level,
+					from,
+					to: lost ? house : you,
+					gone: lost,
+					delay: (lost ? 700 : delay) + j * 40
+				});
+			});
+			return under + chipsFor(amount).length;
+		};
 		s.hands.forEach((h, i) => {
 			const x = k.cx + (i - (s.hands.length - 1) / 2) * gap;
 			const result = s.summary?.results[i];
+			const lost = result === 'lose' || result === 'bust';
+			const at = { x: x - k.cw * 0.95, y: playerY + k.ch * 0.62 + 12 };
+			const stake = h.doubled ? h.bet / 2 : h.bet;
+			const top = tower(`h${i}b`, stake, at.x, at.y, 0, you, lost);
+			if (h.doubled) tower(`h${i}d`, stake, at.x, at.y, top, you, lost);
+			if (result === 'win' || result === 'blackjack') {
+				const paid = result === 'blackjack' ? Math.floor(h.bet * s.rules.payout) : h.bet;
+				tower(`h${i}p`, paid, at.x - chipD * 1.1, at.y, 0, house, false, 260);
+			}
 			const glow = result ? (result === 'win' || result === 'blackjack' ? k.colours.green : result === 'push' ? null : k.colours.red) : s.phase === 'play' && s.hands.length > 1 && i === s.active ? k.colours.gold : null;
 			row(h.cards, x, playerY, 120 + i * 20, () => true, glow);
 			k.marks.push({ x, y: playerY + k.ch * 0.62, text: handLabel(h.cards, h.split), kind: 'count' });
@@ -208,9 +237,11 @@ export const BLACKJACK_VIEW: GameView<BlackjackState> = {
 
 	react(prev, next, action, seat, fx) {
 		if (action.type === 'bet') {
+			fx.sound('chips', chipsFor(action.amount).length);
 			fx.sound('deal');
-			fx.sound('knock');
 		}
+		if (action.type === 'double' || action.type === 'split') fx.sound('chips', chipsFor(prev.hands[prev.active].bet).length);
+		if (next.phase === 'handOver' && prev.phase !== 'handOver' && next.summary?.results.some((r) => r !== 'push')) fx.sound('chips', 4);
 		if (action.type === 'hit' || action.type === 'double' || action.type === 'split') fx.sound('card', fx.pan(seat));
 		if (action.type === 'double') fx.say(0, 'Double!', 'call');
 		if (action.type === 'split') fx.say(0, 'Split them', 'call');
@@ -233,3 +264,18 @@ export const BLACKJACK_VIEW: GameView<BlackjackState> = {
 };
 
 const isDealerBj = (s: BlackjackState) => s.dealer.length === 2 && total(s.dealer).sum === 21;
+
+const DENOMS = [50, 25, 10, 5, 1];
+
+/** Fewest chips that make up an amount, biggest at the bottom of the stack. */
+function chipsFor(amount: number) {
+	const out: number[] = [];
+	let left = amount;
+	for (const d of DENOMS) {
+		while (left >= d) {
+			out.push(d);
+			left -= d;
+		}
+	}
+	return out;
+}

@@ -167,20 +167,22 @@ Next batch (agreed order, picked at random by the user; one at a time with feedb
     Settings: stick the dealer on/off, game to 5/10/11/15. House rules always on: farmer's
     hand, Canadian loner, defending alone (4 points for euchring a loner). Score shown with
     the classic 6-and-4 card counters on the table.
-12. **Ice Rink** — Air hockey on a frozen pond at night; two-thumb hotseat on one phone.
-13. **Stone Garden at Dusk** — Go (9/13/19, Japanese scoring, MCTS ladder, ink-wash territory).
-14. **Riverboat** — Solitaire (Klondike, later FreeCell/Spider) on the card kit.
-15. **Casino terrace** — Yahtzee with physical dice.
-16. **Pirate Cove** — Liar's Dice with bluffing regulars.
-17. **Lost Temple** — Sokoban, curated levels.
-18. **Embroidery** — Nonograms; solved puzzles stitch into a growing quilt.
-19. **Nebula Drift** — Asteroids, vector neon.
-20. **Paper Lanterns** — Sudoku with technique-rated generator.
-21. **Koi Pond** — Bubble shooter / match-3.
+Solitaire (the old Riverboat slot) is covered by the pub's Klondike, FreeCell and Spider, so it was dropped.
+The user moved Koi Pond, Haunted Carnival and Nebula Drift to the front.
+
+12. **Koi Pond** — Bubble shooter / match-3 — built, see below.
+13. **Silverball** — Pinball parlour of seven tables (grew out of Haunted Carnival) — built, see below.
+14. **Nebula Drift** — Asteroids, vector neon.
+15. **Ice Rink** — Air hockey on a frozen pond at night; two-thumb hotseat on one phone.
+16. **Stone Garden at Dusk** — Go (9/13/19, Japanese scoring, MCTS ladder, ink-wash territory).
+17. **Casino terrace** — Yahtzee with physical dice.
+18. **Pirate Cove** — Liar's Dice with bluffing regulars.
+19. **Lost Temple** — Sokoban, curated levels.
+20. **Embroidery** — Nonograms; solved puzzles stitch into a growing quilt.
+21. **Paper Lanterns** — Sudoku with technique-rated generator.
 22. **Honeycomb** — Hex.
-23. **Haunted Carnival** — Pinball (real 2D physics; biggest job).
-24. **Caravanserai** — Backgammon.
-25. **Runestones** — Nine Men's Morris.
+23. **Caravanserai** — Backgammon.
+24. **Runestones** — Nine Men's Morris.
 
 ## Chapel Glass (Breakout) — design
 
@@ -615,6 +617,161 @@ stuck, so AI games always end. `npx tsx scripts/coach-check.ts N [--only=game] [
 [--lesson-seeds]` plays N games of each, checks every piece of advice is legal and its text
 has no undefined/NaN/null, and finds a lesson seed that shows every concept.
 
+## Koi Pond — design
+
+Folder `src/lib/games/koi/`, route `/koi`, station `koi` (POND master profile, `koi`
+synth-layer arrangement), storage key `koi-pond` (mode, aim guide full/short, hints, best
+score/stage per mode plus longest Currents chain, one saved game per mode), tone `pond`,
+`order: 15`.
+
+**Two modes, one cabinet.** The menu picks between them; each keeps its own save, so
+switching never loses a game.
+
+- **Ripples** (bubble shooter, `shooter.ts`). Offset hex grid of blooms; the shot is planned
+  as a path with wall bounces, snaps to the nearest free cell, pops groups of 3+ and drops
+  anything no longer hanging from the reed line. Each miss uses up one of the stage's
+  allowance; when it runs out the reed line sinks a row. Blooms crossing the bottom line end
+  the game. `stageRules(stage)` sets rows, colours, allowance and how far down the stage
+  starts. Only colours still on the board are dealt. Tap the next bloom to swap.
+- **Currents** (match-3, `match.ts`). 8 × 8, 22 moves a stage, target from `stageGoal`.
+  Four in a row makes a row/column current, an L or T a burst, five a moon (clears every
+  bloom of the swapped kind); specials combine when swapped together. Unused moves pay
+  `MOVE_BONUS` each. Dead boards reshuffle. A hint pulses after 6.5 s idle (setting).
+
+`npx tsx scripts/koi-check.ts` has bots play 30 games of each and checks invariants
+(connectivity after drops, no matches left standing, cascade and plan timings).
+
+**Session.** `KoiSession` keeps the engine and a trailing view: Ripples flies the shot along
+the planned path (bounce sounds at vertices), Currents runs swap → pop → fall phases with
+per-piece visuals. Big plays (and every stage clear) send the golden koi leap
+(`KoiLeap.svelte`) across the screen; every landing splashes ripples into the backdrop
+through `onSplash`.
+
+**Look.** `KoiWater.svelte` (WebGL): pebble bed, caustics, leaf dapples, five koi with
+shadows, lily pads (two with lotus), drifting maple leaves and up to ten ripples from play;
+it dims while paused and warms red when Ripples is near the line. Blooms are canvas sprites
+(`bloomSprite` in `render.ts`): lotus, ginkgo, koi, lily pad, iris, dragonfly.
+
+**Sound.** G-major pentatonic: hang drum wandering over soft keys and light bass, water
+plops, a quieter section every fourth group of bars; no noise beds.
+
+## Silverball (pinball parlour) — design
+
+Folder `src/lib/games/pinball/`, route `/pinball`, station `pinball` (PARLOUR master
+profile), storage key `silverball` (table, difficulty, rumble, voice, best score and feat per
+table per difficulty, one saved game), `order: 16`. The user asked for "many styles" after
+finding the first table boring, and for flippers that never trap a held ball.
+
+**Layout.** `engine/` is shared by every table; each table is a folder under `tables/` with
+`def.ts` (geometry), `rules.ts` (state machine), `art.ts` (canvas painting and toys) and
+`index.ts` (the `TableSpec`: meta, backdrop GLSL, score, SFX palette, hot test, feat).
+`tables/index.ts` is the registry; `tables/parts.ts` holds proven pieces (orbits, side ramps
+with wireforms, top lanes, `bankRoof`); `tables/kit.ts` has loop and combo helpers.
+
+**Engine.**
+- `def.ts`: field 20 × 36, ball radius 0.45, right half mirrors the left about x = 9.3.
+  Walls (one-way via `nx`/`ny`, `toggle`d, `kind` for looks), posts, bumpers, flippers (any
+  layer), drop banks, standups, spinners, sensors, holes (saucer/scoop/sink, `toggle`,
+  `eject.ride`, `aim`), ramps, rides (wireforms; `exit.layer` can be 1), movers, magnets,
+  discs (spinning plates that drag balls round) and captives (a ball on a short track, hit
+  by the play ball and rolling back under gravity; `captive` event when it reaches the end).
+  An `aim` hole holds its ball while its angle sweeps (`world.aims`); a flipper press after
+  `ready` fires it along the aim at `speed`, or it fires itself after `wait`. `aiming(g)`
+  tells art and rules where it points.
+  `lower()` builds slings, inlane guides that end inside the flipper pivots, outlanes and
+  flippers; `shell()` the cabinet and shooter gate; `build()` merges parts and adds ramp rails.
+- `physics.ts`: fixed steps, two layers (0 playfield, 1 raised), ramps lift balls to layer 1,
+  rides carry them, movers have `solid`, magnets pull while on. Escaped/NaN balls are `lost`.
+  Contact friction is Coulomb-style and only on real impacts (closing speed over 1): a flat
+  per-step friction made balls crawl along guides and wireforms then speed up once free.
+  Ramp rails (`kind: 'rail'`) are slicker than the rest, so a diagonal shot rattling up a
+  ramp keeps its pace. Open rides pick up speed downhill with drag (`RIDE_*`); `carry` rides leave along their last
+  heading at the speed they rode, so wireform returns reach the flippers without a lurch.
+  `lower()` adds a one-way rubber off each side wall above the outlane (`OUT_GUARD`); the
+  kickback passes under it. pinball-check prints the share of drains down the outlanes
+  (aim: under about 30%).
+- `game.ts`: serve, plunger (tap = 45%), ball save, kickback, skill shot, lane groups,
+  combos, timed modes (`startMode`/`modeShot`), `multiball`, `extraBall`, nudge and tilt,
+  holds (`rules.hold` returns seconds) and `grab()` for holding a ball outside a hole (the
+  kraken). Rules get `event`, `hold`, `move` (every step), `tick` (every frame), and hooks for
+  lanes, modes, multiball end and ball end. `nudgeStill` kicks a ball resting for 6 s.
+- `render.ts`: printed playfield painted once per size, upper canvas for layer 1 (ramps,
+  wireforms, `paintUpper` decks, raised inserts), then per frame lit inserts, bulbs, targets,
+  bumpers, `art.toys`, flippers and balls per layer, then `art.raised`. Under reduced motion
+  the clock is frozen at 0, so toys and blinks hold still. Light shows (`Show`: sweep, strobe,
+  ring, dark) ride over the inserts and bulbs from events and cues; GI lamps glow under the
+  plastics and dip on big coils; flasher domes fire on ramps and big cues (big strobes kept at
+  3 Hz or slower); the table shakes on jackpots, nudges and tilt; unlit inserts chase. All of it
+  is off under reduced motion. The backdrop adds searchlights and a chasing marquee in the
+  table's colours and throbs on every hit (`session.pulse`). Modes beep a hurry-up for the last
+  five seconds (`hurry` cue); every switch has a sound.
+
+**Tables.**
+- Haunted Carnival (fairground): ghost train and Ferris wheel ramps, Zelda saucer, F·A·T·E,
+  Midnight multiball (one add-a-ball), six attractions (Ghost Train … Big Top) to the
+  Witching Hour. Every wheel ramp spins the Big Wheel round the clock (`spinWheel`, paid in
+  `tick` after 2.8 s): 25K, lock, kickback, bonus ×, spot F·A·T·E, 100K, extra ball, souls.
+  Every train ramp plays the Ghost Train (`trainAt`, `ghostTrain` cue): the tunnel at the top
+  left throws its doors open and lets a ghost out, carriages run under the ball along the
+  wireform, the ramp's rail bulbs race, and four lamps under the ramp count rides to the
+  extra ball. All of it is drawn in `raised`, above the wireforms.
+- The user asked for every table to play differently, not reskins, so each has a structural
+  gimmick of its own; only Haunted Carnival keeps the classic two ramps and two orbits.
+- Hi-Fi Holiday (1962 woodrail): four flippers and no orbits. A short bottom pair with a
+  wide gap and a centre post, plus a mid-field pair (`ML`/`MR`, fed by guides off the side
+  walls). Five bumpers (three top, two low), rubber posts. Five balls, A·B·C·D lights
+  bumpers then the Special, kick-out pays by count, side targets raise the multiplier;
+  chimes and score reels.
+- Nova Patrol (1984): U·F·O and A·L·I·E·N drop banks, upper flipper fed by the left orbit
+  over a diverter (the right orbit is its return path, so it stays), Star Storm multiball,
+  six missions to Supernova, a talking computer.
+- Dead Man's Tide (pirate): three flippers. The gunwale flipper (`U`) sits on the left wall
+  halfway up, fed by the left lane; the right orbit loops round onto it. The treasure chest
+  is a captive ball (four smashes burst it: award plus bonus ×). Plank ramp on the right,
+  bumpers top right, the galleon sailing the top left (sinks after 10/14/18 hits; ten hull
+  lamps show the share broken; the wreck then opens for Plunder multiball), the cove saucer,
+  the M·A·P bank facing the gunwale flipper, and the mast scoop whose hidden `hoist` ride
+  lifts the ball to the top lanes. Six voyages to Davy Jones' Locker. Bots average about
+  8 minutes and 8M, with a long tail; the hull counts and chest are the balance levers.
+- The Abyss (deep sea): no orbits, open water. A whirlpool disc in the middle with three
+  bumpers round it and the undertow magnet at its eye; it spins faster and reverses while
+  the kraken is awake. Every half turn a ball rides pays a whirl (`tick` tracks the angle
+  carried per ball); six whirls or orbit loops light an extra ball; Riptide mode wants
+  whirls. The kraken lives top centre and grabs the ball once awake (`grab`); grotto saucer,
+  trench scoop (hidden tunnel to the right), vent ramp, pearl standups. Six dives.
+- Dragon's Keep: a layer-1 deck across the top between the ramps with its own right flipper
+  (on the right button), the dragon and two hoard standups. The tower ramp's ride exits on
+  the deck; balls off the deck fall into the lair and ride back to the right inlane. The
+  portcullis (mover) guards the keep; smash it, lock two balls for Siege; six quests to
+  Dragonfire. The left orbit has no flap here (it made a pocket against the gate).
+- High Noon Express (Wild West): the train runs a long track across the top with station
+  stops. Its sweep is capped at reach 3.6, because at 4.4 its rest spot made a pocket against
+  the left orbit. The mine ramp goes straight up the middle and its `cart` ride carries the
+  ball over the fenced corral of bumpers (top left) to the left inlane. A railroad ramp on
+  the right, the vault scoop right of the mine (the dial spinner cracks it for bank jobs and
+  Gold Rush), and a diagonal row of three outlaw standups. The saloon saucer is the Quick
+  Draw: an `aim` hole whose six-shooter swings from the corral (-1.3 rad) to flat across at
+  the outlaws; a flipper fires it, and an outlaw hit within 1.2 s pays a growing quick-draw
+  bonus. The train can't be reached from the gun (a bumper is in the way). Six bounties
+  (Train Robbery, Showdown…) to High Noon.
+
+**Checks.** `npx tsx scripts/pinball-check.ts [games] [kind|fair|wicked] [table]` (needs to run
+outside the sandbox). Per table: a cradle test (hold a flipper, drop a ball, let go, it must
+roll away), a pocket grid (drop balls everywhere; nothing may rest), a rules fuzz (thousands
+of injected switches; every `EXPECT` cue must be reachable) and bot games (fail on escapes,
+a ball still for 5 s with no flipper held, or wall overlap over 0.3; unreached ramps, holes,
+spinners and lanes are only notes). The cradle test uses the first layer-0 flipper on each
+side, so `lower()` must come before any extra flippers in `build()`. The fuzz skips holes
+whose toggle is shut, as the engine does.
+
+**Sound.** `sound/score.ts` sequences each table's score (bars of chord, root and tune;
+sections; lead/bass/comp voices; drum patterns) and crossfades on table change; `sfx.ts`
+maps events through a per-table palette (bumper, ramp, drain and toy voices, own cues,
+optional chimes and speech). Gunshots, cannon and crashes are pitched sweeps; no noise beds.
+
+**Backdrops.** `Backdrop.svelte` wraps each table's `scene()` GLSL (ES 3.0, `s.y` up) with
+shared noise helpers; `hot` eases in during multiballs and wizard modes.
+
 ## Status log
 
 - v1.3.1 — synth layers on every game, warmer master chain, two-column settings.
@@ -685,4 +842,39 @@ has no undefined/NaN/null, and finds a lesson seed that shows every concept.
   euchre game to the result, hotseat hearts through the curtain, phone 390 × 844 with the
   scores sheet, reduced motion; 60 fps). Awaiting user feedback.
 - Lamplight Pub, all sixteen tables with Rosie's coaching and lessons — coach-check passes for
-  every game; FreeCell and Spider lessons checked in the browser. Not yet committed.
+  every game; FreeCell and Spider lessons checked in the browser. Released as v1.8.0.
+- Koi Pond — built and browser-tested (menu, Ripples aim/shoot/pop/drop/misses and resume,
+  Currents select/swap/refill, keyboard play, phone 390 × 844, reduced motion, hall tile;
+  ~56–60 fps). Not yet seen in the browser: the leap, stage clear, specials, game over.
+  Awaiting user feedback.
+- Haunted Carnival — built and browser-tested (menu, launch, Zelda saucer, flippers, pause,
+  guide, settings, three drains to game over with new best, phone 390 × 844, reduced
+  motion).
+- Silverball — feedback ("flippers trap a held ball", "boring", "many styles?") turned the
+  carnival into a seven-table parlour on a shared engine (see the design section). Every
+  table passes pinball-check; every backdrop shader compiles; all seven playfields and the
+  Dragon's Keep HUD were looked at in the browser. Not yet played by hand in the browser:
+  the multiballs, wizard modes, the kraken grab and the dragon deck (bot only). Awaiting
+  user feedback.
+- Silverball feedback round ("too easy to lose it down the sides", "the wheel ramp does
+  nothing", "far more lights and sounds", "balls stick on the ramps then speed up"): outlane
+  guards, impact-only friction, gravity on wireforms, the Big Wheel prize spin, engine-wide
+  light shows, GI, flashers, shake, a backdrop marquee, and sounds on every switch. Outlane
+  share is now 15–28% across the tables (was about 40–60%). Bot check all good; seen in the
+  browser (menu and Carnival in play); the wheel spin itself was only checked by the bot.
+- Feedback round (Koi + pub):
+  - Koi Ripples: a faint copy of the loaded bloom sits at the aim's landing spot.
+  - Pub cards: `CardLayer` drops the shadow on any card sitting under a close overlap
+    (`covered`), so stacks don't darken, and lifts moving cards above the rest (`flying`).
+    `scripts/pub-cards-check.ts` (run with tsx) plays bot games through
+    `layoutTable` and reports any card that vanishes or pops in; it prints nothing when
+    clean. Fixed that way: gin defender melds vanishing (`defend` shared array) and Oh
+    Hell's undealt deck (now a face-down stack).
+  - Pub chips: views push declarative chips into `kit.chips` (`from`/`to` points,
+    `gone` to sweep away); `Chips.svelte` throws them in on an arc. Only blackjack uses them
+    so far (stake, double, payout, lost bets swept to Bert).
+  - `GameView.double` (double-tap a card) and `GameView.autoStep` (one move every
+    `AUTO_STEP_MS` while it returns an action). Klondike and FreeCell send a double-tapped
+    card to its foundation and finish themselves once won; the Finish button is gone.
+    FreeCell's rules skip the bulk `autoHome` once `canAutoFC` says the game can finish
+    itself, so the finish plays out one card at a time through `autoStep`.

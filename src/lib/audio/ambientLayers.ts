@@ -3,7 +3,7 @@ import { jitter, loadTone, peekTone, type Tone } from './tone';
 
 /**
  * Synth layers for the slow generative scores (Eclipse, Lantern Wyrm, Tide & Cross,
- * Ashcourt, Chapel Glass, Lumen Reef, Frostline, Cartographer, Apothecary, Seedkeeper, Zen Garden, Lighthouse, Grand Hall). Each game's score calls `note` and `bass` as it plays; the layers answer,
+ * Ashcourt, Chapel Glass, Lumen Reef, Frostline, Cartographer, Apothecary, Seedkeeper, Zen Garden, Lighthouse, Grand Hall, Pub, Koi Pond, and each Silverball table). Each game's score calls `note` and `bass` as it plays; the layers answer,
  * drone, and ornament around those calls without changing the score itself.
  */
 
@@ -114,6 +114,62 @@ const ARRANGEMENTS: Record<string, Arrangement> = {
 		answer: { voice: 'flute', ratio: 2, delay: 1, every: 3, volume: -29, decay: 0.8 },
 		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 420, volume: -30, attack: 3, holdSteps: 6 },
 		glints: { voice: 'pluck', octave: 2, chance: 0.1, volume: -27 }
+	},
+	/** Summer koi pond: marimba answers an octave up, a soft warm fifth, glass glints like sun on the water. */
+	koi: {
+		echo: { steps: 0.75, feedback: 0.3, level: 0.26, cutoff: 4200 },
+		answer: { voice: 'marimba', ratio: 2, delay: 0.75, every: 2, volume: -24, decay: 0.9 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 560, volume: -27, attack: 3, holdSteps: 8 },
+		glints: { voice: 'glass', octave: 2, chance: 0.14, volume: -29 }
+	},
+	/** Haunted fairground: a music-box bell answers an octave up, a wheezing harmonium fifth, glass glints like loose bulbs. */
+	'pinball-carnival': {
+		echo: { steps: 1, feedback: 0.32, level: 0.26, cutoff: 3400 },
+		answer: { voice: 'bell', ratio: 2, delay: 0.66, every: 2, volume: -26, decay: 1.2 },
+		drone: { osc: 'fatsawtooth', ratios: [1, 1.5], cutoff: 460, volume: -29, attack: 1.5, holdSteps: 1 },
+		glints: { voice: 'glass', octave: 2, chance: 0.12, volume: -30 }
+	},
+	/** Sixties bowling-alley lounge: soft keys answer the vibes, a warm low hum, marimba glints. */
+	'pinball-woodrail': {
+		echo: { steps: 0.75, feedback: 0.26, level: 0.22, cutoff: 3200 },
+		answer: { voice: 'keys', ratio: 2, delay: 0.5, every: 2, volume: -27, decay: 1.2 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 420, volume: -31, attack: 1.5, holdSteps: 2 },
+		glints: { voice: 'marimba', octave: 2, chance: 0.1, volume: -28 }
+	},
+	/** Eighties arcade orbit: glass a fifth up through a long ping-pong, a saw-wave pad, star glints. */
+	'pinball-space': {
+		echo: { steps: 0.75, feedback: 0.4, level: 0.3, cutoff: 5200 },
+		answer: { voice: 'glass', ratio: 1.5, delay: 0.75, every: 2, volume: -27, decay: 1.4 },
+		drone: { osc: 'fatsawtooth', ratios: [1, 1.5, 2], cutoff: 900, volume: -30, attack: 1, holdSteps: 2 },
+		glints: { voice: 'bell', octave: 2, chance: 0.14, volume: -30 }
+	},
+	/** Below decks: a tin whistle answers the concertina, a squeezebox drone, plucked rigging. */
+	'pinball-pirate': {
+		echo: { steps: 1, feedback: 0.26, level: 0.22, cutoff: 3000 },
+		answer: { voice: 'flute', ratio: 2, delay: 0.5, every: 3, volume: -28, decay: 0.7 },
+		drone: { osc: 'fatsawtooth', ratios: [1, 1.5], cutoff: 520, volume: -31, attack: 1.5, holdSteps: 2 },
+		glints: { voice: 'pluck', octave: 2, chance: 0.12, volume: -26 }
+	},
+	/** The trench: keys a fifth up through a long dark echo, a slow swell, glass like rising bubbles. */
+	'pinball-deepsea': {
+		echo: { steps: 1, feedback: 0.44, level: 0.34, cutoff: 2200 },
+		answer: { voice: 'keys', ratio: 1.5, delay: 0.75, every: 2, volume: -26, decay: 2 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 460, volume: -24, attack: 3, holdSteps: 4 },
+		glints: { voice: 'glass', octave: 2, chance: 0.16, volume: -29 }
+	},
+	/** Castle hall: bells a fifth up, an organ-like open fifth, the odd far bell. */
+	'pinball-dragon': {
+		echo: { steps: 1, feedback: 0.34, level: 0.28, cutoff: 2800 },
+		answer: { voice: 'bell', ratio: 1.5, delay: 0.5, every: 3, volume: -28, decay: 1.6 },
+		drone: { osc: 'fatsawtooth', ratios: [1, 1.5, 2], cutoff: 560, volume: -29, attack: 2, holdSteps: 2 },
+		glints: { voice: 'bell', octave: 1, chance: 0.08, volume: -30 }
+	},
+	/** Desert at dusk: a guitar answers the whistle, a dry low fifth, spur-jingle glints. */
+	'pinball-western': {
+		echo: { steps: 1, feedback: 0.36, level: 0.3, cutoff: 3000 },
+		answer: { voice: 'pluck', ratio: 2, delay: 0.5, every: 2, volume: -24, decay: 0.8 },
+		drone: { osc: 'fattriangle', ratios: [1, 1.5], cutoff: 480, volume: -30, attack: 2, holdSteps: 2 },
+		glints: { voice: 'bell', octave: 2, chance: 0.08, volume: -31 }
 	}
 };
 

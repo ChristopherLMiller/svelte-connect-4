@@ -33,7 +33,10 @@ export type Mark = { x: number; y: number; text: string; kind: 'count' | 'label'
 /** A tappable place on the felt. `target` outlines it as somewhere a chosen card can go. */
 export type Spot = { x: number; y: number; w: number; h: number; action: string; label?: string; target?: boolean };
 
-export type TableView = { cards: Placement[]; plates: Plate[]; marks: Mark[]; spots: Spot[]; cw: number; ch: number };
+/** A betting chip on the felt. It is thrown in from `from` when it first appears and leaves towards `to`. */
+export type Chip = { id: string; value: number; x: number; y: number; z: number; from: { x: number; y: number }; to: { x: number; y: number }; gone?: boolean; delay?: number };
+
+export type TableView = { cards: Placement[]; plates: Plate[]; marks: Mark[]; spots: Spot[]; chips?: Chip[]; cw: number; ch: number };
 
 const GOLD = 'rgba(255, 196, 92, 0.85)';
 const GREEN = 'rgba(140, 230, 140, 0.85)';
@@ -166,6 +169,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 	}
 
 	if (view) {
+		const chips: Chip[] = [];
 		const seatSpot = (pos: number) =>
 			[
 				{ x: cx, y: h - ch * 0.56 },
@@ -184,6 +188,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 			plates,
 			marks,
 			spots,
+			chips,
 			cw,
 			ch,
 			cx,
@@ -195,7 +200,7 @@ export function layoutTable(input: TableInput, w: number, h: number): TableView 
 			dealing: input.stage === 'deal',
 			colours: { gold: GOLD, green: GREEN, red: RED, teal: TEAL }
 		});
-		return { cards: [...cards.values()], plates, marks, spots, cw, ch };
+		return { cards: [...cards.values()], plates, marks, spots, chips, cw, ch };
 	}
 
 	if (s.kind === 'cribbage') {

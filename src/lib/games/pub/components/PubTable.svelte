@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CardLayer from '../../kit/cards/CardLayer.svelte';
+	import Chips from './Chips.svelte';
 	import { SUIT_GLYPH, type Card, type Suit } from '../../kit/cards/deck';
 	import { PUB_BACK } from '../back';
 	import { layoutTable, type TableInput } from '../table';
@@ -102,9 +103,15 @@
 			cards={view.cards}
 			width={view.cw}
 			back={PUB_BACK}
+			lift={pubView.lift}
 			onpick={(id: Card) => session.pick(id)}
 			ondrop={(id: Card) => session.pick(id)}
+			ondouble={(id: Card) => session.double(id)}
 		/>
+
+		{#if view.chips?.length || session.state?.kind === 'blackjack'}
+			<Chips chips={view.chips ?? []} size={Math.max(20, view.cw * 0.34)} />
+		{/if}
 
 		{#each view.spots as spot (spot.action)}
 			<button

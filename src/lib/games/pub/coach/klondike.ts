@@ -21,7 +21,7 @@ const runText = (s: KlondikeState, c: Card) => {
 export function klondikeAdvice(s: KlondikeState): Advice {
 	const h = klondikeHint(s);
 	const action = hintAction(h);
-	if (h.kind === 'auto') return { action, cards: [], button: 'auto', spot: null, title: 'Finish it', why: 'Every card is face up and the stock is empty, so the game is won. Tap Finish to send everything home.' };
+	if (h.kind === 'auto') return { action, cards: [], button: 'auto', spot: null, title: 'Finish it', why: 'Every card is face up and the stock is empty, so the game is won. Sit back while they fly home.' };
 	if (h.kind === 'draw') return { action, cards: [], button: null, spot: 'draw', title: 'Turn the stock', why: `Nothing on the table can move usefully right now. Turn ${s.draw === 1 ? 'a card' : 'three cards'} from the stock to see what comes up.` };
 	if (h.kind === 'recycle') return { action, cards: [], button: null, spot: 'draw', title: 'Turn the pile over', why: `The stock is empty. Turn the waste back over and go through it again${s.redeals !== null ? ` (${s.redeals - s.passes} turn${s.redeals - s.passes === 1 ? '' : 's'} left)` : ''}: moves you’ve made since may have opened up new places for those cards.` };
 	if (h.kind === 'stuck') return { action, cards: [], button: 'resign', spot: null, title: 'No moves left', why: 'I’ve looked everywhere: nothing can move, and going through the stock again won’t change that. Undo a few moves to try another line, or give up and deal again.' };

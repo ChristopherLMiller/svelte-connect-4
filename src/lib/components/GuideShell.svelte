@@ -12,7 +12,7 @@
 	}: {
 		open: boolean;
 		onclose: () => void;
-		tone: 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost' | 'ink' | 'brew' | 'moss' | 'zen' | 'beacon' | 'regal' | 'tavern';
+		tone: 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost' | 'ink' | 'brew' | 'moss' | 'zen' | 'beacon' | 'regal' | 'tavern' | 'pond' | 'silverball';
 		kicker: string;
 		title?: string;
 		children: Snippet;
@@ -243,6 +243,34 @@
 		--g-done: linear-gradient(180deg, #f0be66, #b97a26);
 		--g-done-ink: #1c1107;
 		--g-kbd: rgba(224, 165, 72, 0.12);
+	}
+
+	.pond {
+		--g-bg: linear-gradient(180deg, #154a43, #0a2a26);
+		--g-text: #f6f1e4;
+		--g-muted: #b6d2c5;
+		--g-accent: #ffb347;
+		--g-line: rgba(255, 179, 71, 0.22);
+		--g-scrim: rgba(3, 18, 16, 0.58);
+		--g-head: 'Kaisei Decol', Georgia, serif;
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, #ffc36b, #f07a2c);
+		--g-done-ink: #2a1206;
+		--g-kbd: rgba(255, 179, 71, 0.12);
+	}
+
+	.silverball {
+		--g-bg: linear-gradient(180deg, color-mix(in srgb, var(--sb-bg, #2e1038) 80%, #ffffff 6%), var(--sb-bg, #14071c));
+		--g-text: var(--sb-ink, #fff2dc);
+		--g-muted: var(--sb-muted, #cbb6d6);
+		--g-accent: var(--sb-accent, #ffc24a);
+		--g-line: color-mix(in srgb, var(--sb-accent, #ffc24a) 22%, transparent);
+		--g-scrim: rgba(6, 2, 10, 0.66);
+		--g-head: var(--sb-display, 'Barlow Condensed', Impact, sans-serif);
+		--g-head-style: normal;
+		--g-done: linear-gradient(180deg, var(--sb-hot, #ff6a78), color-mix(in srgb, var(--sb-hot, #ff6a78) 55%, #000));
+		--g-done-ink: var(--sb-ink, #fff2dc);
+		--g-kbd: color-mix(in srgb, var(--sb-accent, #ffc24a) 12%, transparent);
 	}
 
 	.scrim {

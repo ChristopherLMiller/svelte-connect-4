@@ -2,7 +2,7 @@
  * Rebuild static/previews/<id>.jpg from each game's live preview.
  * Needs the dev server and playwright-core (not a project dependency):
  *   npm run dev
- *   node scripts/preview-stills.mjs
+ *   node scripts/preview-stills.mjs [id ...]
  */
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readdirSync } from 'node:fs';
@@ -24,8 +24,9 @@ const chrome =
 		'Library/Caches/ms-playwright/chromium-1208/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
 	);
 const origin = process.env.STILL_ORIGIN ?? 'http://127.0.0.1:5173';
-const ids = readdirSync('src/lib/games').filter((name) =>
-	existsSync(join('src/lib/games', name, 'preview.svelte'))
+const only = process.argv.slice(2);
+const ids = readdirSync('src/lib/games').filter(
+	(name) => existsSync(join('src/lib/games', name, 'preview.svelte')) && (!only.length || only.includes(name))
 );
 
 if (!existsSync(chrome)) {

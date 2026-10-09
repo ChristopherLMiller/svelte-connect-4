@@ -1,7 +1,7 @@
 import { SPADES, SUIT_NAME, label, newSeed, seededRandom, type Card } from '../kit/cards/deck';
 import { adviseAsync, chooseActionAsync } from './aiClient';
 import type { PubAction, PubState } from './ai';
-import { playCard, playCheer, playDeal, playHush, playKnock, playLose, playPass, playPeg, playSelect, playTurn, playWin } from './audio';
+import { playCard, playChips, playCheer, playDeal, playHush, playKnock, playLose, playPass, playPeg, playSelect, playTurn, playWin } from './audio';
 import { followed, review, type Advice } from './coach';
 import { LESSONS, type Concept } from './lessons';
 import { actorOf, applyAction, autoPhase, isOver, startGame, winnersOf } from './rules';
@@ -23,6 +23,9 @@ const PACE = {
 	easy: { think: [650, 1250], trick: 1100 },
 	slow: { think: [1000, 1900], trick: 1500 }
 } as const;
+
+/** Gap between cards when the table finishes a patience game by itself. */
+const AUTO_STEP_MS = 140;
 
 export class PubSession {
 	screen = $state<'menu' | 'play'>('menu');
@@ -328,6 +331,15 @@ export class PubSession {
 		this.act({ type: 'play', card });
 	}
 
+	/** A double tap on a card: the view's shortcut if it has one, otherwise just another tap. */
+	double(card: Card) {
+		const s = this.state;
+		if (!s || !this.myTurn) return;
+		const action = viewOf(s)?.double?.(s, card);
+		if (action) this.act(action);
+		else this.pick(card);
+	}
+
 	/** Confirm a two-card crib throw or a three-card pass. */
 	confirm() {
 		const s = this.state;
@@ -442,6 +454,13 @@ export class PubSession {
 			return;
 		}
 		if (this.humans[actor]) {
+			const step = actor === this.viewer && !this.curtain ? viewOf(s)?.autoStep?.(s) : null;
+			if (step) {
+				this.#later(AUTO_STEP_MS, () => {
+					if (this.state === s) this.#commit(applyAction(s, step, this.#random), step, actor);
+				});
+				return;
+			}
 			if (actor !== this.viewer) {
 				if (this.humans.filter(Boolean).length > 1) this.curtain = { for: actor };
 				else this.viewer = actor;
@@ -555,6 +574,7 @@ export class PubSession {
 					else if (kind === 'pass') playPass();
 					else if (kind === 'knock') playKnock();
 					else if (kind === 'deal') playDeal(arg ?? 4);
+					else if (kind === 'chips') playChips(arg ?? 3, 0, 0.32);
 					else playPeg(arg ?? 1);
 				},
 				pan

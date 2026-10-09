@@ -150,7 +150,7 @@ export function defend(cards: Card[], knockerMelds: Card[][]): { melding: Meldin
 			}
 		}
 		const points = loose.reduce((t, c) => t + pipValue(c), 0);
-		if (!best || points < best.melding.points) best = { melding: { melds: chosen, deadwood: loose, points }, layoffs, extended };
+		if (!best || points < best.melding.points) best = { melding: { melds: chosen.slice(), deadwood: loose, points }, layoffs, extended };
 	};
 	const walk = (from: number, taken: Set<Card>, chosen: Card[][]) => {
 		consider(chosen);

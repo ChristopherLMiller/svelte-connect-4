@@ -1,4 +1,5 @@
 import { SUIT_NAME, SUITS, sortHand, suitOf } from '../../kit/cards/deck';
+import { stack } from '../../kit/cards/layout';
 import { OH_HELL_HANDS, bidOptions, handSize, hookBid, legalOhHell, powerO, trumpOf, type OhHellAction, type OhHellState } from '../rules/ohhell';
 import { layTrick, layWonTricks, numberButtons, plural, seatTable } from './shared';
 import type { GameView } from './types';
@@ -117,6 +118,10 @@ export const OH_HELL_VIEW: GameView<OhHellState> = {
 		layTrick(k, s);
 		layWonTricks(k, s.played, s.trickNo, (c, led) => powerO(c, led, trump));
 		const up = { x: k.cx + k.cw * 1.7, y: k.cy };
+		const out = new Set<number>([...s.hands.flat(), ...s.played.map((p) => p.card), s.upcard]);
+		for (const c of s.trick) if (c !== null) out.add(c);
+		const rest = Array.from({ length: 52 }, (_, i) => i).filter((c) => !out.has(c));
+		stack(rest.length, up.x - k.cw * 0.12, up.y + k.ch * 0.04, k.cw).forEach((p, i) => k.put(rest[i], { ...p, rot: -4, face: false, z: 10 + i, scale: 0.7 }));
 		k.put(s.upcard, { ...up, rot: 6, face: true, z: 30, scale: 0.7, glow: s.phase === 'bid' ? 'rgba(255, 196, 92, 0.6)' : null });
 		k.marks.push({ x: up.x, y: up.y + k.ch * 0.45, text: `Trump · ${SUIT_NAME[trump]}`, kind: 'label' });
 	},

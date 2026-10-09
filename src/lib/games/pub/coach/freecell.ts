@@ -33,7 +33,7 @@ function moveWhy(s: FreeCellState, card: Card, to: string, solved: boolean): { t
 export function freeCellAdvice(s: FreeCellState): Advice {
 	const h = freeCellHint(s);
 	const action = fcHintAction(h);
-	if (h.kind === 'auto') return { action, cards: [], button: 'auto', spot: null, title: 'Finish it', why: 'Every column already runs high to low, so nothing is in the way. Tap Finish to send everything home.' };
+	if (h.kind === 'auto') return { action, cards: [], button: 'auto', spot: null, title: 'Finish it', why: 'Every column already runs high to low, so nothing is in the way. Sit back while they fly home.' };
 	if (h.kind === 'stuck') return { action, cards: [], button: 'resign', spot: null, title: 'No way forward', why: 'I can’t find a move that gets anywhere. Undo a few moves to try another line, or give up and deal again.' };
 	const { title, why } = moveWhy(s, h.card, h.to, h.solved);
 	return { action, cards: [h.card], button: null, spot: `to-${h.to}`, title, why };

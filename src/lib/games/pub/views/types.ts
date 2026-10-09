@@ -2,7 +2,7 @@ import type { Card } from '../../kit/cards/deck';
 import type { Placement } from '../../kit/cards/layout';
 import type { PubAction, PubState } from '../ai';
 import type { Lesson } from '../lessons';
-import type { Mark, Plate, Spot, TableInput } from '../table';
+import type { Chip, Mark, Plate, Spot, TableInput } from '../table';
 import type { Difficulty, Mode } from '../types';
 
 /** Who is looking at the table, and how seats map onto it. */
@@ -68,7 +68,7 @@ export type Fx = {
 	cheer: () => void;
 	hush: () => void;
 	stir: () => void;
-	sound: (kind: 'card' | 'pass' | 'knock' | 'deal' | 'peg', arg?: number) => void;
+	sound: (kind: 'card' | 'pass' | 'knock' | 'deal' | 'peg' | 'chips', arg?: number) => void;
 	pan: (seat: number) => number;
 };
 
@@ -84,6 +84,7 @@ export type TableKit = {
 	plates: Plate[];
 	marks: Mark[];
 	spots: Spot[];
+	chips: Chip[];
 	cw: number;
 	ch: number;
 	cx: number;
@@ -115,6 +116,10 @@ export type GameView<S extends PubState = PubState> = {
 	legal: (s: S, seat: number) => Card[];
 	/** What tapping one of those cards does: an action, or 'select' to toggle it in the selection. */
 	tap: (s: S, card: Card, seat: number, selected: Card[]) => PubAction | 'select' | null;
+	/** A double tap on a card (patience: send it home). Null falls back to an ordinary tap. */
+	double?: (s: S, card: Card) => PubAction | null;
+	/** One step the table takes by itself while it's the viewer's move (patience: the finish once every card is face up). */
+	autoStep?: (s: S) => PubAction | null;
 	/** Most cards that can be selected at once (defaults to 1). */
 	selectMax?: (s: S) => number;
 	/** Tapping a spot on the felt (a pile, the stock, an empty column). */

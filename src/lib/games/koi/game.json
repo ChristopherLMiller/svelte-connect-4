@@ -1,0 +1,17 @@
+{
+	"id": "koi",
+	"title": "Koi Pond",
+	"genre": "Bubble shooter & match-three",
+	"players": "1",
+	"tagline": "Flick, swap, and watch the koi leap.",
+	"blurb": "A sunlit garden pond with two ways to play: flick blooms into clusters, or swap them into rows. Play well and the golden koi leaps.",
+	"description": "A garden pond in high summer: sun through the maple leaves, koi turning under the lily pads, and six kinds of bloom floating on the water. Ripples is a bubble shooter. Flick blooms from a lily pad, bank them off the sides, pop three of a kind and cut whole clusters loose before the far bank creeps down. Currents is match-three. Swap neighbours into rows, and longer matches leave behind currents that sweep a row, bursts, and a moon that clears a whole kind. Big plays send a golden koi leaping across the pond. Both modes go on through endless stages, with your best score and furthest stage kept for each.",
+	"keywords": ["Koi Pond", "bubble shooter", "match three", "match-3", "puzzle", "koi", "lily pad", "garden", "arcade"],
+	"theme": "#145650",
+	"favicon": "/koi-favicon.svg",
+	"href": "/koi",
+	"accent": "#ffb347",
+	"glow": "#ff6f9f",
+	"cabinet": "#0f3f3a",
+	"order": 15
+}

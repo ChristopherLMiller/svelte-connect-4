@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost' | 'ink' | 'brew' | 'moss' | 'zen' | 'beacon' | 'regal' | 'tavern';
+	type ArcadeTone = 'space' | 'shore' | 'night' | 'ash' | 'orrery' | 'chapel' | 'reef' | 'frost' | 'ink' | 'brew' | 'moss' | 'zen' | 'beacon' | 'regal' | 'tavern' | 'pond' | 'silverball';
 
 	let {
 		tone,
@@ -603,6 +603,71 @@
 
 	.tavern .copy small {
 		color: #e0a548;
+		opacity: 1;
+	}
+
+	.pond {
+		--ink: #f6f1e4;
+		--accent: #ffb347;
+		border: 1px solid rgba(255, 179, 71, 0.32);
+		background: linear-gradient(180deg, rgba(22, 76, 68, 0.9), rgba(10, 42, 38, 0.92));
+		color: #f6f1e4;
+		box-shadow:
+			inset 0 1px 0 rgba(220, 255, 235, 0.1),
+			0 10px 26px rgba(0, 30, 24, 0.4);
+		font-family: Quicksand, ui-sans-serif, system-ui, sans-serif;
+	}
+
+	@media (hover: hover) {
+		.pond:hover {
+			border-color: #ffb347;
+			box-shadow:
+				inset 0 1px 0 rgba(220, 255, 235, 0.14),
+				0 12px 30px rgba(0, 30, 24, 0.45),
+				0 0 24px rgba(255, 179, 71, 0.25);
+		}
+	}
+
+	.pond .glyph {
+		background: linear-gradient(180deg, #ff9a4d, #d9531c);
+		box-shadow: inset 0 0 0 1px rgba(255, 240, 210, 0.45);
+	}
+
+	.pond .copy small {
+		color: #ffb347;
+		opacity: 1;
+	}
+
+	.silverball {
+		--ink: var(--sb-ink, #fff2dc);
+		--accent: var(--sb-accent, #ffc24a);
+		border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+		background: linear-gradient(180deg, color-mix(in srgb, var(--sb-bg, #2e1038) 70%, #ffffff 6%), var(--sb-bg, #14071c));
+		color: var(--ink);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 220, 240, 0.08),
+			0 10px 26px rgba(0, 0, 0, 0.5);
+		font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+		font-weight: 600;
+	}
+
+	@media (hover: hover) {
+		.silverball:hover {
+			border-color: var(--accent);
+			box-shadow:
+				inset 0 1px 0 rgba(255, 220, 240, 0.12),
+				0 12px 30px rgba(0, 0, 0, 0.55),
+				0 0 24px color-mix(in srgb, var(--accent) 30%, transparent);
+		}
+	}
+
+	.silverball .glyph {
+		background: linear-gradient(180deg, var(--sb-hot, #ff4b5c), color-mix(in srgb, var(--sb-hot, #ff4b5c) 45%, #000));
+		box-shadow: inset 0 0 0 1px rgba(255, 220, 200, 0.45);
+	}
+
+	.silverball .copy small {
+		color: var(--accent);
 		opacity: 1;
 	}
 

@@ -148,6 +148,28 @@ const SNUG: Profile = {
 	brightness: 5400
 };
 
+/** A sunlit garden pond: open air, bright and soft, a short shimmer off the water. */
+const POND: Profile = {
+	musicSpace: 0.22,
+	sfxSpace: 0.08,
+	chorus: 0.12,
+	drift: 2.5,
+	rt60: 1.8,
+	seconds: 2.2,
+	brightness: 7200
+};
+
+/** A pinball parlour after hours: a lively room with a hollow mid-length echo, so each table's music and chimes carry. */
+const PARLOUR: Profile = {
+	musicSpace: 0.26,
+	sfxSpace: 0.08,
+	chorus: 0.14,
+	drift: 3.5,
+	rt60: 2.2,
+	seconds: 2.6,
+	brightness: 6000
+};
+
 const PROFILES: Record<string, Profile> = {
 	library: ARCADE,
 	connect4: ARCADE,
@@ -160,7 +182,9 @@ const PROFILES: Record<string, Profile> = {
 	zengarden: TEMPLE,
 	lighthouse: HEADLAND,
 	chess: GRAND_HALL,
-	pub: SNUG
+	pub: SNUG,
+	koi: POND,
+	pinball: PARLOUR
 };
 
 export type Master = {

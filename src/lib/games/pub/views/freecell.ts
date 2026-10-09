@@ -1,7 +1,7 @@
-import { SUIT_GLYPH, card, label, type Card } from '../../kit/cards/deck';
+import { SUIT_GLYPH, card, label, suitOf, type Card } from '../../kit/cards/deck';
 import { freeCellHint } from '../bots/freecell';
 import { canAutoFC, locateFC, maxRun, targetsFC, type FreeCellAction, type FreeCellState } from '../rules/freecell';
-import { pileOf } from '../rules/patience';
+import { lowRank, pileOf } from '../rules/patience';
 import { cardLook, columnsX, layColumn, patienceButtons, tableauY, topRowY } from './patience';
 import type { GameView } from './types';
 
@@ -126,8 +126,8 @@ export const FREECELL_VIEW: GameView<FreeCellState> = {
 	prompt(s, p) {
 		const sel = p.selected[0];
 		const text = sel !== undefined ? `Tap where the **${label(sel)}** goes` : `**${home(s)}** of 52 home · ${s.moves} moves · move up to ${maxRun(s, false)} at once`;
-		const extra = canAutoFC(s) ? [{ id: 'auto', label: 'Finish', look: 'go' as const, do: { type: 'auto' as const } }] : [];
-		return { kind: 'line', text, buttons: p.my ? patienceButtons(s.past.length > 0, extra) : [] };
+		if (canAutoFC(s)) return { kind: 'line', text: `Every column runs high to low. **Sending them home** · ${home(s)} of 52`, muted: true };
+		return { kind: 'line', text, buttons: p.my ? patienceButtons(s.past.length > 0) : [] };
 	},
 
 	ledger(s) {
@@ -160,7 +160,11 @@ export const FREECELL_VIEW: GameView<FreeCellState> = {
 			},
 			{
 				title: 'Levels',
-				items: ['Easy has five free cells, medium four, hard three.', 'Cards nothing could need any more go home on their own.', '**Undo** takes back a move. **Finish** appears once every column runs high to low.']
+				items: [
+					'Easy has five free cells, medium four, hard three.',
+					'Cards nothing could need any more go home on their own. Double-tap a card to send it home yourself.',
+					'**Undo** takes back a move. Once every column runs high to low, the rest go home on their own.'
+				]
 			}
 		]
 	},
@@ -180,6 +184,18 @@ export const FREECELL_VIEW: GameView<FreeCellState> = {
 		const up = t.find((x) => x.startsWith('f'));
 		if (up && t.every((x) => x.startsWith('f') || x.startsWith('c'))) return { type: 'move', card: c, to: up };
 		return t.length ? 'select' : null;
+	},
+
+	double: (s, c) => {
+		const up = targetsFC(s, c).find((t) => t.startsWith('f'));
+		return up ? { type: 'move', card: c, to: up } : null;
+	},
+
+	autoStep: (s) => {
+		if (!canAutoFC(s) || s.phase !== 'play') return null;
+		const tops = [...s.cells, ...s.tableau.map((col) => col[col.length - 1])].filter((c): c is Card => c !== null && c !== undefined);
+		const next = tops.sort((a, b) => lowRank(a) - lowRank(b)).find((c) => targetsFC(s, c).some((t) => t.startsWith('f')));
+		return next === undefined ? null : { type: 'move', card: next, to: `f${suitOf(next)}` };
 	},
 
 	spot: (_s, id, _seat, selected): FreeCellAction | null => {

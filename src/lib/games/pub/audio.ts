@@ -366,6 +366,31 @@ export function playTurn() {
 	concertina(audio, out, [78], t + 0.12, 0.22, 0.45);
 }
 
+/** Clay chips landing on the baize and settling onto each other. */
+export function playChips(count: number, pan = 0, after = 0) {
+	const audio = sfxContext();
+	if (!audio) return;
+	const t = audio.currentTime + after;
+	const out = sfxOut(audio, pan * 0.5);
+	const n = Math.min(6, Math.max(1, count));
+	for (let i = 0; i < n; i++) {
+		const at = t + i * (0.045 + Math.random() * 0.03);
+		for (const [freq, level, len] of [
+			[2900 + Math.random() * 400, 0.07, 0.035],
+			[1650 + Math.random() * 200, 0.05, 0.05]
+		] as const) {
+			const osc = audio.createOscillator();
+			osc.type = 'triangle';
+			osc.frequency.setValueAtTime(freq, at);
+			osc.frequency.exponentialRampToValueAtTime(freq * 0.82, at + len);
+			const g = env(audio, at, level * (1 - i * 0.08), 0.001, len);
+			osc.connect(g).connect(out);
+			osc.start(at);
+			osc.stop(at + len + 0.03);
+		}
+	}
+}
+
 export function playKnock() {
 	const audio = sfxContext();
 	if (!audio) return;
